@@ -256,3 +256,4 @@ button:disabled { opacity: .55; cursor: default; }
 }
 .sbtn:hover { border-color: var(--accent); }
 .intro-duel { background: var(--ok-bg); border-left: 4px solid var(--ok); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+.me-dot { width: 12px; height: 12px; border-radius: 50%; background: #1f6f5c; border: 2px solid #fff; box-shadow: 0 0 0 2px #1f6f5c; }

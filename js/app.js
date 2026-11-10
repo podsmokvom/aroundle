@@ -149,13 +149,26 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // podloga bez naziva ulica i objekata, da mapa ne oda odgovor
-  function nolabelTiles() {
-    return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, subdomains: 'abcd',
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
-    });
+  // OpenFreeMap stil bez natpisa (bez slojeva tipa "symbol"), da mapa ne oda odgovor
+  let styleP = null;
+  function nolabelStyle() {
+    if (!styleP) {
+      styleP = K.fetchJSON('https://tiles.openfreemap.org/styles/liberty', {}, 15000).then((s) => {
+        s.layers = s.layers.filter((l) => l.type !== 'symbol');
+        return s;
+      });
+      styleP.catch(() => { styleP = null; });
+    }
+    return styleP;
   }
+  const ring = (lat, lon, r) => {
+    const pts = [];
+    for (let i = 0; i <= 48; i++) {
+      const a = (i / 48) * 2 * Math.PI;
+      pts.push([lon + (r / (111320 * Math.cos(lat * Math.PI / 180))) * Math.cos(a), lat + (r / 111320) * Math.sin(a)]);
+    }
+    return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [pts] } };
+  };
 
   function render() {
     const q = quiz.questions[idx];
@@ -173,15 +186,22 @@
       $('pinOk').disabled = true;
       $('pinOk').hidden = false;
       $('pinHint').textContent = 'Klikni na mapu gde misliš da je.';
-      qmap = L.map('qmap').setView([quiz.place.lat, quiz.place.lon], 15);
-      nolabelTiles().addTo(qmap);
-      L.circleMarker([quiz.place.lat, quiz.place.lon], { radius: 5, color: '#1f6f5c', fillOpacity: 1 }).addTo(qmap).bindTooltip('izabrana tačka');
-      qmap.on('click', (e) => {
-        if ($('pinOk').hidden) return;
-        if (pin) pin.setLatLng(e.latlng); else pin = L.marker(e.latlng).addTo(qmap);
-        $('pinOk').disabled = false;
-        $('pinHint').textContent = 'Možeš da pomeriš klik, pa potvrdi.';
-      });
+      const myIdx = idx;
+      nolabelStyle().then((style) => {
+        if (idx !== myIdx || !quiz) return;
+        qmap = new maplibregl.Map({ container: 'qmap', style, center: [quiz.place.lon, quiz.place.lat], zoom: 15, attributionControl: { compact: true } });
+        qmap.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+        const dot = document.createElement('div');
+        dot.className = 'me-dot';
+        dot.title = 'izabrana tačka';
+        new maplibregl.Marker({ element: dot }).setLngLat([quiz.place.lon, quiz.place.lat]).addTo(qmap);
+        qmap.on('click', (e) => {
+          if ($('pinOk').hidden) return;
+          if (pin) pin.setLngLat(e.lngLat); else pin = new maplibregl.Marker({ color: '#b3261e' }).setLngLat(e.lngLat).addTo(qmap);
+          $('pinOk').disabled = false;
+          $('pinHint').textContent = 'Možeš da pomeriš klik, pa potvrdi.';
+        });
+      }).catch((e) => { $('pinHint').textContent = `Mapa nije učitana (${e.message}).`; });
       return;
     }
     q.options.forEach((o, i) => {
@@ -221,17 +241,21 @@
   $('pinOk').addEventListener('click', () => {
     const q = quiz.questions[idx];
     if (!pin || !q.target) return;
-    const p = pin.getLatLng();
+    const p = pin.getLngLat();
     const d = K.dist(p.lat, p.lng, q.target.lat, q.target.lon);
     const ok = d <= q.target.tol;
     if (ok) score++;
     answers.push({ q, ok, dist: d });
     $('pinOk').hidden = true;
-    const t = [q.target.lat, q.target.lon];
-    L.circle(t, { radius: q.target.tol, color: '#2e7d32', weight: 1, fillOpacity: 0.12 }).addTo(qmap);
-    L.circleMarker(t, { radius: 8, color: '#2e7d32', fillColor: '#2e7d32', fillOpacity: 0.9 }).addTo(qmap).bindTooltip('ovde je', { permanent: true });
-    L.polyline([[p.lat, p.lng], t], { color: ok ? '#2e7d32' : '#b3261e', dashArray: '6 6' }).addTo(qmap);
-    qmap.fitBounds(L.latLngBounds([[p.lat, p.lng], t]).pad(0.4), { maxZoom: 17 });
+    const t = [q.target.lon, q.target.lat];
+    qmap.addSource('answer', { type: 'geojson', data: { type: 'FeatureCollection', features: [
+      ring(q.target.lat, q.target.lon, q.target.tol),
+      { type: 'Feature', geometry: { type: 'LineString', coordinates: [[p.lng, p.lat], t] } }
+    ] } });
+    qmap.addLayer({ id: 'tol', type: 'fill', source: 'answer', filter: ['==', '$type', 'Polygon'], paint: { 'fill-color': '#2e7d32', 'fill-opacity': 0.15 } });
+    qmap.addLayer({ id: 'miss', type: 'line', source: 'answer', filter: ['==', '$type', 'LineString'], paint: { 'line-color': ok ? '#2e7d32' : '#b3261e', 'line-width': 3, 'line-dasharray': [2, 2] } });
+    new maplibregl.Marker({ color: '#2e7d32' }).setLngLat(t).setPopup(new maplibregl.Popup({ closeButton: false }).setText('ovde je')).addTo(qmap).togglePopup();
+    qmap.fitBounds([[Math.min(p.lng, t[0]), Math.min(p.lat, t[1])], [Math.max(p.lng, t[0]), Math.max(p.lat, t[1])]], { padding: 60, maxZoom: 17 });
     $('pinHint').textContent = '';
     feedback(ok, q, `Promašaj: <strong>${K.fmtNum(Math.round(d), 0)} m</strong>. `);
   });

@@ -58,8 +58,9 @@
   }
 
   // Brojčani odgovori: tačna vrednost + 3 pomerene za korak (tačan nije uvek u sredini)
-  function numeric(value, step, fmt) {
-    const patterns = [[-3, -2, -1], [-2, -1, 1], [-1, 1, 2], [1, 2, 3]];
+  function numeric(value, step, fmt, min = -Infinity) {
+    // samo obrasci kod kojih nijedna ponuđena vrednost ne pada ispod min (npr. visina ispod 0 m)
+    const patterns = [[-3, -2, -1], [-2, -1, 1], [-1, 1, 2], [1, 2, 3]].filter((p) => value + p[0] * step >= min);
     const p = K.pick(patterns);
     return { correct: fmt(value), wrongs: p.map((k) => fmt(value + k * step)) };
   }
@@ -273,7 +274,7 @@
     }
     if (cl.jul && cl.jul.p != null) {
       const step = Math.max(12, Math.round(cl.jul.p * 0.35));
-      const n = numeric(Math.round(cl.jul.p), step, (v) => `${K.fmtNum(Math.max(1, Math.round(v)), 0)} mm`);
+      const n = numeric(Math.round(cl.jul.p), step, (v) => `${K.fmtNum(Math.round(v), 0)} mm`, 3);
       qs.push(makeQ({ cat: 'climate', outsider: true, text: `Koliko padavina u proseku padne u julu (${where}, 1991–2020)?`, ...n, explain: `Prosečan zbir padavina za jul 1991–2020: ${n.correct}.`, source: src }));
     }
     return qs.filter(Boolean);
@@ -308,7 +309,7 @@
     if (elev && elev.amount > 0) {
       const v = Math.round(elev.amount);
       const step = Math.max(40, Math.round(v * 0.4 / 10) * 10);
-      const n = numeric(v, step, (x) => `${K.fmtNum(Math.max(1, Math.round(x)), 0)} m`);
+      const n = numeric(v, step, (x) => `${K.fmtNum(Math.round(x), 0)} m`, 5);
       qs.push(makeQ({ cat: 'city', outsider: true, text: `Na kojoj nadmorskoj visini je ${name}?`, ...n, explain: `Wikidata navodi ${v} m nadmorske visine.`, source: src }));
     }
     return qs.filter(Boolean);
