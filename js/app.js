@@ -357,7 +357,7 @@
     show($('shareBox'), false);
     $('myName').value = store.get('kviz:name') || '';
     $('lbName').value = store.get('kviz:name') || '';
-    lbMine = null; lbScope = 'hood'; lbPeriod = 'day';
+    lbMine = null; lbScope = 'near'; lbPeriod = 'day';
     show($('lbForm')); $('lbSubmit').disabled = false;
     lbShow();
     show($('result'));
@@ -365,8 +365,8 @@
   }
 
   // ---------------- Rang-lista ----------------
-  let lbScope = 'hood', lbPeriod = 'day', lbMine = null;
-  const SCOPE_SR = { hood: 'kraj', city: 'grad', country: 'država', continent: 'kontinent', world: 'svet' };
+  let lbScope = 'near', lbPeriod = 'day', lbMine = null;
+  const SCOPE_SR = { near: 'kraj (1,5 km)', city: 'grad', country: 'država', continent: 'kontinent', world: 'svet' };
   async function lbShow() {
     if (!quiz) return;
     const keys = K.lbKeys(quiz.place);
@@ -376,9 +376,9 @@
     try {
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
       $('lbList').innerHTML = rows.length ? rows.map((r) =>
-        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${r.secs}s${lbScope !== 'hood' ? ` <span class="muted small">(${K.esc(r.hood_name)})</span>` : ''}</li>`
+        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${r.secs}s <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
       ).join('') : '<li class="muted">Još niko. Budi prvi!</li>';
-      const label = lbScope === 'continent' ? (K.CONTINENT_SR[keys.continent] || 'kontinent') : lbScope === 'hood' ? quiz.place.kraj : lbScope === 'city' ? quiz.place.grad : lbScope === 'country' ? (quiz.place.country || '').toUpperCase() : 'ceo svet';
+      const label = lbScope === 'continent' ? (K.CONTINENT_SR[keys.continent] || 'kontinent') : lbScope === 'near' ? `do 1,5 km od tvoje tačke (${quiz.place.kraj || 'kraj'})` : lbScope === 'city' ? quiz.place.grad : lbScope === 'country' ? (quiz.place.country || '').toUpperCase() : 'ceo svet';
       $('lbMsg').textContent = `${lbPeriod === 'all' ? 'Najbolji ikad' : 'Danas'}: ${label || SCOPE_SR[lbScope]}.` + (lbMine && lbMine.rank ? ` Tvoje mesto danas: ${lbMine.rank[lbScope]}.` : '');
     } catch (e) {
       $('lbList').innerHTML = '';

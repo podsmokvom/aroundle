@@ -17,8 +17,9 @@
   K.continentOf = (cc) => MAP[(cc || '').toLowerCase()] || '';
   K.CONTINENT_SR = { EU: 'Evropa', AS: 'Azija', AF: 'Afrika', NA: 'Severna Amerika', SA: 'Južna Amerika', OC: 'Okeanija' };
 
+  // „near“ = svi igrači današnjeg dana na najviše 1,5 km (tačke su već nasumično pomerene 200 m)
   K.lbKeys = (place) => ({
-    hood: K.hoodKey(place), city: place.grad || '', country: (place.country || '').toLowerCase(),
+    near: { lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3) }, city: place.grad || '', country: (place.country || '').toLowerCase(),
     continent: K.continentOf(place.country), world: '*'
   });
 
@@ -26,7 +27,7 @@
     const r = await fetch(K.API + 'score.php', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        hood: K.hoodKey(place), hood_name: place.kraj || '', city: place.grad || '', country: place.country || '',
+        hood: K.hoodKey(place), hood_name: place.kraj || "", lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3), city: place.grad || '', country: place.country || '',
         continent: K.continentOf(place.country), name, points: res.points, correct: res.score, total: res.n, secs: res.time
       })
     });
@@ -35,8 +36,8 @@
     return j;
   };
 
-  K.lbTop = async function (scope, key, period = 'day') {
-    const qs = new URLSearchParams({ scope, key: key || '', period });
+  K.lbTop = async function (scope, key, period = "day") {
+    const qs = new URLSearchParams(scope === "near" ? { scope, lat: key.lat, lon: key.lon, period } : { scope, key: key || "", period });
     const r = await fetch(`${K.API}top.php?${qs}`);
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);

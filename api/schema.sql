@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS aroundle_scores (
   day       DATE         NOT NULL,
   hood      VARCHAR(120) NOT NULL,          -- normalizovan „kraj|grad“
   hood_name VARCHAR(80)  NOT NULL,          -- za prikaz
+  lat       DECIMAL(7,3) NOT NULL,          -- tačka već pomerena 200 m i zaokružena na ~100 m (nikad prava)
+  lon       DECIMAL(8,3) NOT NULL,
   city      VARCHAR(80)  NOT NULL DEFAULT '',
   country   CHAR(2)      NOT NULL DEFAULT '',
   continent CHAR(2)      NOT NULL DEFAULT '',
@@ -15,7 +17,7 @@ CREATE TABLE IF NOT EXISTS aroundle_scores (
   iphash    CHAR(64)     NOT NULL,          -- heš IP adrese + so (sama IP se ne čuva)
   created   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY one_per_day (day, hood, iphash),
-  KEY k_hood (day, hood, points),
+  KEY k_near (day, lat, lon),
   KEY k_city (day, city, points),
   KEY k_country (day, country, points),
   KEY k_cont (day, continent, points),

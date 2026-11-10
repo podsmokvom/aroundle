@@ -18,4 +18,11 @@ function db() {
   return $pdo;
 }
 function clean($s, $max) { return mb_substr(trim(preg_replace('/[\x00-\x1F<>]/u', '', (string)$s)), 0, $max); }
-const SCOPES = ['hood' => 'hood', 'city' => 'city', 'country' => 'country', 'continent' => 'continent', 'world' => null];
+const SCOPES = ['near' => null, 'city' => 'city', 'country' => 'country', 'continent' => 'continent', 'world' => null];
+const NEAR_M = 1500; // „kraj“ na rang-listi = sve tačke do 1,5 km (tačke su nasumično pomerene 200 m)
+// SQL uslov: rastojanje (haversine) od tačke ?,? do kolona lat/lon najviše NEAR_M, uz brzi okvir (bbox) za indeks
+function nearSql($lat, $lon, &$args) {
+  $dLat = NEAR_M / 111320; $dLon = NEAR_M / (111320 * max(0.01, cos(deg2rad($lat))));
+  array_push($args, $lat - $dLat, $lat + $dLat, $lon - $dLon, $lon + $dLon, $lat, $lat, $lon);
+  return 'lat BETWEEN ? AND ? AND lon BETWEEN ? AND ? AND 12742000*ASIN(SQRT(POW(SIN(RADIANS(lat-?)/2),2)+COS(RADIANS(?))*COS(RADIANS(lat))*POW(SIN(RADIANS(lon-?)/2),2))) <= ' . NEAR_M;
+}
