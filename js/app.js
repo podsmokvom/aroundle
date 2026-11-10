@@ -25,7 +25,18 @@
 
   const HOOD = new Set(['neighbourhood', 'quarter', 'suburb', 'village', 'hamlet', 'isolated_dwelling']);
 
-  async function setPoint(lat, lon) {
+  // Privatnost: izabrana tačka se odmah pomera za 200 m u nasumičnom pravcu, PRE bilo kakvog slanja spoljnim servisima.
+  // Pravac je zaista slučajan (crypto) i nigde se ne čuva, pa se prava tačka ne može izračunati ni uz javni kod.
+  const SHIFT_M = 200;
+  function shift(lat, lon) {
+    const r = new Uint32Array(1);
+    crypto.getRandomValues(r);
+    const a = (r[0] / 4294967296) * 2 * Math.PI;
+    return [lat + (SHIFT_M * Math.cos(a)) / 111320, lon + (SHIFT_M * Math.sin(a)) / (111320 * Math.cos(lat * Math.PI / 180))];
+  }
+
+  async function setPoint(rawLat, rawLon) {
+    const [lat, lon] = shift(rawLat, rawLon);
     show($('picked'));
     $('pickedName').textContent = 'tražim kraj…';
     $('build').disabled = true;
@@ -41,7 +52,7 @@
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
-      marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip('tvoja tačka');
+      marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip('tvoja tačka, namerno pomerena 200 m');
       circle = L.circle([place.lat, place.lon], { radius: 1000, color: '#1f6f5c', weight: 2, fillOpacity: 0.08 }).addTo(map);
     }
     map.setView([place.lat, place.lon], 14);
@@ -83,7 +94,11 @@
     if (!navigator.geolocation) return alertBox('Pregledač ne podržava lokaciju.');
     $('locate').disabled = true;
     navigator.geolocation.getCurrentPosition(
-      (p) => { $('locate').disabled = false; setPoint(p.coords.latitude, p.coords.longitude); },
+      (p) => {
+        $('locate').disabled = false;
+        setPoint(p.coords.latitude, p.coords.longitude);
+        alertBox('Lokacija je namerno pomerena 200 m. Savet: ako si kod kuće, radije klikni na neko javno mesto u kraju (park, školu, raskrsnicu).');
+      },
       () => { $('locate').disabled = false; alertBox('Lokacija nije dozvoljena ili nije dostupna.'); },
       { enableHighAccuracy: false, timeout: 15000 }
     );

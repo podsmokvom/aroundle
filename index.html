@@ -23,7 +23,7 @@
         <p class="tag">KHM… koliko poznaješ svoj kraj?</p>
       </div>
     </div>
-    <p class="lead">Izaberi mesto gde živiš ili radiš, i dobićeš 10 pitanja o kraju oko te tačke.</p>
+    <p class="lead">Izaberi mesto u svom kraju (ne svoju kućnu adresu) i dobićeš 10 pitanja o kraju oko te tačke.</p>
   </header>
 
   <main>
@@ -31,16 +31,16 @@
     <section id="pick" class="card">
       <h2>1. Izaberi mesto</h2>
       <form id="searchForm" class="row" autocomplete="off">
-        <input id="q" type="search" placeholder="Adresa, kraj ili grad (npr. Karaburma, Beograd)" aria-label="Pretraga mesta">
+        <input id="q" type="search" placeholder="Kraj, ulica, park ili škola (ne tvoja kućna adresa)" aria-label="Pretraga mesta">
         <button type="submit">Traži</button>
         <button type="button" id="locate" class="ghost" title="Koristi moju lokaciju">📍 Moja lokacija</button>
       </form>
       <ul id="results" class="results" hidden></ul>
       <div id="map" aria-label="Mapa — klikni da izabereš tačku"></div>
-      <p class="hint">Ili klikni na mapu tačno gde želiš. Krug pokazuje 1 km oko tvoje tačke.</p>
+      <p class="hint">Ili klikni na mapu. Radi tvoje bezbednosti izaberi mesto u kraju koje <strong>nije tvoja kuća</strong>: ugao ulice, park, školu ili prodavnicu. Sajt tačku dodatno namerno pomeri za 200 m u nasumičnom pravcu. Krug pokazuje 1 km oko pomerene tačke.</p>
       <div id="picked" class="picked" hidden>
         <div><span class="muted">Tvoj kraj:</span> <strong id="pickedName"></strong></div>
-        <p class="muted small">Kviz se pravi oko tačke koju izabereš (1 km unaokolo). Jedan pokušaj po kraju dnevno.</p>
+        <p class="muted small">Kviz se pravi oko tačke (pomerene 200 m radi privatnosti), 1 km unaokolo. Jedan pokušaj po kraju dnevno.</p>
         <div class="row">
           <button id="build">Kreni sa kvizom</button>
         </div>
@@ -125,7 +125,7 @@
       </div>
       <div class="share">
         <h3>Izazovi komšiju: „Koliko poznaješ MOJ kraj?“</h3>
-        <p class="muted small">Link nosi ista pitanja istim redom. Tvoja tačka je u linku zaokružena na oko 100 m.</p>
+        <p class="muted small">Link nosi ista pitanja istim redom. U linku je samo pomerena tačka (200 m od izabrane), bez adrese.</p>
         <div class="row">
           <input id="myName" type="text" maxlength="24" placeholder="Tvoje ime (vidi ga komšija)" aria-label="Tvoje ime">
           <button id="makeDuel">Napravi izazov</button>
