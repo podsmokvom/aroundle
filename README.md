@@ -1,4 +1,4 @@
-# Kviz — koliko poznaješ svoj kraj?
+# Aroundle — koliko poznaješ svoj kraj?
 
 Nekomercijalni sajt otvorenog koda. Izabereš bilo koje mesto na svetu, a sajt u pregledaču napravi
 10 pitanja o tom kraju: ulice, škole, parkovi, spomenici, majstori i radnje, linije gradskog prevoza,
@@ -27,4 +27,9 @@ Bilo koji statički server u ovom folderu, npr. `python -m http.server`, pa otvo
 ## Licenca
 
 Kod: [MIT](LICENSE). Podaci pripadaju svojim izvorima (tabela iznad).
-Pitanja i predlozi: [GitHub Issues](https://github.com/podsmokvom/kviz/issues).
+Pitanja i predlozi: [GitHub Issues](https://github.com/podsmokvom/aroundle/issues).
+
+## Ime i logo
+
+Ime **Aroundle**, oznaka **KHM?** i logo (devojka koja upitno kašljuca, `assets/logo.svg`) **nisu** pod MIT licencom.
+Sva prava zadržana © 2026 YT3MD. Kod slobodno koristi po MIT licenci, ali svoj sajt nazovi drugačije i koristi svoj logo.

@@ -23,13 +23,13 @@ $row = [
   hash('sha256', SALT . ($_SERVER['REMOTE_ADDR'] ?? '') . $day)
 ];
 try {
-  $st = db()->prepare('INSERT IGNORE INTO kmh_scores (day,hood,hood_name,city,country,continent,name,points,correct,total,secs,iphash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+  $st = db()->prepare('INSERT IGNORE INTO aroundle_scores (day,hood,hood_name,city,country,continent,name,points,correct,total,secs,iphash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
   $st->execute($row);
   if ($st->rowCount() === 0) out(['ok' => false, 'error' => 'Za ovaj kraj danas već postoji rezultat sa ove mreže.'], 409);
   // mesto u svakoj rang-listi (danas)
   $rank = [];
   foreach (SCOPES as $scope => $col) {
-    $sql = 'SELECT COUNT(*)+1 AS r FROM kmh_scores WHERE day=? AND points>?';
+    $sql = 'SELECT COUNT(*)+1 AS r FROM aroundle_scores WHERE day=? AND points>?';
     $args = [$day, $points];
     if ($col) { $sql .= " AND $col=?"; $args[] = $col === 'hood' ? $row[1] : ($col === 'city' ? $row[3] : ($col === 'country' ? $row[4] : $row[5])); }
     $q = db()->prepare($sql); $q->execute($args);

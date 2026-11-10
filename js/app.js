@@ -1,4 +1,4 @@
-/* Kviz — interfejs: izbor kraja, dnevni kviz, poeni i vreme, duel, deljenje i kartice */
+/* Aroundle — interfejs: izbor kraja, dnevni kviz, poeni i vreme, duel, deljenje i kartice */
 (function (K) {
   'use strict';
   const $ = (id) => document.getElementById(id);
@@ -425,7 +425,7 @@
       const code = await K.duelEncode(quiz, me || 'Komšija', result);
       const url = K.duelLink(code);
       const kraj = quiz.place.kraj || 'moj kraj';
-      const text = `Znaš li svoj kraj? · ${kraj} 🏙️\n${grid(result.oks)} ${result.score}/${result.n} · ${result.time}s\nMožeš li bolje?`;
+      const text = `Aroundle · Znaš li svoj kraj? · ${kraj} 🏙️\n${grid(result.oks)} ${result.score}/${result.n} · ${result.time}s\nMožeš li bolje?`;
       share = { text, url };
       $('shareText').textContent = `${text} ${url.slice(0, 48)}…`;
       const enc = encodeURIComponent;
@@ -443,7 +443,7 @@
     } finally { $('makeDuel').disabled = false; }
   });
   $('shareNative').addEventListener('click', async () => {
-    if (navigator.share) { navigator.share({ title: 'Koliko poznaješ moj kraj?', text: share.text, url: share.url }).catch(() => {}); return; }
+    if (navigator.share) { navigator.share({ title: 'Aroundle', text: share.text, url: share.url }).catch(() => {}); return; }
     copyText();
   });
   async function copyText() {
@@ -483,7 +483,7 @@
     const pad = w * 0.08, F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     let y = h * (h > w ? 0.24 : 0.12); // story: sadržaj bliže sredini
     x.fillStyle = '#f7d77c'; x.font = `700 ${w * 0.045}px ${F}`;
-    x.fillText('Znaš li svoj kraj?', pad, y);
+    x.fillText('AROUNDLE · Znaš li svoj kraj?', pad, y);
     y += w * 0.11;
     x.fillStyle = '#fff'; x.font = `800 ${w * 0.085}px ${F}`;
     for (const l of wrap(x, quiz.place.kraj || 'Moj kraj', w - 2 * pad).slice(0, 2)) { x.fillText(l, pad, y); y += w * 0.095; }
@@ -517,7 +517,7 @@
       lines.forEach((l, i) => x.fillText(l, pad + w * 0.03, y + w * 0.1 + i * w * 0.05));
     }
     x.fillStyle = '#cfe9e0'; x.font = `600 ${w * 0.035}px ${F}`;
-    x.fillText('Koliko poznaješ SVOJ kraj?', pad, h - pad - w * 0.05);
+    x.fillText('Aroundle · Koliko poznaješ SVOJ kraj?', pad, h - pad - w * 0.05);
     x.fillStyle = '#9fd3c3'; x.font = `500 ${w * 0.03}px ${F}`;
     x.fillText(location.host || 'kviz', pad, h - pad);
     return c;

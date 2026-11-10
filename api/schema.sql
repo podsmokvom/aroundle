@@ -1,5 +1,5 @@
--- KnowMyHood rang-liste (MySQL / MariaDB na Loopiji)
-CREATE TABLE IF NOT EXISTS kmh_scores (
+-- Aroundle rang-liste (MySQL / MariaDB na Loopiji)
+CREATE TABLE IF NOT EXISTS aroundle_scores (
   id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   day       DATE         NOT NULL,
   hood      VARCHAR(120) NOT NULL,          -- normalizovan „kraj|grad“

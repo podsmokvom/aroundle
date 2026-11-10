@@ -1,4 +1,4 @@
-/* KnowMyHood — rang-liste (kraj, grad, država, kontinent, svet) preko api/ (PHP + MySQL na Loopiji) */
+/* Aroundle — rang-liste (kraj, grad, država, kontinent, svet) preko api/ (PHP + MySQL na Loopiji) */
 (function (K) {
   'use strict';
   K.API = 'api/';
