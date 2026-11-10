@@ -3,14 +3,13 @@
 (function (K) {
   'use strict';
   const TARGET = 10;
-  const CACHE_VER = 'kviz:v3:';
+  const CACHE_VER = 'kviz:v4:';
   const CACHE_DAYS = 30;
 
   // ---------------- Keš (localStorage) ----------------
-  K.cacheKey = (place) => {
-    const k = place.kraj || place.grad ? K.norm(`${place.kraj}|${place.grad}`) : `${place.lat.toFixed(3)},${place.lon.toFixed(3)}`;
-    return CACHE_VER + k;
-  };
+  // kraj (za „jedan pokušaj dnevno“ i rang-liste) i tačka igrača zaokružena na ~100 m (za keš i seed)
+  K.hoodKey = (place) => K.norm(`${place.kraj || ""}|${place.grad || ""}`) || `${place.lat.toFixed(2)},${place.lon.toFixed(2)}`;
+  K.cacheKey = (place) => `${CACHE_VER}${K.hoodKey(place)}@${place.lat.toFixed(3)},${place.lon.toFixed(3)}`;
   K.cacheGet = function (place) {
     try {
       const raw = localStorage.getItem(K.cacheKey(place));
@@ -124,7 +123,7 @@
   function circleStage(lat, lon, r, opts) {
     const gap = r + Math.max(700, r * 0.8);
     return {
-      key: "r" + r, lat, lon, radius: r, label: `u kraju (${fmtR(r)} oko centra)`, title: `krug od ${fmtR(r)}`,
+      key: "r" + r, lat, lon, radius: r, label: `u kraju (${fmtR(r)} oko tebe)`, title: `krug od ${fmtR(r)}`,
       inside: (a, b) => K.dist(lat, lon, a, b) <= r,
       farOk: (a, b, d) => (d != null ? d : K.dist(lat, lon, a, b)) > gap,
       loadR: Math.max(3000, r * 2.5), ovR: Math.min(6000, Math.max(1800, r * 2.2)), far: gap,
@@ -148,7 +147,7 @@
   }
 
   // ---------------- Glavna funkcija ----------------
-  // place.lat/lon = centar kraja (ne adresa igrača). Seed = kraj + datum: svi iz kraja danas dobijaju ista pitanja.
+  // place.lat/lon = tačka koju je igrač izabrao. Seed = kraj + tačka (~100 m) + datum.
   K.buildQuiz = async function (place, log = () => {}) {
     const { lat, lon } = place;
     const day = place.day || K.today();
@@ -156,7 +155,7 @@
 
     // Zajedničko za sve krugove: nadmorska visina kraja, „nazvano po“
     const shared = { questions: [], wdNamed: [] };
-    log('Open-Meteo: nadmorska visina centra kraja…');
+    log('Open-Meteo: nadmorska visina tačke…');
     const elevP = K.elevation(lat, lon).then((h) => { shared.elev = h; log(`Open-Meteo: ${Math.round(h)} m nadmorske visine.`, 'ok'); })
       .catch((e) => log(`Open-Meteo: ${e.message}`, 'warn'));
     log('Wikidata: šta je po kome nazvano u kraju…');
@@ -168,8 +167,8 @@
 
     // kraj = najviše 1 km oko centra
     const stages = [
-      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od centra)' }),
-      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od centra)' })
+      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od tvoje tačke)' }),
+      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od tvoje tačke)' })
     ];
 
     const notes = [];

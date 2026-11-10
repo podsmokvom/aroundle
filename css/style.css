@@ -267,3 +267,39 @@ button.big { width: 100%; padding: 14px 16px; font-size: 1.05rem; margin-top: 8p
 .cardpreview { display: block; max-width: 220px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--line); }
 .qtimer { font-variant-numeric: tabular-nums; }
 .pts { color: var(--accent); font-weight: 700; }
+
+/* ---------- Ikonice mreža ---------- */
+.social { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.soc {
+  width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%;
+  display: inline-grid; place-items: center; background: var(--c); cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.18); transition: transform .12s ease;
+}
+.soc:hover { transform: translateY(-2px); }
+.soc i { width: 24px; height: 24px; background: #fff; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+.soc.ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); }
+
+/* ---------- Brend ---------- */
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 72px; height: 72px; flex: none; }
+.brand h1 { margin: 0; font-size: 2rem; letter-spacing: -0.02em; line-height: 1.1; }
+.brand h1 span { color: var(--accent); }
+.tag { margin: 2px 0 0; font-weight: 600; color: var(--muted); }
+
+/* ---------- Rang-lista ---------- */
+.lb { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 12px; }
+.lb h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.lb input[type=text] { flex: 1 1 180px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 6px; }
+.tabs button { padding: 6px 12px; border-radius: 999px; background: transparent; color: var(--accent); font-size: .9rem; }
+.tabs button.on { background: var(--accent); color: var(--accent-ink); }
+.tabs button.small { font-size: .8rem; }
+.lblist { padding-left: 22px; margin: 6px 0; font-size: .95rem; }
+.lblist li { padding: 2px 0; }
+.lblist li.me { font-weight: 700; color: var(--accent); }
+.soc[data-ic="whatsapp"] i { --i: url(../assets/icons/whatsapp.svg); }
+.soc[data-ic="viber"] i { --i: url(../assets/icons/viber.svg); }
+.soc[data-ic="instagram"] i { --i: url(../assets/icons/instagram.svg); }
+.soc[data-ic="facebook"] i { --i: url(../assets/icons/facebook.svg); }
+.soc[data-ic="telegram"] i { --i: url(../assets/icons/telegram.svg); }
+.soc[data-ic="x"] i { --i: url(../assets/icons/x.svg); }

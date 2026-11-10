@@ -23,11 +23,11 @@
   // kratki linkovi izvora (GBIF linkovi imaju dug upit)
   const shortUrl = (u) => { try { const x = new URL(u); return x.search.length > 80 ? x.origin + x.pathname : u; } catch (e) { return ''; } };
 
-  // centar kraja (ne adresa igrača), 4 decimale ≈ 10 m
+  // tačka igrača zaokružena na 3 decimale (~100 m), ne tačna adresa
   K.duelEncode = async function (quiz, name, res) {
     const payload = {
       v: 2, d: quiz.day,
-      p: { k: quiz.place.kraj, g: quiz.place.grad, c: quiz.place.country, la: +quiz.place.lat.toFixed(4), lo: +quiz.place.lon.toFixed(4) },
+      p: { k: quiz.place.kraj, g: quiz.place.grad, c: quiz.place.country, la: +quiz.place.lat.toFixed(3), lo: +quiz.place.lon.toFixed(3) }, // ~100 m, ne tačna adresa
       s: quiz.scope, n: (name || "").slice(0, 24), r: res.score, pt: res.points, t: res.time, ok: res.oks.map((x) => (x ? 1 : 0)),
       q: quiz.questions.map((q) => ({
         c: q.cat, t: q.text, o: q.options, a: q.answer, e: q.explain, x: q.outsider ? 1 : 0,

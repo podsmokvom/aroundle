@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kviz — koliko poznaješ svoj kraj?</title>
+  <title>KnowMyHood — koliko poznaješ svoj kraj?</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <meta name="description" content="Koliko poznaješ svoj kraj? 10 pitanja o bilo kom mestu: ulice, škole, majstori, linije, klima. Izazovi komšiju!">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Kviz — koliko poznaješ svoj kraj?">
@@ -15,8 +16,14 @@
 </head>
 <body>
   <header class="top">
-    <h1>Kviz</h1>
-    <p class="lead">Koliko poznaješ svoj kraj? Izaberi bilo koje mesto i sajt sam napravi 10 pitanja iz otvorenih podataka.</p>
+    <div class="brand">
+      <img src="assets/logo.svg" alt="" class="logo" width="72" height="72">
+      <div>
+        <h1>Know<span>My</span>Hood</h1>
+        <p class="tag">KHM… koliko poznaješ svoj kraj?</p>
+      </div>
+    </div>
+    <p class="lead">Izaberi mesto gde živiš ili radiš, i dobićeš 10 pitanja o kraju oko te tačke.</p>
   </header>
 
   <main>
@@ -30,10 +37,10 @@
       </form>
       <ul id="results" class="results" hidden></ul>
       <div id="map" aria-label="Mapa — klikni da izabereš tačku"></div>
-      <p class="hint">Ili klikni na mapu. Krug pokazuje kraj: 1 km oko centra.</p>
+      <p class="hint">Ili klikni na mapu tačno gde želiš. Krug pokazuje 1 km oko tvoje tačke.</p>
       <div id="picked" class="picked" hidden>
         <div><span class="muted">Tvoj kraj:</span> <strong id="pickedName"></strong></div>
-        <p class="muted small">Kviz se pravi oko centra kraja, ne oko tvoje adrese. Svi iz kraja danas dobijaju ista pitanja; jedan pokušaj dnevno.</p>
+        <p class="muted small">Kviz se pravi oko tačke koju izabereš (1 km unaokolo). Jedan pokušaj po kraju dnevno.</p>
         <div class="row">
           <button id="build">Kreni sa kvizom</button>
         </div>
@@ -68,10 +75,7 @@
         </div>
       </div>
       <p id="status" class="status" aria-live="polite"></p>
-      <details class="details">
-        <summary>Detalji</summary>
-        <ul id="log" class="log"></ul>
-      </details>
+      <ul id="log" class="log" hidden></ul>
     </section>
 
     <!-- 3. Kviz -->
@@ -102,23 +106,43 @@
         <p id="cmpVerdict"></p>
         <button id="returnBtn" class="big">Napravi kviz za SVOJ kraj i vrati mu</button>
       </div>
+      <div class="lb">
+        <h3>Rang-lista</h3>
+        <div class="row" id="lbForm">
+          <input id="lbName" type="text" maxlength="24" placeholder="Ime za rang-listu" aria-label="Ime za rang-listu">
+          <button id="lbSubmit">Upiši me</button>
+        </div>
+        <div class="tabs" role="tablist">
+          <button data-scope="hood" class="on">Kraj</button>
+          <button data-scope="city">Grad</button>
+          <button data-scope="country">Država</button>
+          <button data-scope="continent">Kontinent</button>
+          <button data-scope="world">Svet</button>
+          <button data-period="all" class="ghost small">svih vremena</button>
+        </div>
+        <ol id="lbList" class="lblist"></ol>
+        <p id="lbMsg" class="muted small"></p>
+      </div>
       <div class="share">
         <h3>Izazovi komšiju: „Koliko poznaješ MOJ kraj?“</h3>
-        <p class="muted small">Link nosi ista pitanja istim redom. Tvoja adresa i koordinate nisu u linku, samo centar kraja.</p>
+        <p class="muted small">Link nosi ista pitanja istim redom. Tvoja tačka je u linku zaokružena na oko 100 m.</p>
         <div class="row">
           <input id="myName" type="text" maxlength="24" placeholder="Tvoje ime (vidi ga komšija)" aria-label="Tvoje ime">
           <button id="makeDuel">Napravi izazov</button>
         </div>
         <div id="shareBox" class="sharebox" hidden>
           <pre id="shareText" class="sharetext"></pre>
+          <div class="social" role="group" aria-label="Podeli na mrežama">
+            <a id="shareWa" class="soc" style="--c:#25D366" data-ic="whatsapp" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><i></i></a>
+            <a id="shareViber" class="soc" style="--c:#7360F2" data-ic="viber" aria-label="Viber" title="Viber"><i></i></a>
+            <button id="shareIg" class="soc ig" data-ic="instagram" aria-label="Instagram" title="Instagram (slika za story)"><i></i></button>
+            <a id="shareFb" class="soc" style="--c:#0866FF" data-ic="facebook" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><i></i></a>
+            <a id="shareTg" class="soc" style="--c:#26A5E4" data-ic="telegram" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><i></i></a>
+            <a id="shareX" class="soc" style="--c:#000" data-ic="x" target="_blank" rel="noopener" aria-label="X" title="X"><i></i></a>
+          </div>
           <div class="row">
-            <button id="shareNative">Podeli</button>
+            <button id="shareNative">Podeli…</button>
             <button id="shareCopyText" class="ghost">Kopiraj tekst</button>
-            <a id="shareWa" class="sbtn" target="_blank" rel="noopener">WhatsApp</a>
-            <a id="shareViber" class="sbtn">Viber</a>
-            <a id="shareTg" class="sbtn" target="_blank" rel="noopener">Telegram</a>
-            <a id="shareFb" class="sbtn" target="_blank" rel="noopener">Facebook</a>
-            <a id="shareX" class="sbtn" target="_blank" rel="noopener">X</a>
           </div>
           <div class="row cards">
             <button id="cardStory" class="ghost">Slika za story (9:16)</button>
@@ -158,6 +182,7 @@
   <script src="js/questions.js"></script>
   <script src="js/build.js"></script>
   <script src="js/duel.js"></script>
+  <script src="js/leaderboard.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

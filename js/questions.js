@@ -390,7 +390,7 @@
     if (near.length >= 4 && nearest[near[1]].d - nearest[near[0]].d >= 80) {
       const opts = [near[0], ...K.shuffle(near.slice(1, 8)).slice(0, 3)];
       const q = makeQ({
-        cat: 'svcNear', text: 'Šta je najbliže centru kraja, prema otvorenim mapama?',
+        cat: 'svcNear', text: 'Šta je najbliže tvojoj tački, prema otvorenim mapama?',
         correct: S[opts[0]].one, wrongs: opts.slice(1).map((k) => S[k].one),
         explain: opts.map((k) => `${S[k].one}: ${m(nearest[k].d)}`).join(', ') + ' (vazdušnom linijom).', source: src
       });
@@ -404,7 +404,7 @@
       const bin = BINS.find((b) => d >= b[0] && d < b[1]);
       if (BINS.some((b) => Math.abs(d - b[0]) < 30 && b[0] > 0)) continue; // preblizu granice
       const q = makeQ({
-        cat: 'svcDist', text: `Koliko vazdušnom linijom ima od centra kraja do najbližeg mesta: ${S[k].one}?`,
+        cat: 'svcDist', text: `Koliko vazdušnom linijom ima od tvoje tačke do najbližeg mesta: ${S[k].one}?`,
         correct: bin[2], wrongs: BINS.filter((b) => b !== bin).map((b) => b[2]),
         explain: `Najbliže mesto (${S[k].one})${nearest[k].name ? ` („${nearest[k].name}“)` : ''} je na oko ${m(d)} vazdušnom linijom.`, source: src
       });
@@ -435,7 +435,7 @@
       const q = makeQ({
         cat: 'svcName', names: true, text: `Koja od ovih radnji (${S[s.kind].one}) se nalazi ${stage.label}?`,
         correct: s.name, wrongs: similar(s.name, pool),
-        explain: `„${s.name}“ je na mapi (${s.src}) ${stage.label}, na oko ${m(s.d)} od centra kraja.`,
+        explain: `„${s.name}“ je na mapi (${s.src}) ${stage.label}, na oko ${m(s.d)} od tvoje tačke.`,
         source: { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=19/${s.lat.toFixed(5)}/${s.lon.toFixed(5)}` }
       });
       if (q) qs.push(q);
@@ -507,14 +507,14 @@
     return qs;
   };
 
-  // ---------------- Nadmorska visina centra kraja ----------------
+  // ---------------- Nadmorska visina tačke igrača ----------------
   K.elevationQuestions = function (h, kraj) {
     const v = Math.round(h);
     const step = v < 60 ? 15 : v < 300 ? 30 : 60;
     const n = numeric(v, step, (x) => `${K.fmtNum(Math.round(x), 0)} m`, v > 5 ? 2 : -Infinity);
     const q = makeQ({
-      cat: 'elev', text: `Na kojoj nadmorskoj visini je centar kraja${kraj ? ` ${kraj}` : ''}?`, ...n,
-      explain: `Centar kraja je na oko ${n.correct} nadmorske visine (digitalni model terena, Copernicus DEM 90 m).`,
+      cat: 'elev', text: `Na kojoj nadmorskoj visini je tvoja tačka${kraj ? ` u kraju ${kraj}` : ''}?`, ...n,
+      explain: `Tvoja tačka je na oko ${n.correct} nadmorske visine (digitalni model terena, Copernicus DEM 90 m).`,
       fact: `Moj kraj je na ${n.correct} nadmorske visine.`,
       source: { name: 'Open-Meteo Elevation API', url: 'https://open-meteo.com/en/docs/elevation-api' }
     });
