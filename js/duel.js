@@ -23,11 +23,12 @@
   // kratki linkovi izvora (GBIF linkovi imaju dug upit)
   const shortUrl = (u) => { try { const x = new URL(u); return x.search.length > 80 ? x.origin + x.pathname : u; } catch (e) { return ''; } };
 
-  K.duelEncode = async function (quiz, name, score, oks) {
+  // centar kraja (ne adresa igrača), 4 decimale ≈ 10 m
+  K.duelEncode = async function (quiz, name, res) {
     const payload = {
-      v: 1,
-      p: { k: quiz.place.kraj, g: quiz.place.grad, la: +quiz.place.lat.toFixed(5), lo: +quiz.place.lon.toFixed(5) },
-      s: quiz.scope, n: (name || '').slice(0, 24), r: score, ok: oks.map((x) => (x ? 1 : 0)),
+      v: 2, d: quiz.day,
+      p: { k: quiz.place.kraj, g: quiz.place.grad, c: quiz.place.country, la: +quiz.place.lat.toFixed(4), lo: +quiz.place.lon.toFixed(4) },
+      s: quiz.scope, n: (name || "").slice(0, 24), r: res.score, pt: res.points, t: res.time, ok: res.oks.map((x) => (x ? 1 : 0)),
       q: quiz.questions.map((q) => ({
         c: q.cat, t: q.text, o: q.options, a: q.answer, e: q.explain, x: q.outsider ? 1 : 0,
         sn: q.source && q.source.name, su: q.source && shortUrl(q.source.url),
@@ -41,11 +42,11 @@
   K.duelDecode = async function (str) {
     const json = new TextDecoder().decode(await pipe(b64u.dec(str), new DecompressionStream('deflate-raw')));
     const d = JSON.parse(json);
-    if (d.v !== 1 || !Array.isArray(d.q)) throw new Error('neispravan izazov');
+    if (![1, 2].includes(d.v) || !Array.isArray(d.q)) throw new Error("neispravan izazov");
     return {
       quiz: {
-        created: Date.now(), duel: true,
-        place: { kraj: d.p.k, grad: d.p.g, lat: d.p.la, lon: d.p.lo },
+        created: Date.now(), duel: true, day: d.d || K.today(),
+        place: { kraj: d.p.k, grad: d.p.g, country: d.p.c || "", lat: d.p.la, lon: d.p.lo },
         scope: d.s, notes: [],
         questions: d.q.map((q) => ({
           cat: q.c, text: q.t, options: q.o || [], answer: q.a, explain: q.e || '', outsider: !!q.x,
@@ -53,7 +54,7 @@
           ...(q.tg ? { type: 'map', target: { lat: q.tg[0], lon: q.tg[1], tol: q.tg[2] } } : {})
         }))
       },
-      from: { name: d.n || 'Komšija', score: d.r, oks: d.ok || [] }
+      from: { name: d.n || "Komšija", score: d.r, points: d.pt || 0, time: d.t || null, oks: d.ok || [] }
     };
   };
 

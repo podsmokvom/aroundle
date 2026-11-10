@@ -53,16 +53,33 @@
     return 2 * R * Math.asin(Math.sqrt(a));
   };
 
+  // ---------- Slučajnost sa seed-om (isti kraj + isti dan = ista pitanja) ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  K.rand = Math.random;
+  K.setSeed = function (str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    K.rand = mulberry32(h >>> 0);
+  };
+  K.today = () => new Date().toISOString().slice(0, 10);
+
   // ---------- Nizovi ----------
   K.shuffle = function (arr) {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(K.rand() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
   };
-  K.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  K.pick = (arr) => arr[Math.floor(K.rand() * arr.length)];
   K.uniqBy = function (arr, fn) {
     const seen = new Set(), out = [];
     for (const x of arr) { const k = fn(x); if (!k || seen.has(k)) continue; seen.add(k); out.push(x); }

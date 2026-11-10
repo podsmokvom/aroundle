@@ -109,7 +109,9 @@
     hair_salon: 'hairdresser', barber: 'hairdresser', dry_cleaning: 'dry_cleaning', laundromat: 'laundry',
     florist: 'florist', bakery: 'bakery', butcher_shop: 'butcher', pharmacy: 'pharmacy', optician: 'optician',
     watch_repair_service: 'watches', beauty_salon: 'beauty', nail_salon: 'beauty', veterinarian: 'vet', dentist: 'dentist',
-    jewelry_store: 'jewelry', hardware_store: 'hardware'
+    jewelry_store: 'jewelry', hardware_store: 'hardware',
+    health_food_store: 'health_food', organic_grocery_store: 'health_food', cafe: 'cafe', coffee_shop: 'cafe',
+    indoor_playground: 'kids_play', kids_recreation_and_party: 'kids_play', playground: 'playground', ice_cream_shop: 'ice_cream'
   };
   const primaryOf = (p) => {
     const t = p.taxonomy;
@@ -147,6 +149,7 @@
         });
       }
     }));
+    out.sort((a, b) => String(a.id).localeCompare(String(b.id))); // stabilan redosled
     return K.uniqBy(out, (o) => String(o.id) + '|' + o.lat.toFixed(5));
   };
 })(globalThis.Kviz = globalThis.Kviz || {});

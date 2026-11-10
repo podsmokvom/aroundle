@@ -16,7 +16,7 @@
       const raw = localStorage.getItem(K.cacheKey(place));
       if (!raw) return null;
       const v = JSON.parse(raw);
-      if (!v || !v.questions || Date.now() - v.created > CACHE_DAYS * 864e5) return null;
+      if (!v || !v.questions || v.day !== K.today()) return null; // dnevni kviz: keš važi samo danas
       return v;
     } catch (e) { return null; }
   };
@@ -36,7 +36,8 @@
       } catch (e) { log(`Vikipedija (${lang}) nedostupna: ${e.message}`, 'warn'); }
     }));
     // sr pre en (kod duplikata ostaje srpski članak)
-    local.sort((a, b) => (a.lang === 'sr' ? 0 : 1) - (b.lang === 'sr' ? 0 : 1));
+    const byLangId = (a, b) => (a.lang === b.lang ? a.pageid - b.pageid : a.lang === 'sr' ? -1 : 1);
+    local.sort(byLangId); far.sort(byLangId); // stabilan redosled (isti kviz za sve)
     // detalji za lokalne: uvod + Wikidata ID
     await Promise.all(['sr', 'en'].map(async (lang) => {
       const ids = local.filter((w) => w.lang === lang).map((w) => w.pageid);
@@ -68,7 +69,7 @@
     log('Vikipedija (sr, pa en): članci u blizini…');
     log('GBIF: najčešće zabeležene ptice (samo CC0 i CC BY)…');
     log('Transitous: linije gradskog prevoza na stanicama u kraju…');
-    const [osm, ov, wiki, birdQs, transit] = await Promise.all([
+    const [osm, ov, wiki, birdData, transit] = await Promise.all([
       K.osmFromTiles(lat, lon, stage.loadR, stage.inside, stage.farOk)
         .then((r) => { log(`OpenStreetMap: ${r.local.items.length} objekata i ${r.services.filter((s) => s.inside).length} radnji ${stage.label}.`, 'ok'); return r; })
         .catch((e) => { log(`OpenStreetMap pločice: ${e.message}`, 'warn'); return { local: empty(), far: empty(), services: [] }; }),
@@ -78,8 +79,8 @@
       wikiFor(lat, lon, stage.wikiR, stage.wikiFar, stage.wikiCenters, log)
         .then((r) => { log(`Vikipedija: ${r.local.length} članaka u kraju.`, 'ok'); return r; }),
       K.birds(lat, lon, stage.gbifR)
-        .then((b) => { log(`GBIF: ${b.total} nalaza ptica.`, 'ok'); return K.birdQuestions(b, stage.gbifLabel); })
-        .catch((e) => { log(`GBIF: ${e.message}`, 'warn'); return []; }),
+        .then((b) => { log(`GBIF: ${b.total} nalaza ptica.`, "ok"); return b; })
+        .catch((e) => { log(`GBIF: ${e.message}`, "warn"); return null; }),
       K.transitData(lat, lon, stage.inside, Math.min(stage.radius, 3000))
         .then((r) => { log(`Transitous: ${r.local.length} stanica u kraju sa voznim redom.`, 'ok'); return r; })
         .catch((e) => { log(`Transitous: ${e.message}`, 'warn'); return null; })
@@ -102,6 +103,8 @@
     }
     wiki.local = wiki.local.filter((w) => !K.wd.items(ents[w.qid], 'P31').some((q) => ENERGY_Q.has(q)));
 
+    // pitanja (i slučajnost) tek kad su svi podaci stigli, uvek istim redom
+    const birdQs = birdData ? await K.birdQuestions(birdData, stage.gbifLabel).catch(() => []) : [];
     const services = K.mergeServices(osm.services, ov, stage.inside, lat, lon);
     return [
       ...K.osmQuestions(stage, osm.local, osm.far),
@@ -121,7 +124,7 @@
   function circleStage(lat, lon, r, opts) {
     const gap = r + Math.max(700, r * 0.8);
     return {
-      key: 'r' + r, lat, lon, radius: r, label: `u krugu od ${fmtR(r)}`, title: `krug od ${fmtR(r)}`,
+      key: "r" + r, lat, lon, radius: r, label: `u kraju (${fmtR(r)} oko centra)`, title: `krug od ${fmtR(r)}`,
       inside: (a, b) => K.dist(lat, lon, a, b) <= r,
       farOk: (a, b, d) => (d != null ? d : K.dist(lat, lon, a, b)) > gap,
       loadR: Math.max(3000, r * 2.5), ovR: Math.min(6000, Math.max(1800, r * 2.2)), far: gap,
@@ -145,77 +148,50 @@
   }
 
   // ---------------- Glavna funkcija ----------------
+  // place.lat/lon = centar kraja (ne adresa igrača). Seed = kraj + datum: svi iz kraja danas dobijaju ista pitanja.
   K.buildQuiz = async function (place, log = () => {}) {
     const { lat, lon } = place;
-    const where = place.grad || place.kraj || 'ovom mestu';
+    const day = place.day || K.today();
+    K.setSeed(`${K.cacheKey(place)}|${day}`);
 
-    // Zajedničko za sve krugove: klima, podaci o gradu, „nazvano po“; granice opštine/grada
+    // Zajedničko za sve krugove: nadmorska visina kraja, „nazvano po“
     const shared = { questions: [], wdNamed: [] };
-    log('Open-Meteo: prosek za januar i jul 1991–2020…');
-    const climateP = K.climate(lat, lon).then((cl) => {
-      shared.questions.push(...K.climateQuestions(cl, where));
-      log('Open-Meteo: klima izračunata.', 'ok');
-    }).catch((e) => log(`Open-Meteo: ${e.message}`, 'warn'));
-    log('Wikidata: šta je po kome nazvano u okolini…');
-    const namedP = K.wdNamedAfter(lat, lon, 5).then((r) => { shared.wdNamed = r; })
+    log('Open-Meteo: nadmorska visina centra kraja…');
+    const elevP = K.elevation(lat, lon).then((h) => { shared.elev = h; log(`Open-Meteo: ${Math.round(h)} m nadmorske visine.`, 'ok'); })
+      .catch((e) => log(`Open-Meteo: ${e.message}`, 'warn'));
+    log('Wikidata: šta je po kome nazvano u kraju…');
+    const namedP = K.wdNamedAfter(lat, lon, 3).then((r) => { shared.wdNamed = r; })
       .catch((e) => log(`Wikidata (nazvano po): ${e.message}`, 'warn'));
-    const areasP = K.adminPolygons(lat, lon).catch(() => []);
-    const cityP = areasP.then(async (areas) => {
-      const cityArea = areas.find((a) => a.kind === 'city') || areas.find((a) => a.kind === 'mun');
-      if (!cityArea || !cityArea.wikidata) return;
-      try {
-        const ce = await K.wikidata([cityArea.wikidata]);
-        const name = cityArea.name.replace(/^(grad|gradska opština|opština|city of|municipality of)\s+/i, '');
-        shared.questions.push(...K.cityQuestions(ce[cityArea.wikidata], name, cityArea.wikidata));
-        log(`Wikidata: podaci o mestu ${name}.`, 'ok');
-      } catch (e) { log(`Wikidata (grad): ${e.message}`, 'warn'); }
-    });
+    shared.namedP = namedP;
+    await elevP;
+    if (shared.elev != null) shared.questions.push(...K.elevationQuestions(shared.elev, place.kraj));
 
-    const stage1 = circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 2000, gbifLabel: 'u okolini, oko 2 km od tačke,' });
-    shared.namedP = namedP; // prvi krug ga čeka tek kod Wikidata koraka, ne na početku
-    const firstP = buildStage(stage1, shared, log);
-    await Promise.all([climateP, cityP]);
-    const areas = await areasP;
-    const mun = areas.find((a) => a.kind === 'mun');
-    const city = areas.find((a) => a.kind === 'city');
-
-    const stages = [stage1];
-    if (mun) stages.push({ ...areaStage(lat, lon, mun, 'mun', 8000), wikiR: 3000, wikiFar: 6000, gbifR: 5000, gbifLabel: 'u široj okolini, oko 5 km od tačke,' });
-    if (city && (!mun || city.osmId !== mun.osmId)) stages.push({ ...areaStage(lat, lon, city, 'city', 12000), wikiR: 10000, wikiFar: null, wikiCenters: [[lat + 0.35, lon], [lat - 0.35, lon]], gbifR: 12000, gbifLabel: 'u okolini, oko 12 km od tačke,' });
-    if (!mun && !city) {
-      stages.push(circleStage(lat, lon, 2000, { wikiR: 2000, wikiFar: 5000, gbifR: 4000, gbifLabel: 'u okolini, oko 4 km od tačke,' }));
-      stages.push(circleStage(lat, lon, 5000, { wikiR: 5000, wikiFar: null, wikiCenters: [[lat + 0.35, lon], [lat - 0.35, lon]], gbifR: 10000, gbifLabel: 'u okolini, oko 10 km od tačke,' }));
-    }
+    // kraj = najviše 1 km oko centra
+    const stages = [
+      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od centra)' }),
+      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od centra)' })
+    ];
 
     const notes = [];
     let used = null;
     for (let i = 0; i < stages.length; i++) {
       const st = stages[i];
-      let cands;
-      if (i === 0) {
-        // prvi krug je pokrenut pre nego što su klima/grad stigli: dodaj ih ako fale
-        const base = await firstP;
-        cands = base.concat(shared.questions.filter((q) => !base.includes(q)));
-      } else cands = await buildStage(st, shared, log);
-      // dovoljno = 10 pitanja, od kojih bar 6 baš o kraju (ne samo klima i grad)
-      const localN = cands.filter((q) => !q.outsider).length;
-      const enough = cands.length >= TARGET && localN >= TARGET - 4;
-      log(`${st.title}: ${cands.length} dobrih pitanja (${localN} o samom kraju).`, enough ? "ok" : "warn");
-      const score = Math.min(localN, TARGET - 3) * 100 + cands.length;
-      if (!used || score > used.score) used = { stage: st, cands, i, score };
-      if (enough) { used = { stage: st, cands, i, score }; break; }
+      K.setSeed(`${K.cacheKey(place)}|${day}|${st.key}`);
+      const cands = await buildStage(st, shared, log);
+      log(`${st.title}: ${cands.length} dobrih pitanja.`, cands.length >= TARGET ? 'ok' : 'warn');
+      if (!used || cands.length > used.cands.length) used = { stage: st, cands, i };
+      if (cands.length >= TARGET) { used = { stage: st, cands, i }; break; }
       if (i < stages.length - 1) log(`Nedovoljno pitanja, širim na: ${stages[i + 1].title}…`, 'warn');
     }
-    for (let i = 0; i < used.i; i++) {
-      notes.push(`${stages[i].title[0].toUpperCase() + stages[i].title.slice(1)}: nije bilo 10 proverenih pitanja, pa je krug proširen na: ${stages[i + 1].title}.`);
-    }
+    if (used.i > 0) notes.push(`U krugu od 800 m nije bilo 10 proverenih pitanja, pa kviz pokriva ceo kraj, 1 km oko centra.`);
+    K.setSeed(`${K.cacheKey(place)}|${day}|izbor`);
     const questions = K.selectQuiz(used.cands, TARGET);
-    if (questions.length < TARGET) notes.push(`Ni za ${used.stage.title} izvori nemaju 10 proverenih pitanja, pa kviz ima ${questions.length}.`);
-    if (questions.filter((q) => q.outsider).length < 3) notes.push('Klima i podaci o gradu nisu bili dostupni, pa ima manje od 3 pitanja za one koji ne žive ovde.');
+    if (questions.length < TARGET) notes.push(`Izvori za ovaj kraj imaju samo ${questions.length} proverenih pitanja.`);
+    K.rand = Math.random;
 
     return {
-      created: Date.now(),
-      place: { kraj: place.kraj, grad: place.grad, lat, lon },
+      created: Date.now(), day,
+      place: { kraj: place.kraj, grad: place.grad, country: place.country || '', lat, lon },
       scope: used.stage.title, scopeKey: used.stage.key,
       notes, questions
     };

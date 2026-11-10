@@ -278,9 +278,20 @@
     const local = K.uniqBy(near.filter((s) => inside(s.lat, s.lon)).sort((a, b) => a.d - b.d), (s) => K.norm(s.name)).slice(0, 4);
     if (!local.length) return { local: [], far: [] };
     const big = await K.transitStops(lat, lon, Math.max(4500, radius * 3));
-    const far = K.shuffle(K.uniqBy(big.filter((s) => !inside(s.lat, s.lon) && s.d > Math.max(1800, radius * 1.6)), (s) => K.norm(s.name))).slice(0, 5);
+    const far = K.uniqBy(big.filter((s) => !inside(s.lat, s.lon) && s.d > Math.max(1800, radius * 1.6)), (s) => K.norm(s.name)).sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(0, 5);
     const withLines = async (s) => ({ ...s, lines: await K.transitLines(s).catch(() => []) });
     const [L, F] = await Promise.all([Promise.all(local.map(withLines)), Promise.all(far.map(withLines))]);
     return { local: L.filter((s) => s.lines.length), far: F.filter((s) => s.lines.length) };
+  };
+})(globalThis.Kviz = globalThis.Kviz || {});
+
+/* ================= Open-Meteo Elevation (nadmorska visina tačke, DEM 90 m) ================= */
+(function (K) {
+  'use strict';
+  K.elevation = async function (lat, lon) {
+    const j = await K.fetchJSON(`https://api.open-meteo.com/v1/elevation?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}`, {}, 10000);
+    const h = j.elevation && j.elevation[0];
+    if (h == null || isNaN(h)) throw new Error('nema podatka o visini');
+    return h;
   };
 })(globalThis.Kviz = globalThis.Kviz || {});

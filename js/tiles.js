@@ -153,12 +153,13 @@
     for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) xy.push([x, y]);
     if (xy.length > 240) throw new Error('prevelika oblast za pločice');
     // najviše 8 istovremenih preuzimanja
-    const tiles = [];
+    const tiles = new Array(xy.length); // po poziciji, ne po redu stizanja (isti kviz za sve)
     let next = 0;
     await Promise.all(Array.from({ length: Math.min(8, xy.length) }, async () => {
       while (next < xy.length) {
-        const [x, y] = xy[next++];
-        tiles.push(await getTile(x, y, wanted).catch(() => ({})));
+        const k = next++;
+        const [x, y] = xy[k];
+        tiles[k] = await getTile(x, y, wanted).catch(() => ({}));
       }
     }));
     const merged = {};
@@ -204,7 +205,12 @@
     appliance: { one: 'serviser kućnih aparata', many: 'servisera kućnih aparata' },
     glazier: { one: 'staklorezac', many: 'staklorezaca' },
     vet: { one: 'veterinar', many: 'veterinarskih ambulanti' },
-    dentist: { one: 'zubar', many: 'zubarskih ordinacija' }
+    dentist: { one: 'zubar', many: 'zubarskih ordinacija' },
+    health_food: { one: 'prodavnica zdrave hrane', many: 'prodavnica zdrave hrane' },
+    cafe: { one: 'kafić', many: 'kafića' },
+    playground: { one: 'dečje igralište', many: 'dečjih igrališta' },
+    kids_play: { one: 'igraonica za decu', many: 'igraonica za decu' },
+    ice_cream: { one: 'poslastičarnica / sladoled', many: 'poslastičarnica i sladoledžinica' }
   };
 
   // OSM + Overture zajedno: ista vrsta na <60 m sa sličnim (ili bez) imenom = ista radnja
@@ -313,7 +319,7 @@
       const lim = p.class === 'town' || p.class === 'city' ? 4000 : 1500;
       if (d > lim) continue;
       const score = d + RANK[p.class] * 600; // kvart ispred grada, ako su slično blizu
-      if (!best || score < best.score) best = { name: K.toLatin(p['name:sr-Latn'] || p.name), cls: p.class, d, score };
+      if (!best || score < best.score) best = { name: K.toLatin(p['name:sr-Latn'] || p.name), cls: p.class, d, score, lat: f.lat, lon: f.lon };
     }
     return best;
   };

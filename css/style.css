@@ -257,3 +257,13 @@ button:disabled { opacity: .55; cursor: default; }
 .sbtn:hover { border-color: var(--accent); }
 .intro-duel { background: var(--ok-bg); border-left: 4px solid var(--ok); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
 .me-dot { width: 12px; height: 12px; border-radius: 50%; background: #1f6f5c; border: 2px solid #fff; box-shadow: 0 0 0 2px #1f6f5c; }
+
+/* ---------- Poeni, poređenje, deljenje ---------- */
+.respoints { margin: -6px 0 6px; font-weight: 700; color: var(--accent); }
+.cmp { font-size: 1.15rem; font-weight: 700; margin: 0 0 4px; }
+button.big { width: 100%; padding: 14px 16px; font-size: 1.05rem; margin-top: 8px; }
+.sharetext { white-space: pre-wrap; background: var(--card); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; font: 15px/1.5 system-ui, sans-serif; margin: 0 0 10px; }
+.cards { margin-top: 8px; }
+.cardpreview { display: block; max-width: 220px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--line); }
+.qtimer { font-variant-numeric: tabular-nums; }
+.pts { color: var(--accent); font-weight: 700; }

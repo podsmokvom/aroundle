@@ -13,7 +13,7 @@
   K.CAPS = {
     street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, stop: 1, line: 1,
     etym: 2, wikiNear: 2, wikiText: 2, wikiYear: 2, birds: 1, climate: 4, city: 3,
-    svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 2
+    svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 2, elev: 1
   };
 
   // Napravi pitanje sa 4 ponuđena odgovora; vrati null ako nema 3 različita netačna
@@ -31,7 +31,7 @@
     const options = K.shuffle([o.correct, ...wrongs]);
     return {
       cat: o.cat, text: o.text, options, answer: options.indexOf(o.correct),
-      explain: o.explain || '', source: o.source, outsider: !!o.outsider
+      explain: o.explain || '', source: o.source, outsider: !!o.outsider, fact: o.fact || ''
     };
   }
 
@@ -53,7 +53,7 @@
     const first = K.norm(correct).split(' ')[0];
     const len = correct.length;
     return K.shuffle(pool)
-      .map((p) => ({ p, s: (K.norm(p).split(' ')[0] === first ? 2 : 0) - Math.abs(p.length - len) / 15 + Math.random() }))
+      .map((p) => ({ p, s: (K.norm(p).split(' ')[0] === first ? 2 : 0) - Math.abs(p.length - len) / 15 + K.rand() }))
       .sort((a, b) => b.s - a.s).slice(0, n).map((x) => x.p);
   }
 
@@ -171,7 +171,8 @@
         q = makeQ({
           cat: 'etym', text: `${cap(s.what)} nosi ime po: ${label}. Ko je ${human ? 'bila ta osoba' : 'to'}?`,
           correct: cap(desc), wrongs: K.shuffle(others.filter((o) => descLang(ents[o]) === lang).map((o) => cap(K.wd.desc(ents[o]))).filter(Boolean)),
-          explain: `${label} — ${desc} (Wikidata ${s.qid}).`, source: s.source
+          explain: `${label} — ${desc} (Wikidata ${s.qid}).`, source: s.source,
+          fact: `${cap(s.what)} nosi ime po: ${label} (${desc}).`
         });
       } else {
         q = makeQ({
@@ -322,7 +323,7 @@
     // netačni: vrste koje su ovde ređe zabeležene (6.–25. mesto), sa jasno manjim brojem nalaza
     const lower = birds.species.slice(5).filter((s) => s.count < top.count * 0.8);
     if (lower.length < 3) return [];
-    const picks = K.shuffle(lower).slice(0, 5);
+    const picks = lower.slice().sort((a, b) => String(a.key).localeCompare(String(b.key))).slice(0, 5); // stabilno (bez slučajnosti u paralelnom delu)
     const names = await Promise.all([top, ...picks].map((s) => K.speciesName(s.key).catch(() => null)));
     if (!names[0]) return [];
     const q = makeQ({
@@ -353,7 +354,8 @@
     // 1) Koliko ih ima
     // prednost zanatlijama i majstorima, pa tek onda ostalim radnjama
     const TRADES = new Set(['shoemaker', 'tailor', 'plumber', 'electrician', 'tyres', 'locksmith', 'hvac', 'carpenter',
-      'watches', 'glazier', 'appliance', 'car_repair', 'florist', 'hairdresser', 'dry_cleaning']);
+      'watches', 'glazier', 'appliance', 'car_repair', 'florist', 'hairdresser', 'dry_cleaning',
+      'health_food', 'cafe', 'kids_play', 'playground', 'ice_cream']);
     const countable = K.shuffle(kinds.filter((k) => (count[k] || 0) >= (TRADES.has(k) ? 1 : 2)))
       .sort((a, b) => (TRADES.has(b) ? 1 : 0) - (TRADES.has(a) ? 1 : 0));
     const full = stage.complete !== false; // cela oblast učitana -> brojanje ima smisla
@@ -365,7 +367,8 @@
       const q = makeQ({
         cat: 'svcCount', text: `Koliko ${S[k].many} ima ${stage.label}, prema otvorenim mapama?`,
         correct: String(c), wrongs: p.map((x) => String(c + x * step)),
-        explain: `Na otvorenim mapama (OSM + Overture) ${stage.label} ima ${c} (${S[k].one}). Stvarnih može biti i više.`, source: src
+        explain: `Na otvorenim mapama (OSM + Overture) ${stage.label} ima ${c} (${S[k].one}). Stvarnih može biti i više.`, source: src,
+        fact: `U mom kraju ima ${c} ${S[k].many}, bar onih upisanih na mapu.`
       });
       if (q) qs.push(q);
     }
@@ -387,7 +390,7 @@
     if (near.length >= 4 && nearest[near[1]].d - nearest[near[0]].d >= 80) {
       const opts = [near[0], ...K.shuffle(near.slice(1, 8)).slice(0, 3)];
       const q = makeQ({
-        cat: 'svcNear', text: 'Šta je najbliže izabranoj tački, prema otvorenim mapama?',
+        cat: 'svcNear', text: 'Šta je najbliže centru kraja, prema otvorenim mapama?',
         correct: S[opts[0]].one, wrongs: opts.slice(1).map((k) => S[k].one),
         explain: opts.map((k) => `${S[k].one}: ${m(nearest[k].d)}`).join(', ') + ' (vazdušnom linijom).', source: src
       });
@@ -401,7 +404,7 @@
       const bin = BINS.find((b) => d >= b[0] && d < b[1]);
       if (BINS.some((b) => Math.abs(d - b[0]) < 30 && b[0] > 0)) continue; // preblizu granice
       const q = makeQ({
-        cat: 'svcDist', text: `Koliko vazdušnom linijom ima od izabrane tačke do najbližeg mesta: ${S[k].one}?`,
+        cat: 'svcDist', text: `Koliko vazdušnom linijom ima od centra kraja do najbližeg mesta: ${S[k].one}?`,
         correct: bin[2], wrongs: BINS.filter((b) => b !== bin).map((b) => b[2]),
         explain: `Najbliže mesto (${S[k].one})${nearest[k].name ? ` („${nearest[k].name}“)` : ''} je na oko ${m(d)} vazdušnom linijom.`, source: src
       });
@@ -432,7 +435,7 @@
       const q = makeQ({
         cat: 'svcName', names: true, text: `Koja od ovih radnji (${S[s.kind].one}) se nalazi ${stage.label}?`,
         correct: s.name, wrongs: similar(s.name, pool),
-        explain: `„${s.name}“ je na mapi (${s.src}) ${stage.label}, na oko ${m(s.d)} od tačke.`,
+        explain: `„${s.name}“ je na mapi (${s.src}) ${stage.label}, na oko ${m(s.d)} od centra kraja.`,
         source: { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=19/${s.lat.toFixed(5)}/${s.lon.toFixed(5)}` }
       });
       if (q) qs.push(q);
@@ -454,9 +457,10 @@
       const l = K.pick(s.lines);
       const same = farLines.filter((x) => x.mode === l.mode).map((x) => x.label);
       const q = makeQ({
-        cat: 'transit', text: `Koja linija staje na stanici „${s.name}“ (${K.fmtNum(Math.round(s.d / 10) * 10, 0)} m od tačke)?`,
+        cat: 'transit', text: `Koja linija staje na stanici „${s.name}“ u tvom kraju?`,
         correct: l.label, wrongs: K.shuffle(same).concat(K.shuffle(farLines.map((x) => x.label))),
         explain: `Na stanici „${s.name}“ staju: ${s.lines.map((x) => x.label).slice(0, 8).join(', ')}${l.agency ? ` (${l.agency})` : ''}.`,
+        fact: `Na stanici „${s.name}“ u mom kraju staju: ${s.lines.map((x) => x.label).slice(0, 5).join(', ')}.`,
         source: src
       });
       if (q) qs.push(q);
@@ -492,7 +496,7 @@
       .map((i) => ({ name: i.name, what: WHAT[i.cat], lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: `https://www.openstreetmap.org/#map=18/${i.lat.toFixed(5)}/${i.lon.toFixed(5)}` }))
       .concat(K.shuffle((services || []).filter((s) => s.inside && s.name && ['bakery', 'pharmacy', 'florist', 'shoemaker', 'tailor', 'tyres', 'locksmith'].includes(s.kind)))
         .map((s) => ({ name: s.name, what: K.SERVICES[s.kind].one, lat: s.lat, lon: s.lon, tol: 150, url: `https://www.openstreetmap.org/#map=19/${s.lat.toFixed(5)}/${s.lon.toFixed(5)}` })));
-    for (const c of K.uniqBy(cands, (c) => K.norm(c.name)).slice(0, 2)) {
+    for (const c of K.uniqBy(cands, (c) => K.norm(c.name)).slice(0, 1)) { // jedno pitanje sa mapom po kvizu
       qs.push({
         cat: 'mapPin', type: 'map', text: `Pokaži na mapi: gde je ${c.what} „${c.name}“?`,
         options: [], answer: -1, target: { lat: c.lat, lon: c.lon, tol: c.tol },
@@ -501,6 +505,20 @@
       });
     }
     return qs;
+  };
+
+  // ---------------- Nadmorska visina centra kraja ----------------
+  K.elevationQuestions = function (h, kraj) {
+    const v = Math.round(h);
+    const step = v < 60 ? 15 : v < 300 ? 30 : 60;
+    const n = numeric(v, step, (x) => `${K.fmtNum(Math.round(x), 0)} m`, v > 5 ? 2 : -Infinity);
+    const q = makeQ({
+      cat: 'elev', text: `Na kojoj nadmorskoj visini je centar kraja${kraj ? ` ${kraj}` : ''}?`, ...n,
+      explain: `Centar kraja je na oko ${n.correct} nadmorske visine (digitalni model terena, Copernicus DEM 90 m).`,
+      fact: `Moj kraj je na ${n.correct} nadmorske visine.`,
+      source: { name: 'Open-Meteo Elevation API', url: 'https://open-meteo.com/en/docs/elevation-api' }
+    });
+    return q ? [q] : [];
   };
 
   K.osmQuestions = osmQuestions;

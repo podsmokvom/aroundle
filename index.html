@@ -30,12 +30,12 @@
       </form>
       <ul id="results" class="results" hidden></ul>
       <div id="map" aria-label="Mapa — klikni da izabereš tačku"></div>
-      <p class="hint">Ili klikni na mapu. Krug pokazuje 800 m oko tačke.</p>
+      <p class="hint">Ili klikni na mapu. Krug pokazuje kraj: 1 km oko centra.</p>
       <div id="picked" class="picked" hidden>
-        <div><span class="muted">Izabrano:</span> <strong id="pickedName"></strong></div>
+        <div><span class="muted">Tvoj kraj:</span> <strong id="pickedName"></strong></div>
+        <p class="muted small">Kviz se pravi oko centra kraja, ne oko tvoje adrese. Svi iz kraja danas dobijaju ista pitanja; jedan pokušaj dnevno.</p>
         <div class="row">
-          <button id="build">Napravi kviz</button>
-          <button id="rebuild" class="ghost" hidden>Napravi novi (bez keša)</button>
+          <button id="build">Kreni sa kvizom</button>
         </div>
         <p id="cacheInfo" class="muted small" hidden></p>
       </div>
@@ -95,32 +95,42 @@
     <!-- 4. Rezultat -->
     <section id="result" class="card" hidden>
       <h2 id="resTitle"></h2>
+      <p id="resPoints" class="respoints"></p>
       <p id="resText"></p>
-      <div id="duelResult" class="duel" hidden></div>
+      <div id="duelResult" class="duel" hidden>
+        <p id="cmpLine" class="cmp"></p>
+        <p id="cmpVerdict"></p>
+        <button id="returnBtn" class="big">Napravi kviz za SVOJ kraj i vrati mu</button>
+      </div>
       <div class="share">
-        <h3>Izazovi komšiju</h3>
-        <p class="muted small">Pošalji ista pitanja, pa vidi ko bolje zna kraj.</p>
+        <h3>Izazovi komšiju: „Koliko poznaješ MOJ kraj?“</h3>
+        <p class="muted small">Link nosi ista pitanja istim redom. Tvoja adresa i koordinate nisu u linku, samo centar kraja.</p>
         <div class="row">
           <input id="myName" type="text" maxlength="24" placeholder="Tvoje ime (vidi ga komšija)" aria-label="Tvoje ime">
           <button id="makeDuel">Napravi izazov</button>
         </div>
         <div id="shareBox" class="sharebox" hidden>
+          <pre id="shareText" class="sharetext"></pre>
           <div class="row">
-            <button id="shareNative" hidden>Podeli…</button>
+            <button id="shareNative">Podeli</button>
+            <button id="shareCopyText" class="ghost">Kopiraj tekst</button>
             <a id="shareWa" class="sbtn" target="_blank" rel="noopener">WhatsApp</a>
             <a id="shareViber" class="sbtn">Viber</a>
             <a id="shareTg" class="sbtn" target="_blank" rel="noopener">Telegram</a>
             <a id="shareFb" class="sbtn" target="_blank" rel="noopener">Facebook</a>
             <a id="shareX" class="sbtn" target="_blank" rel="noopener">X</a>
-            <button id="shareCopy" class="ghost">Kopiraj link</button>
           </div>
+          <div class="row cards">
+            <button id="cardStory" class="ghost">Slika za story (9:16)</button>
+            <button id="cardSquare" class="ghost">Slika 1:1</button>
+          </div>
+          <img id="cardPreview" class="cardpreview" alt="Kartica sa rezultatom" hidden>
           <p id="shareMsg" class="muted small"></p>
         </div>
       </div>
       <ol id="review" class="review"></ol>
       <div class="row">
-        <button id="again">Igraj ponovo</button>
-        <button id="newPlace" class="ghost">Drugo mesto</button>
+        <button id="newPlace" class="ghost">Drugi kraj</button>
       </div>
     </section>
   </main>
@@ -135,7 +145,7 @@
       <a href="https://transitous.org/sources/" target="_blank" rel="noopener">Transitous</a> (vozni redovi) ·
       <a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a> (samo CC0 i CC BY zapisi)
     </p>
-    <p class="muted small">Pitanja prave šabloni na osnovu podataka. Nema AI. Gotov kviz se čuva u tvom pregledaču 30 dana.</p>
+    <p class="muted small">Pitanja prave šabloni na osnovu podataka, bez AI. Jedan kviz po kraju dnevno, isti za sve iz kraja.</p>
     <p class="muted small">Nekomercijalni projekat otvorenog koda (MIT) · <a href="https://github.com/podsmokvom/kviz" target="_blank" rel="noopener">kod i kontakt na GitHub-u</a></p>
   </footer>
 
