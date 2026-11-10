@@ -7,6 +7,7 @@ klima, ptice, istorija. Pitanja prave šabloni u JavaScriptu (bez AI), i to samo
 - **Pokaži na mapi**: klikneš gde misliš da je objekat.
 - **Duel sa komšijom**: ista pitanja idu u link (#duel=…), bez servera.
 - Statičan sajt (HTML/CSS/JS), bez build koraka i bez ključeva.
+- Jezici: srpski, hrvatski, bosanski, engleski, nemački, francuski, španski i ruski (po jeziku pregledača, uz ručni izbor). Novi jezik = jedan fajl u `js/lang/`, sa istim ključevima kao `sr.js`.
 
 ## Izvori podataka i licence
 

@@ -9,7 +9,8 @@
   // ---------------- Keš (localStorage) ----------------
   // kraj (za „jedan pokušaj dnevno“ i rang-liste) i tačka igrača zaokružena na ~100 m (za keš i seed)
   K.hoodKey = (place) => K.norm(`${place.kraj || ""}|${place.grad || ""}`) || `${place.lat.toFixed(2)},${place.lon.toFixed(2)}`;
-  K.cacheKey = (place) => `${CACHE_VER}${K.hoodKey(place)}@${place.lat.toFixed(3)},${place.lon.toFixed(3)}`;
+  K.seedKey = (place) => `${K.hoodKey(place)}@${place.lat.toFixed(3)},${place.lon.toFixed(3)}`; // isti za sve jezike
+  K.cacheKey = (place) => `${CACHE_VER}${K.lang}:${K.seedKey(place)}`;    // tekstovi zavise od jezika
   K.cacheGet = function (place) {
     try {
       const raw = localStorage.getItem(K.cacheKey(place));
@@ -26,7 +27,7 @@
   // ---------------- Wikipedia (sr pa en) ----------------
   async function wikiFor(lat, lon, localR, farMin, farCenters, log) {
     const local = [], far = [];
-    await Promise.all(['sr', 'en'].map(async (lang) => {
+    await Promise.all(K.wikiLangs().map(async (lang) => {
       try {
         const jobs = [K.wikiGeo(lang, lat, lon, localR, 100).then((r) => local.push(...r))];
         if (farMin) jobs.push(K.wikiGeo(lang, lat, lon, 10000, 200).then((r) => far.push(...r.filter((w) => w.dist > farMin))));
@@ -35,10 +36,11 @@
       } catch (e) { log(`Vikipedija (${lang}) nedostupna: ${e.message}`, 'warn'); }
     }));
     // sr pre en (kod duplikata ostaje srpski članak)
-    const byLangId = (a, b) => (a.lang === b.lang ? a.pageid - b.pageid : a.lang === 'sr' ? -1 : 1);
+    const main = K.wikiLangs()[0];
+    const byLangId = (a, b) => (a.lang === b.lang ? a.pageid - b.pageid : a.lang === main ? -1 : 1);
     local.sort(byLangId); far.sort(byLangId); // stabilan redosled (isti kviz za sve)
     // detalji za lokalne: uvod + Wikidata ID
-    await Promise.all(['sr', 'en'].map(async (lang) => {
+    await Promise.all(K.wikiLangs().map(async (lang) => {
       const ids = local.filter((w) => w.lang === lang).map((w) => w.pageid);
       if (!ids.length) return;
       try {
@@ -123,7 +125,7 @@
   function circleStage(lat, lon, r, opts) {
     const gap = r + Math.max(700, r * 0.8);
     return {
-      key: "r" + r, lat, lon, radius: r, label: `u kraju (${fmtR(r)} oko tebe)`, title: `krug od ${fmtR(r)}`,
+      key: "r" + r, lat, lon, radius: r, label: K.t('scope.r', { r: fmtR(r) }), title: K.t('scope.title', { r: fmtR(r) }),
       inside: (a, b) => K.dist(lat, lon, a, b) <= r,
       farOk: (a, b, d) => (d != null ? d : K.dist(lat, lon, a, b)) > gap,
       loadR: Math.max(3000, r * 2.5), ovR: Math.min(6000, Math.max(1800, r * 2.2)), far: gap,
@@ -151,7 +153,7 @@
   K.buildQuiz = async function (place, log = () => {}) {
     const { lat, lon } = place;
     const day = place.day || K.today();
-    K.setSeed(`${K.cacheKey(place)}|${day}`);
+    K.setSeed(`${K.seedKey(place)}|${day}`);
 
     // Zajedničko za sve krugove: nadmorska visina kraja, „nazvano po“
     const shared = { questions: [], wdNamed: [] };
@@ -167,25 +169,25 @@
 
     // kraj = najviše 1 km oko centra
     const stages = [
-      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od tvoje tačke)' }),
-      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: 'u kraju (do 1 km od tvoje tačke)' })
+      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: K.t('scope.gbif') }),
+      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: K.t('scope.gbif') })
     ];
 
     const notes = [];
     let used = null;
     for (let i = 0; i < stages.length; i++) {
       const st = stages[i];
-      K.setSeed(`${K.cacheKey(place)}|${day}|${st.key}`);
+      K.setSeed(`${K.seedKey(place)}|${day}|${st.key}`);
       const cands = await buildStage(st, shared, log);
       log(`${st.title}: ${cands.length} dobrih pitanja.`, cands.length >= TARGET ? 'ok' : 'warn');
       if (!used || cands.length > used.cands.length) used = { stage: st, cands, i };
       if (cands.length >= TARGET) { used = { stage: st, cands, i }; break; }
       if (i < stages.length - 1) log(`Nedovoljno pitanja, širim na: ${stages[i + 1].title}…`, 'warn');
     }
-    if (used.i > 0) notes.push(`U krugu od 800 m nije bilo 10 proverenih pitanja, pa kviz pokriva ceo kraj, 1 km oko centra.`);
-    K.setSeed(`${K.cacheKey(place)}|${day}|izbor`);
+    if (used.i > 0) notes.push(K.t('note.expanded'));
+    K.setSeed(`${K.seedKey(place)}|${day}|izbor`);
     const questions = K.selectQuiz(used.cands, TARGET);
-    if (questions.length < TARGET) notes.push(`Izvori za ovaj kraj imaju samo ${questions.length} proverenih pitanja.`);
+    if (questions.length < TARGET) notes.push(K.t('note.few', { n: questions.length }));
     K.rand = Math.random;
 
     return {

@@ -9,6 +9,21 @@
   };
   const playedKey = (place, day) => `kviz:played:${K.hoodKey(place)}:${day || K.today()}`;
 
+  // ---------------- Jezik ----------------
+  K.applyI18n();
+  const sel = $('langSel');
+  for (const [code, label] of Object.entries(K.LANGS)) {
+    const o = document.createElement('option');
+    o.value = code; o.textContent = label;
+    sel.appendChild(o);
+  }
+  sel.value = K.lang;
+  // promena jezika: statični tekstovi odmah; pitanja već započetog kviza ostaju na jeziku na kom su napravljena
+  sel.addEventListener('change', () => {
+    K.setLang(sel.value);
+    if (place && !$('picked').hidden) setPoint(place.lat, place.lon, true);
+  });
+
   let place = null;      // {lat, lon (tačka igrača), kraj, grad, country}
   let quiz = null;
   let idx = 0, score = 0, points = 0, answers = [];
@@ -35,10 +50,10 @@
     return [lat + (SHIFT_M * Math.cos(a)) / 111320, lon + (SHIFT_M * Math.sin(a)) / (111320 * Math.cos(lat * Math.PI / 180))];
   }
 
-  async function setPoint(rawLat, rawLon) {
-    const [lat, lon] = shift(rawLat, rawLon);
+  async function setPoint(rawLat, rawLon, noShift) {
+    const [lat, lon] = noShift ? [rawLat, rawLon] : shift(rawLat, rawLon); // već pomerena tačka se ne pomera ponovo
     show($('picked'));
-    $('pickedName').textContent = 'tražim kraj…';
+    $('pickedName').textContent = K.t('pick.finding');
     $('build').disabled = true;
     let addr = null;
     try { addr = (await K.reverse(lat, lon)).address; } catch (e) { /* bez adrese */ }
@@ -52,17 +67,17 @@
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
-      marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip('tvoja tačka, namerno pomerena 200 m');
+      marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip(K.t('pick.marker'));
       circle = L.circle([place.lat, place.lon], { radius: 1000, color: '#1f6f5c', weight: 2, fillOpacity: 0.08 }).addTo(map);
     }
     map.setView([place.lat, place.lon], 14);
-    $('pickedName').textContent = [place.kraj, place.grad].filter((x, i, a) => x && a.indexOf(x) === i).join(', ') || 'nepoznat kraj';
+    $('pickedName').textContent = [place.kraj, place.grad].filter((x, i, a) => x && a.indexOf(x) === i).join(', ') || K.t('pick.unknown');
     const done = store.get(playedKey(place));
     $('build').disabled = !!done;
     show($('cacheInfo'), !!done);
     if (done) $('cacheInfo').textContent = done.state === 'done'
-      ? `Danas si već igrao ovaj kraj: ${done.score}/${done.n} · ${K.fmtNum(done.points, 0)} poena. Novi kviz za ovaj kraj stiže sutra.`
-      : 'Danas si već započeo kviz za ovaj kraj. Novi kviz stiže sutra.';
+      ? K.t('pick.playedDone', { score: done.score, n: done.n, points: K.fmtNum(done.points, 0) })
+      : K.t('pick.playedStarted');
   }
 
   // ---------------- Pretraga ----------------
@@ -71,11 +86,11 @@
     const q = $('q').value.trim();
     if (!q) return;
     const ul = $('results');
-    ul.innerHTML = '<li class="muted">Tražim…</li>';
+    ul.innerHTML = `<li class="muted">${K.esc(K.t('search.loading'))}</li>`;
     show(ul);
     try {
       const res = await K.geocode(q);
-      if (!res.length) { ul.innerHTML = '<li class="muted">Ništa nije nađeno.</li>'; return; }
+      if (!res.length) { ul.innerHTML = `<li class="muted">${K.esc(K.t('search.none'))}</li>`; return; }
       ul.innerHTML = '';
       for (const r of res) {
         const li = document.createElement('li');
@@ -87,19 +102,19 @@
         ul.appendChild(li);
       }
     } catch (err) {
-      ul.innerHTML = `<li class="muted">Pretraga nije uspela (${K.esc(err.message)}).</li>`;
+      ul.innerHTML = `<li class="muted">${K.esc(K.t('search.fail', { err: err.message }))}</li>`;
     }
   });
   $('locate').addEventListener('click', () => {
-    if (!navigator.geolocation) return alertBox('Pregledač ne podržava lokaciju.');
+    if (!navigator.geolocation) return alertBox(K.t('geo.unsupported'));
     $('locate').disabled = true;
     navigator.geolocation.getCurrentPosition(
       (p) => {
         $('locate').disabled = false;
         setPoint(p.coords.latitude, p.coords.longitude);
-        alertBox('Lokacija je namerno pomerena 200 m. Savet: ako si kod kuće, radije klikni na neko javno mesto u kraju (park, školu, raskrsnicu).');
+        alertBox(K.t('geo.shifted'));
       },
-      () => { $('locate').disabled = false; alertBox('Lokacija nije dozvoljena ili nije dostupna.'); },
+      () => { $('locate').disabled = false; alertBox(K.t('geo.denied')); },
       { enableHighAccuracy: false, timeout: 15000 }
     );
   });
@@ -110,11 +125,6 @@
   }
 
   // ---------------- Pravljenje (traka) ----------------
-  const FRIENDLY = {
-    OpenStreetMap: 'ulice, škole, parkovi i stajališta', Overture: 'majstori, kafići i radnje',
-    Vikipedija: 'istorija i poznata mesta', Wikidata: 'po kome su nazvane ulice i škole',
-    GBIF: 'ptice iz kraja', Transitous: 'linije gradskog prevoza', 'Open-Meteo': 'nadmorska visina'
-  };
   $('build').addEventListener('click', start);
 
   async function start() {
@@ -124,22 +134,21 @@
     show($('progress'));
     const log = $('log');
     log.innerHTML = '';
-    const kraj = place.kraj || 'tvoj kraj';
+    const kraj = place.kraj || K.t('share.myHood');
     // Zabavne poruke dok se kviz pravi: ne otkrivaju odakle su podaci ni o čemu će biti pitanja
-    const FUN = ['Oh, interesantno…', 'Opa, lep kraj!', 'Hmm, da vidimo…', 'Pitam komšije…', 'Gledam gde se pije kafa ☕',
-      'Tražim najbolju pekaru 🥐', 'Šetam po kraju 🚶', 'Zavirujem iza ćoška 👀', 'Brojim klupe… šalim se 😄', 'Još malo…'];
+    const FUN = K.tList('load.fun');
     const said = [];
     const say = (m) => { $('status').textContent = m; };
-    say(`Upoznajem kraj ${kraj}…`);
+    say(K.t('load.start', { kraj }));
     let funI = Math.floor(Math.random() * FUN.length);
     const funTimer = setInterval(() => { say(said.length ? said.shift() : FUN[funI++ % FUN.length]); }, 1700);
     const react = (msg) => {
       let m;
-      if ((m = /: (\d+) objekata i (\d+) radnji/.exec(msg))) said.push(+m[1] > 70 ? 'Koliko ulicaaaa! 🛣️' : 'Mirno i lepo ovde 🌿', +m[2] > 60 ? 'Opa, koliko radnji! 🛍️' : 'Sve je nadohvat ruke 👌');
-      else if ((m = /: (\d+) stanica u kraju/.exec(msg)) && +m[1] > 2) said.push('Ovde se lako stiže gradskim prevozom 🚌');
-      else if ((m = /: (\d+) nalaza ptica/.exec(msg))) said.push(+m[1] > 1000 ? 'Ptičice pevaju 🐦' : 'Čuje se i poneka ptica 🐦');
-      else if ((m = /: (\d+) članaka u kraju/.exec(msg)) && +m[1] > 3) said.push('Ovaj kraj ima istoriju! 📜');
-      else if ((m = /: (\d+) m nadmorske visine/.exec(msg))) said.push(+m[1] > 250 ? 'Visoko si! ⛰️' : 'Lepo, ravno i prijatno 🙂');
+      if ((m = /: (\d+) objekata i (\d+) radnji/.exec(msg))) said.push(K.t(+m[1] > 70 ? 'load.streets' : 'load.calm'), K.t(+m[2] > 60 ? 'load.shops' : 'load.near'));
+      else if ((m = /: (\d+) stanica u kraju/.exec(msg)) && +m[1] > 2) said.push(K.t('load.transit'));
+      else if ((m = /: (\d+) nalaza ptica/.exec(msg))) said.push(K.t(+m[1] > 1000 ? 'load.birdsMany' : 'load.birdsFew'));
+      else if ((m = /: (\d+) članaka u kraju/.exec(msg)) && +m[1] > 3) said.push(K.t('load.history'));
+      else if ((m = /: (\d+) m nadmorske visine/.exec(msg))) said.push(K.t(+m[1] > 250 ? 'load.high' : 'load.flat'));
     };
     const addLog = (msg, cls) => {
       const li = document.createElement('li');
@@ -153,14 +162,14 @@
       let q = K.cacheGet(place);
       if (!q) {
         q = await K.buildQuiz(place, addLog);
-        if (!q.questions.length) { stopFun(); say('Hmm, ovde nema dovoljno toga za kviz. Probaj tačku malo dalje.'); $('build').disabled = false; return; }
+        if (!q.questions.length) { stopFun(); say(K.t('load.empty')); $('build').disabled = false; return; }
         K.cacheSet(place, q);
       }
       stopFun();
       show($('progress'), false);
       play(q);
     } catch (err) {
-      stopFun(); say(`Ups, nešto je zapelo (${err.message}). Probaj ponovo.`);
+      stopFun(); say(K.t('load.error', { err: err.message }));
       $('build').disabled = false;
     }
   }
@@ -179,7 +188,7 @@
     notes.innerHTML = parts.join('');
     if (duelFrom) {
       notes.className = 'intro-duel';
-      notes.innerHTML = `<p><strong>${K.esc(duelFrom.name)}</strong> te pita: „Koliko poznaješ MOJ kraj?“ (${K.esc(q.place.kraj || '')}) · ${duelFrom.score}/${q.questions.length} · ${K.fmtNum(duelFrom.points || 0, 0)} p · ${duelFrom.time || '?'} s</p>` + parts.join('');
+      notes.innerHTML = `<p>${K.t('quiz.duelIntro', { name: K.esc(duelFrom.name), kraj: K.esc(q.place.kraj || ''), score: duelFrom.score, n: q.questions.length, points: K.fmtNum(duelFrom.points || 0, 0), time: duelFrom.time || '?' })}</p>` + parts.join('');
     }
     show(notes, notes.innerHTML !== '');
     show($('quiz'));
@@ -216,7 +225,7 @@
 
   function render() {
     const q = quiz.questions[idx];
-    $('qnum').textContent = `Pitanje ${idx + 1} / ${quiz.questions.length}`;
+    $('qnum').textContent = K.t('quiz.num', { i: idx + 1, n: quiz.questions.length });
     $('qtext').textContent = q.text;
     const opts = $('opts');
     opts.innerHTML = '';
@@ -232,7 +241,7 @@
     if (isMap) {
       $('pinOk').disabled = true;
       $('pinOk').hidden = false;
-      $('pinHint').textContent = 'Dodirni mapu gde misliš da je (mapu možeš da uvećaš prstima).';
+      $('pinHint').textContent = K.t('quiz.pinHint');
       const myIdx = idx;
       nolabelStyle().then((style) => {
         if (idx !== myIdx || !quiz) return;
@@ -241,15 +250,15 @@
         qmap.touchZoomRotate.disableRotation();
         const dot = document.createElement('div');
         dot.className = 'me-dot';
-        dot.title = 'tvoja tačka';
+        dot.title = K.t('quiz.myPoint');
         new maplibregl.Marker({ element: dot }).setLngLat([quiz.place.lon, quiz.place.lat]).addTo(qmap);
         qmap.on('click', (e) => {
           if ($('pinOk').hidden) return;
           if (pin) pin.setLngLat(e.lngLat); else pin = new maplibregl.Marker({ color: '#b3261e' }).setLngLat(e.lngLat).addTo(qmap);
           $('pinOk').disabled = false;
-          $('pinHint').textContent = 'Možeš da pomeriš, pa potvrdi.';
+          $('pinHint').textContent = K.t('quiz.pinMove');
         });
-      }).catch((e) => { $('pinHint').textContent = `Mapa nije učitana (${e.message}).`; });
+      }).catch((e) => { $('pinHint').textContent = K.t('quiz.mapFail', { err: e.message }); });
       return;
     }
     q.options.forEach((o, i) => {
@@ -267,12 +276,12 @@
   function feedback(ok, q, extra, got) {
     clearInterval(tick);
     const fb = $('feedback');
-    fb.innerHTML = `<strong class="${ok ? 'ok' : 'bad'}">${ok ? 'Tačno!' : 'Netačno.'}</strong> <span class="pts">+${K.fmtNum(got, 0)} p</span> ` + extra +
+    fb.innerHTML = `<strong class="${ok ? 'ok' : 'bad'}">${K.t(ok ? 'quiz.right' : 'quiz.wrong')}</strong> <span class="pts">+${K.fmtNum(got, 0)} p</span> ` + extra +
       `${K.esc(q.explain)}` +
-      (q.source && q.source.url ? `<span class="src">Izvor: <a href="${K.esc(q.source.url)}" target="_blank" rel="noopener">${K.esc(q.source.name)}</a></span>` : '');
+      (q.source && q.source.url ? `<span class="src">${K.t('quiz.source')} <a href="${K.esc(q.source.url)}" target="_blank" rel="noopener">${K.esc(q.source.name)}</a></span>` : '');
     show(fb);
     badge();
-    $('next').textContent = idx + 1 < quiz.questions.length ? 'Dalje' : 'Rezultat';
+    $('next').textContent = K.t(idx + 1 < quiz.questions.length ? 'quiz.next' : 'quiz.result');
     show($('next'));
     $('next').focus();
   }
@@ -290,7 +299,7 @@
       if (j === q.answer) b.classList.add('right');
       else if (j === i) b.classList.add('wrong');
     });
-    feedback(ok, q, ok ? '' : `Tačan odgovor: <strong>${K.esc(q.options[q.answer])}</strong>. `, got);
+    feedback(ok, q, ok ? '' : K.t('quiz.correctWas', { a: K.esc(q.options[q.answer]) }), got);
   }
 
   $('pinOk').addEventListener('click', () => {
@@ -317,7 +326,7 @@
     new maplibregl.Marker({ color: '#2e7d32' }).setLngLat(tg).addTo(qmap);
     qmap.fitBounds([[Math.min(p.lng, tg[0]), Math.min(p.lat, tg[1])], [Math.max(p.lng, tg[0]), Math.max(p.lat, tg[1])]], { padding: 60, maxZoom: 17 });
     $('pinHint').textContent = '';
-    feedback(ok, q, `Promašaj: <strong>${K.fmtNum(Math.round(d), 0)} m</strong>. `, got);
+    feedback(ok, q, K.t('quiz.miss', { d: `${K.fmtNum(Math.round(d), 0)} m` }), got);
   });
 
   $('next').addEventListener('click', () => {
@@ -326,7 +335,7 @@
     else finish();
   });
 
-  const answerText = (a) => (a.q.type === 'map' ? `${K.fmtNum(Math.round(a.dist), 0)} m od cilja` : a.q.options[a.q.answer]);
+  const answerText = (a) => (a.q.type === 'map' ? K.t('res.fromTarget', { d: `${K.fmtNum(Math.round(a.dist), 0)} m` }) : a.q.options[a.q.answer]);
   const grid = (oks) => oks.map((o) => (o ? '🟩' : '🟥')).join('');
   let result = null;   // {score, n, points, time, oks}
 
@@ -338,16 +347,14 @@
     const time = Math.round((performance.now() - quizStart) / 1000);
     result = { score, n, points, time, oks: answers.map((a) => a.ok) };
     store.set(playedKey(quiz.place, quiz.day), { state: 'done', ...result });
-    const name = quiz.place.kraj || 'ovaj kraj';
+    const name = quiz.place.kraj || K.t('share.myHood');
     $('resTitle').textContent = `${score} / ${n}`;
-    $('resPoints').textContent = `${K.fmtNum(points, 0)} poena · ${time} s`;
-    $('resText').textContent = score / n >= 0.8 ? `Odlično poznaješ kraj ${name}!` :
-      score / n >= 0.5 ? `Solidno! Kraj ${name} ti nije stran.` : `Vreme je za šetnju po kraju ${name}.`;
+    $('resPoints').textContent = K.t('res.points', { points: K.fmtNum(points, 0), time });
+    $('resText').textContent = K.t(score / n >= 0.8 ? 'res.great' : score / n >= 0.5 ? 'res.ok' : 'res.low', { kraj: name });
     if (duelFrom) {
-      $('cmpLine').textContent = `Ti ${score}/${n} · ${time}s — ${duelFrom.name} ${duelFrom.score}/${n} · ${duelFrom.time || '?'}s`;
+      $('cmpLine').textContent = K.t('res.cmp', { score, n, time, name: duelFrom.name, hisScore: duelFrom.score, hisTime: duelFrom.time || '?' });
       const mine = points, his = duelFrom.points || 0;
-      $('cmpVerdict').textContent = mine > his ? `Pobeda! ${K.fmtNum(mine, 0)} : ${K.fmtNum(his, 0)} poena 🎉` :
-        mine === his ? 'Nerešeno!' : `${duelFrom.name} vodi ${K.fmtNum(his, 0)} : ${K.fmtNum(mine, 0)} poena. Vrati mu!`;
+      $('cmpVerdict').textContent = K.t(mine > his ? 'res.win' : mine === his ? 'res.tie' : 'res.lose', { mine: K.fmtNum(mine, 0), his: K.fmtNum(his, 0), name: duelFrom.name });
       show($('duelResult'));
     } else show($('duelResult'), false);
     $('review').innerHTML = answers.map((a, i) => {
@@ -366,29 +373,28 @@
 
   // ---------------- Rang-lista ----------------
   let lbScope = 'near', lbPeriod = 'day', lbMine = null;
-  const SCOPE_SR = { near: 'kraj (1,5 km)', city: 'grad', country: 'država', continent: 'kontinent', world: 'svet' };
   async function lbShow() {
     if (!quiz) return;
     const keys = K.lbKeys(quiz.place);
     document.querySelectorAll('.tabs [data-scope]').forEach((b) => b.classList.toggle('on', b.dataset.scope === lbScope));
     document.querySelector('.tabs [data-period]').classList.toggle('on', lbPeriod === 'all');
-    $('lbList').innerHTML = '<li class="muted">učitavam…</li>';
+    $('lbList').innerHTML = `<li class="muted">${K.esc(K.t('lb.loading'))}</li>`;
     try {
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
       $('lbList').innerHTML = rows.length ? rows.map((r) =>
         `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${r.secs}s <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
-      ).join('') : '<li class="muted">Još niko. Budi prvi!</li>';
-      const label = lbScope === 'continent' ? (K.CONTINENT_SR[keys.continent] || 'kontinent') : lbScope === 'near' ? `do 1,5 km od tvoje tačke (${quiz.place.kraj || 'kraj'})` : lbScope === 'city' ? quiz.place.grad : lbScope === 'country' ? (quiz.place.country || '').toUpperCase() : 'ceo svet';
-      $('lbMsg').textContent = `${lbPeriod === 'all' ? 'Najbolji ikad' : 'Danas'}: ${label || SCOPE_SR[lbScope]}.` + (lbMine && lbMine.rank ? ` Tvoje mesto danas: ${lbMine.rank[lbScope]}.` : '');
+      ).join('') : `<li class="muted">${K.esc(K.t('lb.empty'))}</li>`;
+      const label = lbScope === 'continent' ? (keys.continent ? K.t('cont.' + keys.continent) : K.t('lb.continent')) : lbScope === 'near' ? K.t('lb.nearLabel', { kraj: quiz.place.kraj || '' }) : lbScope === 'city' ? (quiz.place.grad || K.t('lb.city')) : lbScope === 'country' ? ((quiz.place.country || '').toUpperCase() || K.t('lb.country')) : K.t('lb.worldLabel');
+      $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')}: ${label}.` + (lbMine && lbMine.rank ? K.t('lb.myRank', { rank: lbMine.rank[lbScope] }) : '');
     } catch (e) {
       $('lbList').innerHTML = '';
-      $('lbMsg').textContent = location.hostname === 'localhost' ? 'Rang-liste rade kad je sajt na Loopiji (lokalno nema PHP-a).' : `Rang-lista trenutno nije dostupna (${e.message}).`;
+      $('lbMsg').textContent = location.hostname === 'localhost' ? K.t('lb.local') : K.t('lb.down', { err: e.message });
     }
   }
   document.querySelectorAll('.tabs [data-scope]').forEach((b) => b.addEventListener('click', () => { lbScope = b.dataset.scope; lbShow(); }));
   document.querySelector('.tabs [data-period]').addEventListener('click', () => { lbPeriod = lbPeriod === 'all' ? 'day' : 'all'; lbShow(); });
   $('lbSubmit').addEventListener('click', async () => {
-    const name = $('lbName').value.trim() || 'Komšija';
+    const name = $('lbName').value.trim() || K.t('share.defaultName');
     store.set('kviz:name', name);
     $('lbSubmit').disabled = true;
     try {
@@ -396,7 +402,7 @@
       lbMine = { name, points: result.points, rank: r.rank };
       show($('lbForm'), false);
     } catch (e) {
-      $('lbMsg').textContent = `Upis nije uspeo: ${e.message}`;
+      $('lbMsg').textContent = K.t('lb.fail', { err: e.message });
       $('lbSubmit').disabled = false;
       return;
     }
@@ -406,7 +412,7 @@
   $('returnBtn').addEventListener('click', () => {
     show($('result'), false);
     show($('pick'));
-    alertBox(`Izaberi SVOJ kraj, odigraj kviz i pošalji izazov nazad: ${duelFrom ? duelFrom.name : 'komšiji'}.`);
+    alertBox(K.t('res.returnHint', { name: duelFrom ? duelFrom.name : K.t('share.defaultName') }));
     setTimeout(() => map.invalidateSize(), 50);
   });
   $('newPlace').addEventListener('click', () => {
@@ -422,10 +428,10 @@
     store.set('kviz:name', me);
     $('makeDuel').disabled = true;
     try {
-      const code = await K.duelEncode(quiz, me || 'Komšija', result);
+      const code = await K.duelEncode(quiz, me || K.t('share.defaultName'), result);
       const url = K.duelLink(code);
-      const kraj = quiz.place.kraj || 'moj kraj';
-      const text = `Aroundle · Znaš li svoj kraj? · ${kraj} 🏙️\n${grid(result.oks)} ${result.score}/${result.n} · ${result.time}s\nMožeš li bolje?`;
+      const kraj = quiz.place.kraj || K.t('share.myHood');
+      const text = K.t('share.text', { kraj, grid: grid(result.oks), score: result.score, n: result.n, time: result.time });
       share = { text, url };
       $('shareText').textContent = `${text} ${url.slice(0, 48)}…`;
       const enc = encodeURIComponent;
@@ -434,11 +440,11 @@
       $('shareTg').href = `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`;
       $('shareFb').href = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
       $('shareX').href = `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`;
-      $('shareMsg').textContent = 'U linku su pitanja i tvoja tačka zaokružena na ~100 m, bez adrese.';
+      $('shareMsg').textContent = K.t('share.linkInfo');
       show($('cardPreview'), false);
       show($('shareBox'));
     } catch (e) {
-      $('shareMsg').textContent = `Izazov nije napravljen: ${e.message}`;
+      $('shareMsg').textContent = K.t('share.fail', { err: e.message });
       show($('shareBox'));
     } finally { $('makeDuel').disabled = false; }
   });
@@ -449,8 +455,8 @@
   async function copyText() {
     try {
       await navigator.clipboard.writeText(`${share.text} ${share.url}`);
-      $('shareMsg').textContent = 'Tekst je kopiran. Nalepi ga u Viber ili WhatsApp.';
-    } catch (e) { $('shareMsg').textContent = 'Kopiranje nije dozvoljeno u ovom pregledaču.'; }
+      $('shareMsg').textContent = K.t('share.copied');
+    } catch (e) { $('shareMsg').textContent = K.t('share.copyDenied'); }
   }
   $('shareCopyText').addEventListener('click', copyText);
 
@@ -483,10 +489,10 @@
     const pad = w * 0.08, F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     let y = h * (h > w ? 0.24 : 0.12); // story: sadržaj bliže sredini
     x.fillStyle = '#f7d77c'; x.font = `700 ${w * 0.045}px ${F}`;
-    x.fillText('AROUNDLE · Znaš li svoj kraj?', pad, y);
+    x.fillText(K.t('card.top'), pad, y);
     y += w * 0.11;
     x.fillStyle = '#fff'; x.font = `800 ${w * 0.085}px ${F}`;
-    for (const l of wrap(x, quiz.place.kraj || 'Moj kraj', w - 2 * pad).slice(0, 2)) { x.fillText(l, pad, y); y += w * 0.095; }
+    for (const l of wrap(x, quiz.place.kraj || K.t('share.myHood'), w - 2 * pad).slice(0, 2)) { x.fillText(l, pad, y); y += w * 0.095; }
     y += w * 0.03;
     // 10 kvadrata
     const n = result.oks.length, gap = w * 0.012, sz = Math.min(w * 0.07, (w - 2 * pad - gap * (n - 1)) / n);
@@ -500,7 +506,7 @@
     x.fillStyle = '#fff'; x.font = `800 ${w * 0.11}px ${F}`;
     x.fillText(`${result.score}/${result.n}`, pad, y);
     x.font = `600 ${w * 0.04}px ${F}`; x.fillStyle = '#cfe9e0';
-    x.fillText(`${K.fmtNum(result.points, 0)} poena · ${result.time} s`, pad, y + w * 0.06);
+    x.fillText(K.t('card.points', { points: K.fmtNum(result.points, 0), time: result.time }), pad, y + w * 0.06);
     y += w * (h > w ? 0.2 : 0.13);
     const fact = funFact();
     if (fact) {
@@ -512,12 +518,12 @@
       if (x.roundRect) x.roundRect(pad, y, w - 2 * pad, boxH, w * 0.03); else x.rect(pad, y, w - 2 * pad, boxH);
       x.fill();
       x.fillStyle = '#f7d77c'; x.font = `700 ${w * 0.03}px ${F}`;
-      x.fillText('ZNAŠ LI?', pad + w * 0.03, y + w * 0.05);
+      x.fillText(K.t('card.fact'), pad + w * 0.03, y + w * 0.05);
       x.fillStyle = '#fff'; x.font = `500 ${w * 0.038}px ${F}`;
       lines.forEach((l, i) => x.fillText(l, pad + w * 0.03, y + w * 0.1 + i * w * 0.05));
     }
     x.fillStyle = '#cfe9e0'; x.font = `600 ${w * 0.035}px ${F}`;
-    x.fillText('Aroundle · Koliko poznaješ SVOJ kraj?', pad, h - pad - w * 0.05);
+    x.fillText(K.t('card.footer'), pad, h - pad - w * 0.05);
     x.fillStyle = '#9fd3c3'; x.font = `500 ${w * 0.03}px ${F}`;
     x.fillText(location.host || 'kviz', pad, h - pad);
     return c;
@@ -534,7 +540,7 @@
     } else {
       const a = document.createElement('a');
       a.href = url; a.download = name; a.click();
-      $('shareMsg').textContent = 'Slika je sačuvana. Okači je u story, a link nalepi kao tekst.';
+      $('shareMsg').textContent = K.t('share.saved');
     }
   }
   $('cardStory').addEventListener('click', () => shareCard(1080, 1920, 'kviz-kraj-story.png'));
@@ -543,7 +549,7 @@
   $('shareIg').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(share.url); } catch (e) { /* bez kopiranja */ }
     await shareCard(1080, 1920, 'kviz-kraj-story.png');
-    $('shareMsg').textContent = 'Slika za story je spremna, a link je kopiran: u Instagram story-ju dodaj nalepnicu „Link“ i zalepi ga.';
+    $('shareMsg').textContent = K.t('share.ig');
   });
   $('cardSquare').addEventListener('click', () => shareCard(1080, 1080, 'kviz-kraj.png'));
 
@@ -555,10 +561,10 @@
       const d = await K.duelDecode(m[1]);
       history.replaceState(null, '', location.pathname);
       const prev = store.get(playedKey(d.quiz.place, d.quiz.day));
-      if (prev) { alertBox(`Ovaj kviz (${d.quiz.place.kraj}, ${d.quiz.day}) si već igrao: ${prev.score != null ? prev.score + '/' + prev.n : 'započet'}.`); return; }
+      if (prev) { alertBox(K.t('duel.played', { kraj: d.quiz.place.kraj, day: d.quiz.day, res: prev.score != null ? prev.score + '/' + prev.n : K.t('duel.started') })); return; }
       play(d.quiz, d.from);
     } catch (e) {
-      alertBox(`Link izazova nije ispravan (${e.message}).`);
+      alertBox(K.t('duel.bad', { err: e.message }));
     }
   }
   openDuelFromHash();

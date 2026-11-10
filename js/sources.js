@@ -9,7 +9,7 @@
     const wait = lastNom + 1100 - Date.now();
     if (wait > 0) await K.sleep(wait);
     lastNom = Date.now();
-    const qs = new URLSearchParams({ format: 'jsonv2', 'accept-language': 'sr-Latn,sr,en', ...params });
+    const qs = new URLSearchParams({ format: 'jsonv2', 'accept-language': K.acceptLang ? K.acceptLang() : 'sr-Latn,sr,en', ...params });
     return K.fetchJSON(`https://nominatim.openstreetmap.org/${path}?${qs}`, {}, 20000);
   }
   K.geocode = (q) => nominatim('search', { q, limit: 6, addressdetails: 1 });
@@ -109,7 +109,7 @@
     await Promise.all(K.chunk(ids, 50).map(async (part) => {
       const qs = new URLSearchParams({
         action: 'wbgetentities', ids: part.join('|'), props: 'labels|descriptions|claims',
-        languages: 'sr-el|sr|en', format: 'json', origin: '*'
+        languages: [...new Set(K.wdLangs().concat(['en']))].join('|'), format: 'json', origin: '*'
       });
       const j = await K.fetchJSON(`https://www.wikidata.org/w/api.php?${qs}`, {}, 40000);
       Object.assign(out, j.entities || {});
@@ -118,16 +118,15 @@
   };
 
   K.wd = {
-    label(e) {
-      if (!e || !e.labels) return '';
-      const l = e.labels;
-      return (l['sr-el'] && l['sr-el'].value) || (l.sr && K.toLatin(l.sr.value)) || (l.en && l.en.value) || '';
+    // oznaka i opis na jeziku igrača (redosled iz K.wdLangs), pa engleski
+    pickLang(obj) {
+      if (!obj) return null;
+      for (const l of K.wdLangs().concat(['en'])) if (obj[l] && obj[l].value) return { lang: l === 'sr-el' ? 'sr' : l, value: l === 'sr' ? K.toLatin(obj[l].value) : obj[l].value };
+      return null;
     },
-    desc(e) {
-      if (!e || !e.descriptions) return '';
-      const d = e.descriptions;
-      return (d['sr-el'] && d['sr-el'].value) || (d.sr && K.toLatin(d.sr.value)) || (d.en && d.en.value) || '';
-    },
+    label(e) { const r = e && K.wd.pickLang(e.labels); return r ? r.value : ''; },
+    desc(e) { const r = e && K.wd.pickLang(e.descriptions); return r ? r.value : ''; },
+    descLang(e) { const r = e && K.wd.pickLang(e.descriptions); return r ? r.lang : ''; },
     claims(e, p) {
       const cs = (e && e.claims && e.claims[p]) || [];
       const pref = cs.filter((c) => c.rank === 'preferred');
@@ -215,18 +214,19 @@
 
   K.speciesName = async function (key) {
     const s = await K.fetchJSON(`https://api.gbif.org/v1/species/${key}`);
-    let sr = '', en = '';
+    let mine = '', en = '';
+    const want = K.gbifLang ? K.gbifLang() : 'srp';
     try {
       const v = await K.fetchJSON(`https://api.gbif.org/v1/species/${key}/vernacularNames?limit=300`);
       for (const r of v.results || []) {
         const lang = (r.language || '').toLowerCase();
-        if (!sr && (lang === 'srp' || lang === 'sr')) sr = K.toLatin(r.vernacularName);
+        if (!mine && lang === want) mine = K.toLatin(r.vernacularName);
         if (!en && (lang === 'eng' || lang === 'en')) en = r.vernacularName;
       }
     } catch (e) { /* bez narodnog imena */ }
     if (!en && s.vernacularName) en = s.vernacularName;
     const sci = s.canonicalName || s.scientificName || '';
-    const common = sr ? sr.charAt(0).toUpperCase() + sr.slice(1) : en;
+    const common = mine ? mine.charAt(0).toUpperCase() + mine.slice(1) : en;
     return { key, sci, common, label: common ? `${common} (${sci})` : sci };
   };
 })(globalThis.Kviz = globalThis.Kviz || {});
@@ -266,8 +266,10 @@
       const ref = String(st.routeShortName || st.displayName || '').trim();
       if (!ref || st.cancelled) continue;
       const key = `${st.mode}|${ref}`;
-      const l = lines.get(key) || { ref, mode: st.mode, label: `${K.MODE_SR[st.mode] || 'linija'} ${ref}`, heads: new Set(), agency: st.agencyName || '' };
-      if (st.headsign) l.heads.add(K.toLatin(st.headsign).trim());
+      const l = lines.get(key) || { ref, mode: st.mode, label: `${K.I18N && (K.I18N.sr || {})['mode.' + st.mode] ? K.t('mode.' + st.mode) : K.t('mode.OTHER')} ${ref}`, heads: new Set(), agency: st.agencyName || '' };
+      // krajnja stanica, ali ne interne šifre prevoznika (npr. „XTS“, „VOLA“ u Parizu)
+      const hs = String(st.headsign || "").trim();
+      if (hs.length >= 3 && !/^[A-Z0-9]{1,5}$/.test(hs)) l.heads.add(K.toLatin(hs));
       lines.set(key, l);
     }
     return [...lines.values()];

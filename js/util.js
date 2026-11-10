@@ -10,7 +10,7 @@
     'Ѓ': 'Ǵ', 'Ќ': 'Ḱ', 'Ѕ': 'Dz', 'Й': 'J', 'Ё': 'Jo', 'Ю': 'Ju', 'Я': 'Ja', 'Щ': 'Šč', 'Ы': 'Y',
     'Э': 'E', 'Ъ': '', 'Ь': '', 'Є': 'Je', 'І': 'I', 'Ї': 'Ji', 'Ґ': 'G'
   };
-  K.toLatin = function (s) {
+  K.translit = function (s) {
     if (!s) return '';
     s = String(s);
     if (!/[Ѐ-ӿ]/.test(s)) return s;
@@ -35,15 +35,15 @@
   };
 
   K.norm = function (s) {
-    return K.toLatin(s || '').toLowerCase()
+    return K.translit(s || '').toLowerCase()
       .replace(/đ/g, 'dj')
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, ' ').trim();
   };
 
   // Teme koje ne smeju u kviz (energetski objekti, parking, drveće, stanovi)
-  K.BANNED = /parking|garaž|garaz|elektran|toplan|trafo|transformator|power ?(station|plant)|substation|heating plant|solarn|vetropark|wind ?farm|dalekovod|energet|drveć|drvec|stabla|stanova|apartman/i;
-  K.isBanned = (s) => K.BANNED.test(K.toLatin(s || ''));
+  K.BANNED = /parking|garaž|garaz|elektran|toplan|trafo|transformator|power ?(station|plant)|substation|heating plant|solarn|vetropark|wind ?farm|dalekovod|energet|drveć|drvec|stabla|stanova|apartman|kraftwerk|umspannwerk|centrale (electrique|thermique)|central (electrica|termica)|elektrostantsi|podstantsi/i;
+  K.isBanned = (s) => K.BANNED.test(K.translit(s || ''));
 
   // ---------- Geo ----------
   K.dist = function (lat1, lon1, lat2, lon2) {
@@ -92,13 +92,15 @@
   };
 
   // ---------- Formatiranje ----------
+  // brojevi po jeziku igrača (1.234,5 · 1,234.5 · 1 234,5)
   K.fmtNum = function (n, dec) {
-    const s = Math.abs(n).toFixed(dec).replace('.', ',');
-    const parts = s.split(',');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return (n < 0 && Number(Math.abs(n).toFixed(dec)) !== 0 ? '−' : '') + parts.join(',');
+    try {
+      return new Intl.NumberFormat(K.locale ? K.locale() : 'sr-Latn-RS', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(n);
+    } catch (e) { return Number(n).toFixed(dec); }
   };
-  K.fmtYear = (y) => (y < 0 ? `${-y}. p. n. e.` : `${y}.`);
+  K.fmtYear = (y) => (K.t ? (y < 0 ? K.t('fmt.yearBC', { y: -y }) : K.t('fmt.year', { y })) : String(y));
+  // ćirilica -> latinica samo za igrače na latiničnim jezicima (ruski igrač vidi originalna imena)
+  K.toLatin = (s) => (K.lang === 'ru' ? String(s || '') : K.translit(s));
   K.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Mreža ----------
