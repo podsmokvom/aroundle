@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kviz — koliko poznaješ svoj kraj?</title>
+  <meta name="description" content="Koliko poznaješ svoj kraj? 10 pitanja o bilo kom mestu: ulice, škole, majstori, linije, klima. Izazovi komšiju!">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Kviz — koliko poznaješ svoj kraj?">
+  <meta property="og:description" content="10 pitanja o tvom kraju: ulice, škole, majstori, linije, klima. Izazovi komšiju!">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Kviz</h1>
+    <p class="lead">Koliko poznaješ svoj kraj? Izaberi bilo koje mesto i sajt sam napravi 10 pitanja iz otvorenih podataka.</p>
+  </header>
+
+  <main>
+    <!-- 1. Izbor mesta -->
+    <section id="pick" class="card">
+      <h2>1. Izaberi mesto</h2>
+      <form id="searchForm" class="row" autocomplete="off">
+        <input id="q" type="search" placeholder="Adresa, kraj ili grad (npr. Karaburma, Beograd)" aria-label="Pretraga mesta">
+        <button type="submit">Traži</button>
+        <button type="button" id="locate" class="ghost" title="Koristi moju lokaciju">📍 Moja lokacija</button>
+      </form>
+      <ul id="results" class="results" hidden></ul>
+      <div id="map" aria-label="Mapa — klikni da izabereš tačku"></div>
+      <p class="hint">Ili klikni na mapu. Krug pokazuje 800 m oko tačke.</p>
+      <div id="picked" class="picked" hidden>
+        <div><span class="muted">Izabrano:</span> <strong id="pickedName"></strong></div>
+        <div class="row">
+          <button id="build">Napravi kviz</button>
+          <button id="rebuild" class="ghost" hidden>Napravi novi (bez keša)</button>
+        </div>
+        <p id="cacheInfo" class="muted small" hidden></p>
+      </div>
+    </section>
+
+    <!-- 2. Pravljenje -->
+    <section id="progress" class="card" hidden>
+      <div class="factory" aria-hidden="true">
+        <div class="belt belt-in">
+          <span class="item" style="--d:0">🗺️</span>
+          <span class="item" style="--d:1">🗿</span>
+          <span class="item" style="--d:2">🛣️</span>
+          <span class="item" style="--d:3">🐦</span>
+          <span class="item" style="--d:4">🏫</span>
+          <span class="item" style="--d:5">🌡️</span>
+          <span class="item" style="--d:6">🦔</span>
+        </div>
+        <div class="machine">
+          <span class="gear g1">⚙️</span>
+          <span class="gear g2">⚙️</span>
+          <span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span>
+          <span class="plate">KVIZ</span>
+        </div>
+        <div class="belt belt-out">
+          <span class="qcard" style="--d:0">?</span>
+          <span class="qcard" style="--d:1">?</span>
+          <span class="qcard" style="--d:2">?</span>
+          <span class="qcard" style="--d:3">?</span>
+          <span class="qcard" style="--d:4">?</span>
+        </div>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+      <details class="details">
+        <summary>Detalji</summary>
+        <ul id="log" class="log"></ul>
+      </details>
+    </section>
+
+    <!-- 3. Kviz -->
+    <section id="quiz" class="card" hidden>
+      <div id="notes" class="notes" hidden></div>
+      <div class="qhead">
+        <span id="qnum" class="muted"></span>
+        <span id="score" class="badge"></span>
+      </div>
+      <p id="qtext" class="qtext"></p>
+      <div id="opts" class="opts"></div>
+      <div id="qmap" class="qmap" hidden></div>
+      <div id="pinBar" class="row" hidden>
+        <span id="pinHint" class="muted small">Klikni na mapu gde misliš da je.</span>
+        <button id="pinOk" disabled>Potvrdi</button>
+      </div>
+      <div id="feedback" class="feedback" hidden></div>
+      <button id="next" hidden>Dalje</button>
+    </section>
+
+    <!-- 4. Rezultat -->
+    <section id="result" class="card" hidden>
+      <h2 id="resTitle"></h2>
+      <p id="resText"></p>
+      <div id="duelResult" class="duel" hidden></div>
+      <div class="share">
+        <h3>Izazovi komšiju</h3>
+        <p class="muted small">Pošalji ista pitanja, pa vidi ko bolje zna kraj.</p>
+        <div class="row">
+          <input id="myName" type="text" maxlength="24" placeholder="Tvoje ime (vidi ga komšija)" aria-label="Tvoje ime">
+          <button id="makeDuel">Napravi izazov</button>
+        </div>
+        <div id="shareBox" class="sharebox" hidden>
+          <div class="row">
+            <button id="shareNative" hidden>Podeli…</button>
+            <a id="shareWa" class="sbtn" target="_blank" rel="noopener">WhatsApp</a>
+            <a id="shareViber" class="sbtn">Viber</a>
+            <a id="shareTg" class="sbtn" target="_blank" rel="noopener">Telegram</a>
+            <a id="shareFb" class="sbtn" target="_blank" rel="noopener">Facebook</a>
+            <a id="shareX" class="sbtn" target="_blank" rel="noopener">X</a>
+            <button id="shareCopy" class="ghost">Kopiraj link</button>
+          </div>
+          <p id="shareMsg" class="muted small"></p>
+        </div>
+      </div>
+      <ol id="review" class="review"></ol>
+      <div class="row">
+        <button id="again">Igraj ponovo</button>
+        <button id="newPlace" class="ghost">Drugo mesto</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="attr">
+    <p>Podaci:
+      © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL) ·
+      <a href="https://www.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA) i <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0) ·
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0) ·
+      <a href="https://overturemaps.org/" target="_blank" rel="noopener">Overture Maps Foundation</a> (CDLA Permissive 2.0) ·
+      <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> ·
+      <a href="https://transitous.org/sources/" target="_blank" rel="noopener">Transitous</a> (vozni redovi) ·
+      <a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a> (samo CC0 i CC BY zapisi)
+    </p>
+    <p class="muted small">Pitanja prave šabloni na osnovu podataka. Nema AI. Gotov kviz se čuva u tvom pregledaču 30 dana.</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/sources.js"></script>
+  <script src="js/tiles.js"></script>
+  <script src="js/overture.js"></script>
+  <script src="js/questions.js"></script>
+  <script src="js/build.js"></script>
+  <script src="js/duel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
