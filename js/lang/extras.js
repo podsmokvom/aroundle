@@ -70,6 +70,7 @@
     'svc.supermarket': C('supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarkets', 'Supermarkt|Supermärkte', 'supermarché|supermarchés', 'supermercado|supermercados', 'супермаркет|супермаркетов'),
     'svc.hotel': C('hotel|hotela', 'hotel|hotela', 'hotel|hotela', 'hotel|hotels', 'Hotel|Hotels', 'hôtel|hôtels', 'hotel|hoteles', 'отель|отелей'),
 
+    'share.make': C('Izazovi drugara ⚔️', 'Izazovi prijatelja ⚔️', 'Izazovi jarana ⚔️', 'Dare a friend ⚔️', 'Fordere einen Freund heraus ⚔️', 'Défie un ami ⚔️', 'Reta a un amigo ⚔️', 'Брось вызов другу ⚔️'),
     'quiz.pinSend': C('Pošalji ✓', 'Pošalji ✓', 'Pošalji ✓', 'Send ✓', 'Senden ✓', 'Envoyer ✓', 'Enviar ✓', 'Отправить ✓'),
     'quiz.pinMove': C('Dodirni drugde da pomeriš, ili Pošalji.', 'Dodirni drugdje da pomakneš, ili Pošalji.', 'Dodirni drugdje da pomjeriš, ili Pošalji.',
       'Tap elsewhere to move it, or Send.', 'Tippe woanders, um ihn zu verschieben, oder Senden.', 'Touche ailleurs pour le déplacer, ou Envoyer.',
