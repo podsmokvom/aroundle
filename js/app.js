@@ -415,7 +415,7 @@
   }
 
   // ---------------- Rang-lista ----------------
-  let lbScope = 'near', lbPeriod = 'day', lbMine = null;
+  let lbScope = 'near', lbPeriod = 'day', lbMine = null, hoodScope = 'world';
   async function lbShow() {
     if (!quiz) return;
     const keys = K.lbKeys(quiz.place);
@@ -423,13 +423,18 @@
     document.querySelector('.tabs [data-period]').classList.toggle('on', lbPeriod === 'all');
     $('lbList').innerHTML = `<li class="muted">${K.esc(K.t('lb.loading'))}</li>`;
     try {
+      show($('hoodScope'), lbScope === 'hoods');
       if (lbScope === 'hoods') {
-        const j = await K.lbHoods(lbPeriod);
+        document.querySelectorAll('#hoodScope [data-hscope]').forEach((b) => b.classList.toggle('on', b.dataset.hscope === hoodScope));
+        const j = await K.lbHoods(lbPeriod, hoodScope, keys[hoodScope]);
+        const where = hoodScope === 'continent' ? (keys.continent ? K.t('cont.' + keys.continent) : K.t('lb.continent'))
+          : hoodScope === 'country' ? ((quiz.place.country || '').toUpperCase() || K.t('lb.country'))
+          : hoodScope === 'city' ? (quiz.place.grad || K.t('lb.city')) : K.t('lb.worldLabel');
         const mine = K.hoodKey(quiz.place);
         $('lbList').innerHTML = j.rows.length ? j.rows.map((r) =>
           `<li class="${r.hood === mine ? 'me' : ''}"><strong>${K.esc(r.hood_name || r.city)}</strong>${r.city && r.city !== r.hood_name ? ', ' + K.esc(r.city) : ''}${r.country ? ' (' + K.esc(r.country.toUpperCase()) + ')' : ''} · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`
         ).join('') : `<li class="muted">${K.esc(K.t('lb.hoodsEmpty', { n: j.min }))}</li>`;
-        $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')}: ${K.t('lb.hoodsLabel', { n: j.min })}`;
+        $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')} · ${where}: ${K.t('lb.hoodsLabel', { n: j.min })}`;
         return;
       }
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
@@ -444,6 +449,7 @@
     }
   }
   document.querySelectorAll('.tabs [data-scope]').forEach((b) => b.addEventListener('click', () => { lbScope = b.dataset.scope; lbShow(); }));
+  document.querySelectorAll('#hoodScope [data-hscope]').forEach((b) => b.addEventListener('click', () => { hoodScope = b.dataset.hscope; lbShow(); }));
   document.querySelector('.tabs [data-period]').addEventListener('click', () => { lbPeriod = lbPeriod === 'all' ? 'day' : 'all'; lbShow(); });
   $('lbSubmit').addEventListener('click', async () => {
     const name = $('lbName').value.trim() || K.t('share.defaultName');

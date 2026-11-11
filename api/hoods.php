@@ -1,7 +1,7 @@
 <?php
 // GET: krajevi koje ljudi najbolje poznaju — prosek tačnih odgovora po kraju (kraj|grad),
 // samo krajevi sa dovoljno igrača, da jedan srećan igrač ne bi bio „najbolji kraj na svetu“.
-// period=day (danas, bar 3 igrača) | week (7 dana, bar 5) | all (bar 10); opciono scope=country|continent + key
+// period=day (danas, bar 3 igrača) | week (7 dana, bar 5) | all (bar 10); opciono scope=city|country|continent + key
 require __DIR__ . '/db.php';
 $period = $_GET['period'] ?? 'all';
 $MIN = ['day' => 3, 'week' => 5, 'all' => 10];
@@ -10,7 +10,11 @@ $where = []; $args = [];
 if ($period === 'day') { $where[] = 'day=?'; $args[] = date('Y-m-d'); }
 if ($period === 'week') { $where[] = 'day>=?'; $args[] = date('Y-m-d', strtotime('-6 days')); }
 $scope = $_GET['scope'] ?? 'world';
-if ($scope === 'country' || $scope === 'continent') {
+if ($scope === 'city') {
+  $key = clean($_GET['key'] ?? '', 80);
+  if ($key === '') out(['error' => 'ključ'], 400);
+  $where[] = 'city=?'; $args[] = $key;
+} elseif ($scope === 'country' || $scope === 'continent') {
   $key = preg_replace('/[^a-z]/i', '', $_GET['key'] ?? '');
   if (strlen($key) !== 2) out(['error' => 'ključ'], 400);
   $where[] = "$scope=?"; $args[] = $scope === 'country' ? strtolower($key) : strtoupper($key);

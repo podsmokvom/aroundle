@@ -44,8 +44,9 @@
     return j.rows;
   };
   // krajevi koje ljudi najbolje poznaju (prosek tačnih odgovora, samo krajevi sa dovoljno igrača)
-  K.lbHoods = async function (period = 'all') {
-    const r = await fetch(`${K.API}hoods.php?${new URLSearchParams({ period })}`);
+  K.lbHoods = async function (period = 'all', scope = 'world', key = '') {
+    const qs = new URLSearchParams(scope === 'world' ? { period } : { period, scope, key });
+    const r = await fetch(`${K.API}hoods.php?${qs}`);
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
     return j;
