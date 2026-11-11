@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS aroundle_scores (
   day       DATE         NOT NULL,
   hood      VARCHAR(120) NOT NULL,          -- normalizovan „kraj|grad“
   hood_name VARCHAR(80)  NOT NULL,          -- za prikaz
-  lat       DECIMAL(7,3) NOT NULL,          -- tačka već pomerena 200 m i zaokružena na ~100 m (nikad prava)
+  lat       DECIMAL(7,3) NOT NULL,          -- tačka već pomerena 50 m i zaokružena na ~100 m (nikad prava)
   lon       DECIMAL(8,3) NOT NULL,
   city      VARCHAR(80)  NOT NULL DEFAULT '',
   country   CHAR(2)      NOT NULL DEFAULT '',

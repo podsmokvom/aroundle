@@ -50,7 +50,7 @@
 
   const HOOD = new Set(['neighbourhood', 'quarter', 'suburb', 'village', 'hamlet', 'isolated_dwelling']);
 
-  // Privatnost: izabrana tačka se odmah pomera za 200 m u nasumičnom pravcu, PRE bilo kakvog slanja spoljnim servisima.
+  // Privatnost: izabrana tačka se odmah pomera za 50 m (SHIFT_M) u nasumičnom pravcu, PRE bilo kakvog slanja spoljnim servisima.
   // Pravac je zaista slučajan (crypto) i nigde se ne čuva, pa se prava tačka ne može izračunati ni uz javni kod.
   const SHIFT_M = 50; // privatnost uz savet da se ne bira kućna adresa; tolerancije pitanja su podešene na ovih 50 m
   function shift(lat, lon) {
@@ -83,8 +83,8 @@
     try {
       const np = await K.nearestPlace(lat, lon);
       // imena iz pločica su lokalna (ista za sve jezike), pa važe i za ključ
-      if (np && HOOD.has(np.cls) && np.d <= 1500) p.kraj = p.krajKey = np.name;
-      else if (np && !p.kraj) p.kraj = p.krajKey = np.name;
+      if (np && HOOD.has(np.cls) && np.d <= 1500) { p.kraj = np.name; p.krajKey = np.local || np.name; }
+      else if (np && !p.kraj) { p.kraj = np.name; p.krajKey = np.local || np.name; }
     } catch (e) { /* ostaje ime iz adrese */ }
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }

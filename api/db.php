@@ -19,7 +19,7 @@ function db() {
 }
 function clean($s, $max) { return mb_substr(trim(preg_replace('/[\x00-\x1F<>]/u', '', (string)$s)), 0, $max); }
 const SCOPES = ['near' => null, 'city' => 'city', 'country' => 'country', 'continent' => 'continent', 'world' => null];
-const NEAR_M = 1500; // „kraj“ na rang-listi = sve tačke do 1,5 km (tačke su nasumično pomerene 200 m)
+const NEAR_M = 1500; // „kraj“ na rang-listi = sve tačke do 1,5 km (tačke su nasumično pomerene 50 m)
 // SQL uslov: rastojanje (haversine) od tačke ?,? do kolona lat/lon najviše NEAR_M, uz brzi okvir (bbox) za indeks
 function nearSql($lat, $lon, &$args) {
   $dLat = NEAR_M / 111320; $dLon = NEAR_M / (111320 * max(0.01, cos(deg2rad($lat))));

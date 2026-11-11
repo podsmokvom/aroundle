@@ -219,12 +219,29 @@
   // OSM + Overture zajedno: ista vrsta na <60 m sa sličnim (ili bez) imenom = ista radnja
   K.mergeServices = function (osmSvc, overture, inside, lat, lon) {
     const out = osmSvc.map((s) => ({ ...s, src: 'OSM' }));
+    // mreža ćelija ~220 m po vrsti: duplikati se traže samo među susedima (u centru Njujorka je 100.000+ mesta,
+    // a poređenje svakog sa svakim je trajalo 10+ s)
+    const C = 0.002, grid = new Map();
+    const cellOf = (la, lo) => [Math.floor(la / C), Math.floor(lo / C)];
+    const put = (s) => { const [a, b] = cellOf(s.lat, s.lon); const k = `${s.kind}|${a}|${b}`; (grid.get(k) || grid.set(k, []).get(k)).push(s); };
+    const near = (p) => { const [a, b] = cellOf(p.lat, p.lon); const r = []; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const g = grid.get(`${p.kind}|${a + i}|${b + j}`); if (g) r.push(...g); } return r; };
+    out.forEach(put);
     for (const p of overture) {
       if (!p.kind || !K.SERVICES[p.kind]) continue;
-      const dup = out.find((s) => s.kind === p.kind && K.dist(s.lat, s.lon, p.lat, p.lon) < 60 &&
-        (!s.name || !p.name || K.norm(s.name) === K.norm(p.name) || K.tooClose(s.name, p.name)));
-      if (dup) { dup.src = 'OSM + Overture'; continue; }
-      out.push({ kind: p.kind, name: p.name, lat: p.lat, lon: p.lon, d: K.dist(lat, lon, p.lat, p.lon), inside: inside(p.lat, p.lon), id: 'ov' + p.id, src: 'Overture' });
+      if (p.conf != null && p.conf < 0.55) continue; // nesigurni zapisi (često pogrešna vrsta ili zatvoreno)
+      // duplikat: ista vrsta i isto ime do 150 m (Overture spaja više izvora, pa isto mesto ume da ima 2–3 zapisa),
+      // ili bilo koje ime do 40 m od OSM objekta iste vrste
+      const pn = K.norm(p.name || '');
+      const dup = near(p).find((s) => {
+        const dd = K.dist(s.lat, s.lon, p.lat, p.lon);
+        if (dd >= 150) return false;
+        const sn = s.nn != null ? s.nn : (s.nn = K.norm(s.name || ''));
+        const sameName = sn && pn && (sn === pn || K.tooClose(s.name, p.name));
+        return sameName || ((!sn || !pn) && dd < 60) || (s.src === 'OSM' && dd < 40);
+      });
+      if (dup) { if (dup.src === 'OSM') dup.src = 'OSM + Overture'; continue; }
+      const s = { kind: p.kind, name: p.name, nn: pn, lat: p.lat, lon: p.lon, d: K.dist(lat, lon, p.lat, p.lon), inside: inside(p.lat, p.lon), id: 'ov' + p.id, src: 'Overture', conf: p.conf };
+      out.push(s); put(s);
     }
     return out;
   };
@@ -251,7 +268,7 @@
     for (const f of m.transportation_name || []) {
       const p = f.props;
       if (!p.name || !STREET_CLASSES.has(p.class)) continue;
-      const name = K.toLatin(p['name:sr-Latn'] || p.name).trim();
+      const name = K.nameOf(p);
       if (!name || K.isBanned(name) || /^[A-Z]?\d/.test(name)) continue;
       const key = 'street/' + K.norm(name);
       const s = streets.get(key) || { key, cat: 'street', name, lat: f.lat, lon: f.lon, inside: false, minD: Infinity };
@@ -267,8 +284,9 @@
       else if (farOk(s.lat, s.lon, s.minD)) add(far, s);
     }
 
-    // parkovi iz sloja "park" + objekti iz sloja "poi"
-    const feats = (m.park || []).filter((f) => f.props.name).map((f) => ({ ...f, props: { ...f.props, class: 'park', subclass: 'park' } }))
+    // parkovi iz sloja "park" (samo gradski parkovi; ne nacionalni parkovi i zaštićena područja, koja su ogromna
+    // i često obuhvataju i samu tačku igrača) + objekti iz sloja "poi"
+    const feats = (m.park || []).filter((f) => f.props.name && (!f.props.class || f.props.class === 'park')).map((f) => ({ ...f, props: { ...f.props, class: 'park', subclass: 'park' } }))
       .concat(m.poi || []);
     for (const f of feats) {
       const p = f.props;
@@ -277,13 +295,13 @@
       // ista vrsta pod drugim OSM imenom (npr. ambulanta: clinic / doctors)
       const kind = ({ doctors: 'clinic', town_hall: 'townhall', bar: 'pub', fitness_centre: 'gym' })[p.subclass] || p.subclass;
       if (K.SERVICES[kind] && !K.isBetting(p.name, p.subclass)) { // klađenje je izuzeto
-        services.push({ kind, name: p.name ? K.toLatin(p['name:sr-Latn'] || p.name) : '', lat: f.lat, lon: f.lon, d, inside: isIn, id: f.id });
+        services.push({ kind, name: p.name ? K.nameOf(p) : '', lat: f.lat, lon: f.lon, d, inside: isIn, id: f.id });
       }
       const cat = catOfPoi(p);
       if (!cat || !p.name) continue;
-      const name = K.toLatin(p['name:sr-Latn'] || p.name).trim();
+      const name = K.nameOf(p);
       if (!name || K.isBanned(name)) continue;
-      const it = { key: `${cat}/${f.id || K.norm(name)}`, cat, name, lat: f.lat, lon: f.lon };
+      const it = { key: `${cat}/${f.id || K.norm(name)}`, cat, name, lat: f.lat, lon: f.lon, osmId: f.id };
       if (isIn) add(local, it);
       else if (farOk(f.lat, f.lon, d)) add(far, it);
     }
@@ -324,7 +342,7 @@
       const lim = p.class === 'town' || p.class === 'city' ? 4000 : 1500;
       if (d > lim) continue;
       const score = d + RANK[p.class] * 600; // kvart ispred grada, ako su slično blizu
-      if (!best || score < best.score) best = { name: K.toLatin(p['name:sr-Latn'] || p.name), cls: p.class, d, score, lat: f.lat, lon: f.lon };
+      if (!best || score < best.score) best = { name: K.nameOf(p), local: K.localName(p), cls: p.class, d, score, lat: f.lat, lon: f.lon };
     }
     return best;
   };

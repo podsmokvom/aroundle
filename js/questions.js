@@ -65,7 +65,7 @@
     return { correct: fmt(value), wrongs: p.map((k) => fmt(value + k * step)) };
   }
 
-  const osmLink = (it) => ({ name: 'OpenStreetMap', url: `https://www.openstreetmap.org/${it.key}` });
+  const osmLink = (it) => ({ name: 'OpenStreetMap', url: K.osmUrl(it.osmId, it.lat, it.lon) });
 
   // ---------------- OSM: šta se nalazi u kraju ----------------
   const OSM_CATS = ['street', 'school', 'kindergarten', 'park', 'monument', 'stop'];
@@ -223,6 +223,14 @@
   }
 
   // ---------------- GBIF: ptice ----------------
+  // unapred učitaj imena vrsta koje će birdQuestions tražiti (isti izbor, bez slučajnosti), da ide paralelno sa Wikidata
+  K.birdPrefetch = function (birds) {
+    if (!birds || birds.species.length < 6 || birds.species[0].count < 20) return;
+    const top = birds.species[0];
+    const lower = birds.species.slice(5).filter((s) => s.count < top.count * 0.8);
+    const picks = lower.slice().sort((a, b) => String(a.key).localeCompare(String(b.key))).slice(0, 5);
+    for (const s of [top, ...picks]) K.speciesName(s.key).catch(() => null);
+  };
   K.birdQuestions = async function (birds, label, kind = 'birds') { // kind: 'birds' ili 'plants'
     if (!birds || birds.species.length < 6 || birds.species[0].count < 20) return [];
     const top = birds.species[0];
@@ -250,8 +258,11 @@
     const local = services.filter((s) => s.inside);
     const count = {};
     for (const s of local) count[s.kind] = (count[s.kind] || 0) + 1;
+    // za pitanja o konkretnom mestu (najbliže, ime): samo OSM ili vrlo pouzdan Overture zapis
+    // (Overture ume da pogreši vrstu, npr. restoran kao bolnica, ili da drži zatvorena mesta)
+    const trusted = (s) => s.src !== 'Overture' || (s.conf != null && s.conf >= 0.8);
     const nearest = {};
-    for (const s of services) if (!nearest[s.kind] || s.d < nearest[s.kind].d) nearest[s.kind] = s;
+    for (const s of services) if (trusted(s) && (!nearest[s.kind] || s.d < nearest[s.kind].d)) nearest[s.kind] = s;
     const kinds = Object.keys(K.SERVICES);
     const one = K.svcOne, many = K.svcMany;
     const scope = stage.label;
@@ -334,7 +345,7 @@
     // 6) Koja (imenovana) radnja je u kraju — bez lanaca (ime koje postoji i u kraju i van njega)
     const farNames = new Set(services.filter((s) => !s.inside && s.name).map((s) => K.norm(s.name)));
     const localNames = new Set(local.filter((s) => s.name).map((s) => K.norm(s.name)));
-    for (const s of K.shuffle(local.filter((x) => x.name && !farNames.has(K.norm(x.name))))) {
+    for (const s of K.shuffle(local.filter((x) => x.name && trusted(x) && !farNames.has(K.norm(x.name))))) {
       if (qs.filter((q) => q.cat === 'svcName').length >= 1) break;
       const pool = K.uniqBy(services.filter((x) => !x.inside && x.kind === s.kind && x.name && !localNames.has(K.norm(x.name)) &&
         x.d > (stage.far || 1500)), (x) => K.norm(x.name)).map((x) => x.name);
@@ -342,7 +353,7 @@
         cat: 'svcName', names: true, text: K.t('q.svcName', { one: one(s.kind), scope }),
         correct: s.name, wrongs: similar(s.name, pool),
         explain: K.t('q.svcName.explain', { name: s.name, src: s.src, scope, d: meters(s.d) }),
-        source: { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=19/${s.lat.toFixed(5)}/${s.lon.toFixed(5)}` }
+        source: { name: 'OpenStreetMap', url: K.osmUrl(s.id, s.lat, s.lon) }
       });
       if (q) qs.push(q);
     }
@@ -398,9 +409,9 @@
     const qs = [];
     const WHAT = { school: 1, kindergarten: 1, park: 1, monument: 1 };
     const cands = K.shuffle(local.items.filter((i) => WHAT[i.cat] && i.lat != null && stage.inside(i.lat, i.lon)))
-      .map((i) => ({ name: i.name, what: K.t('what.' + i.cat), lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: `https://www.openstreetmap.org/#map=18/${i.lat.toFixed(5)}/${i.lon.toFixed(5)}` }))
+      .map((i) => ({ name: i.name, what: K.t('what.' + i.cat), lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: K.osmUrl(i.osmId, i.lat, i.lon) }))
       .concat(K.shuffle((services || []).filter((s) => s.inside && s.name && ['bakery', 'pharmacy', 'florist', 'shoemaker', 'tailor', 'tyres', 'locksmith'].includes(s.kind)))
-        .map((s) => ({ name: s.name, what: K.svcOne(s.kind), lat: s.lat, lon: s.lon, tol: 150, url: `https://www.openstreetmap.org/#map=19/${s.lat.toFixed(5)}/${s.lon.toFixed(5)}` })));
+        .map((s) => ({ name: s.name, what: K.svcOne(s.kind), lat: s.lat, lon: s.lon, tol: 150, url: K.osmUrl(s.id, s.lat, s.lon) })));
     for (const c of K.uniqBy(cands, (c) => K.norm(c.name)).slice(0, 1)) { // jedno pitanje sa mapom po kvizu
       qs.push({
         cat: 'mapPin', type: 'map', text: K.t('q.map', { what: c.what, name: c.name }),
@@ -435,7 +446,8 @@
       const x = Math.cos(la1 * r) * Math.sin(la2 * r) - Math.sin(la1 * r) * Math.cos(la2 * r) * Math.cos((lo2 - lo1) * r);
       return (Math.atan2(y, x) / r + 360) % 360;
     };
-    for (const it of K.shuffle(local.items.filter((i) => i.cat !== 'street' && i.lat != null && stage.inside(i.lat, i.lon)))) {
+    // samo „tačkasti“ objekti (ne ulice ni parkovi: kod površina je pravac ka sredini sporan)
+    for (const it of K.shuffle(local.items.filter((i) => i.cat !== 'street' && i.cat !== 'park' && i.lat != null && stage.inside(i.lat, i.lon)))) {
       const d = K.dist(stage.lat, stage.lon, it.lat, it.lon);
       if (d < 350) continue; // dovoljno daleko da pomak tačke od 50 m menja ugao najviše ~8°
       const b = bearing(stage.lat, stage.lon, it.lat, it.lon);
@@ -448,7 +460,7 @@
         cat: 'dir', text: K.t('q.dir', { name: it.name }),
         correct: opts[0], wrongs: opts.slice(1),
         explain: K.t('q.dir.explain', { name: it.name, dir: opts[0], d: meters(d) }),
-        source: { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=18/${it.lat.toFixed(5)}/${it.lon.toFixed(5)}` }
+        source: { name: 'OpenStreetMap', url: K.osmUrl(it.osmId, it.lat, it.lon) }
       });
       if (q) { qs.push(q); break; }
     }
@@ -554,19 +566,31 @@
   K.wikiQuestions = wikiQuestions;
 
   // ---------------- Izbor 10 pitanja ----------------
-  K.selectQuiz = function (cands, n = 10) {
+  // Ključevi za duplikate: isti tačan odgovor ili isti tekst (npr. isti wiki opis) ne sme dva puta u kvizu
+  const ansKey = (q) => (q.type === 'map' && q.target ? `map:${q.target.lat.toFixed(4)},${q.target.lon.toFixed(4)}`
+    : q.options && q.options[q.answer] != null ? 'a:' + K.norm(String(q.options[q.answer])) : '');
+  const textKey = (q) => 't:' + K.norm(String(q.text || ''));
+
+  // have = pitanja već izabrana iz užeg kraja (kad se kviz dopunjuje iz šireg područja)
+  K.selectQuiz = function (cands, n = 10, have = []) {
     const out = [];
+    const seen = new Set();
+    const mark = (q) => { const a = ansKey(q); if (a) seen.add(a); seen.add(textKey(q)); };
+    have.forEach(mark);
+    const fresh = (q) => !seen.has(textKey(q)) && !(ansKey(q) && seen.has(ansKey(q)));
+    const add = (q) => { if (out.length < n && fresh(q)) { out.push(q); mark(q); return true; } return false; };
+    const all = have.concat(out);
     // bar 2 pitanja o zanatlijama i radnjama (prvo „koliko ih ima“), iz različitih šablona
+    const svcCats = new Set(all.filter((q) => /^svc/.test(q.cat)).map((q) => q.cat));
     const svc = K.shuffle(cands.filter((q) => /^svc/.test(q.cat))).sort((a, b) => (b.cat === 'svcCount') - (a.cat === 'svcCount'));
-    const svcCats = new Set();
-    for (const q of svc) { if (svcCats.size >= 2) break; if (!svcCats.has(q.cat)) { svcCats.add(q.cat); out.push(q); } }
-    // po jedno „pokaži na mapi“ i pitanje o gradskom prevozu, kad postoje
+    for (const q of svc) { if (svcCats.size >= 2) break; if (!svcCats.has(q.cat) && add(q)) svcCats.add(q.cat); }
+    // po jedno „pokaži na mapi“ i pitanje o gradskom prevozu, kad postoje (i ako ih već nema)
     for (const cat of ['mapPin', 'transit']) {
-      const q = K.shuffle(cands.filter((x) => x.cat === cat))[0];
-      if (q) out.push(q);
+      if (have.some((x) => x.cat === cat)) continue;
+      for (const q of K.shuffle(cands.filter((x) => x.cat === cat))) if (add(q)) break;
     }
-    // ostalo: kružno po vrstama
-    const rest = cands.filter((q) => !out.includes(q));
+    // ostalo: kružno po vrstama (mapPin najviše jednom u kvizu)
+    const rest = cands.filter((q) => !out.includes(q) && q.cat !== 'mapPin');
     const groups = {};
     for (const q of K.shuffle(rest)) (groups[q.cat] = groups[q.cat] || []).push(q);
     const order = K.shuffle(Object.keys(groups));
@@ -575,7 +599,7 @@
       added = false;
       for (const c of order) {
         if (out.length >= n) break;
-        if (groups[c].length) { out.push(groups[c].shift()); added = true; }
+        while (groups[c].length) { if (add(groups[c].shift())) { added = true; break; } }
       }
     }
     return K.shuffle(out);

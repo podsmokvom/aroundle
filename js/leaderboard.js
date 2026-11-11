@@ -17,7 +17,7 @@
   K.continentOf = (cc) => MAP[(cc || '').toLowerCase()] || '';
   K.CONTINENT_SR = { EU: 'Evropa', AS: 'Azija', AF: 'Afrika', NA: 'Severna Amerika', SA: 'Južna Amerika', OC: 'Okeanija' };
 
-  // „near“ = svi igrači današnjeg dana na najviše 1,5 km (tačke su već nasumično pomerene 200 m)
+  // „near“ = svi igrači današnjeg dana na najviše 1,5 km (tačke su već nasumično pomerene 50 m)
   K.lbKeys = (place) => ({
     near: { lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3) }, city: K.cityKey(place), country: (place.country || '').toLowerCase(),
     continent: K.continentOf(place.country), world: '*'

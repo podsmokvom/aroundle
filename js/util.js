@@ -101,6 +101,42 @@
   K.fmtYear = (y) => (K.t ? (y < 0 ? K.t('fmt.yearBC', { y: -y }) : K.t('fmt.year', { y })) : String(y));
   // ćirilica -> latinica samo za igrače na latiničnim jezicima (ruski igrač vidi originalna imena)
   K.toLatin = (s) => (K.lang === 'ru' ? String(s || '') : K.translit(s));
+
+  // Ime objekta iz OSM pločica na jeziku igrača: name:<jezik> → name:en → lokalno ime ako je čitljivo
+  // → name:latin (transliteracija za sva pisma). Srpski: name:sr-Latn, pa ćirilica preslovljena.
+  const READ_LAT = /^[\p{Script=Latin}\p{N}\p{P}\p{S}\p{Zs}]*$/u;
+  const READ_CYR = /^[\p{Script=Latin}\p{Script=Cyrillic}\p{N}\p{P}\p{S}\p{Zs}]*$/u;
+  const SR_CYR = /^[\sА-Шабв-шЂЈЉЊЋЏђјљњћџ\p{N}\p{P}\p{S}]*$/u; // srpska ćirilica se tačno preslovljava
+  K.nameOf = function (p) {
+    if (!p || !p.name) return '';
+    const L = K.lang;
+    const pick = (...ks) => { for (const k of ks) if (p[k]) return String(p[k]); return ''; };
+    let s = L === 'sr' ? pick('name:sr-Latn') || K.translit(pick('name:sr'))
+      : L === 'hr' || L === 'bs' ? pick('name:' + L, 'name:sr-Latn')
+      : L === 'ru' ? pick('name:ru')
+      : pick('name:' + L, 'name:en', 'name_en');
+    if (!s) {
+      const n = String(p.name);
+      const ok = L === 'ru' ? READ_CYR.test(n) : READ_LAT.test(n) || ((L === 'sr' || L === 'hr' || L === 'bs') && SR_CYR.test(n));
+      s = ok ? n : pick('name:latin', 'name_int') || n;
+    }
+    return K.toLatin(s).trim();
+  };
+  // Link ka objektu na openstreetmap.org. ID iz OpenMapTiles pločica = OSM ID × 10 + tip (1 node, 2 way, 3 relation).
+  // Bez ID-a (ulice su spojene linije, Overture mesta): mapa sa markerom na tom mestu.
+  K.osmUrl = function (id, lat, lon) {
+    const n = typeof id === 'number' ? id : /^\d+$/.test(String(id || '')) ? Number(id) : NaN;
+    const t = { 1: 'node', 2: 'way', 3: 'relation' }[n % 10];
+    if (Number.isFinite(n) && n > 10 && t) return `https://www.openstreetmap.org/${t}/${Math.floor(n / 10)}`;
+    const a = (+lat).toFixed(5), b = (+lon).toFixed(5);
+    return `https://www.openstreetmap.org/?mlat=${a}&mlon=${b}#map=18/${a}/${b}`;
+  };
+  // Lokalno ime (isto za sve jezike igrača) — za ključ kraja i rang-liste
+  K.localName = function (p) {
+    if (!p || !p.name) return '';
+    const n = K.translit(String(p.name));
+    return (READ_LAT.test(n) ? n : String(p['name:latin'] || p.name_int || n)).trim();
+  };
   K.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Mreža ----------

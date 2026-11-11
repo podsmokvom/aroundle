@@ -3,7 +3,7 @@
 (function (K) {
   'use strict';
   const TARGET = 10;
-  const CACHE_VER = 'kviz:v6:';
+  const CACHE_VER = 'kviz:v7:';
   const CACHE_DAYS = 30;
 
   // ---------------- Keš (localStorage) ----------------
@@ -43,7 +43,8 @@
     local.sort(byLangId); far.sort(byLangId); // stabilan redosled (isti kviz za sve)
     // detalji za lokalne: uvod + Wikidata ID
     await Promise.all(K.wikiLangs().map(async (lang) => {
-      const ids = local.filter((w) => w.lang === lang).map((w) => w.pageid);
+      // uvodi samo za 60 najbližih (u centru grada ih ima 100+, a više ne treba za pitanja)
+      const ids = local.filter((w) => w.lang === lang).sort((a, b) => (a.dist - b.dist) || (a.pageid - b.pageid)).slice(0, 60).map((w) => w.pageid);
       if (!ids.length) return;
       try {
         const det = await K.wikiDetails(lang, ids);
@@ -53,7 +54,9 @@
     for (const w of local.concat(far)) w.url = K.wikiUrl(w.lang, w.title);
     // bez višeznačnih, bez zabranjenih tema
     const ok = (w) => !w.disamb && !K.isBanned(w.title) && !K.isBanned((w.extract || '').slice(0, 200));
-    const loc = K.uniqBy(local.filter(ok), (w) => w.qid || K.norm(w.title));
+    // bez članaka za koje nisu učitani detalji (dalji od 60 najbližih): bez njih ne znamo šta su (npr. naselje)
+    const hasDet = new Set(local.filter((w) => w.extract !== undefined).map((w) => w.lang));
+    const loc = K.uniqBy(local.filter((w) => ok(w) && (w.extract !== undefined || !hasDet.has(w.lang))), (w) => w.qid || K.norm(w.title));
     const locSet = new Set(loc.map((w) => K.norm(w.title)));
     return {
       local: loc,
@@ -61,6 +64,12 @@
     };
   }
 
+  const LIST_RE = /^(lists? of|spisak|popis|liste d|lista d|anexo:|список|категория|kategorija|category:)/i;
+  // „Palco, Kansas“, „Krupanj (Srbija)“, „Opština Krupanj“, „Gradska opština Palilula“ → „palco“, „krupanj“, „palilula“
+  const placeCore = (s) => K.norm(String(s || '').replace(/\s*\(.*\)\s*$/, '').replace(/,.*$/, ''))
+    .replace(/^(gradska opstina|opstina|opcina|grad|city of|municipality of|town of|village of|gemeinde|stadt|commune de|municipio de|gorod|selo)\s+/, '').trim();
+  // naselja i opštine (selo, varoš, grad, opština…): članak o celom naselju nije „objekat u kraju“
+  const SETTLEMENT_Q = new Set(['Q486972', 'Q532', 'Q3957', 'Q515', 'Q1549591', 'Q5119', 'Q15284', 'Q2039348', 'Q1637706', 'Q747074', 'Q2074737', 'Q3184121', 'Q15127012', 'Q1115575', 'Q56061']);
   const ENERGY_Q = new Set(['Q159719', 'Q15911738', 'Q134447', 'Q194356', 'Q2519363']);
 
   async function buildStage(stage, shared, log) {
@@ -91,6 +100,7 @@
         .catch(() => null)
     ]);
 
+    K.birdPrefetch(birdData); K.birdPrefetch(plantData); // imena vrsta paralelno sa Wikidata
     // Wikidata: detalji članaka + „nazvano po“
     if (shared.namedP) await shared.namedP;
     const wdNamed = (shared.wdNamed || []).filter((w) => w.dist <= Math.max(3000, stage.wikiR));
@@ -109,7 +119,14 @@
         log('Wikidata: podaci o objektima i imenima.', 'ok');
       } catch (e) { log(`Wikidata: ${e.message}`, 'warn'); }
     }
-    wiki.local = wiki.local.filter((w) => !K.wd.items(ents[w.qid], 'P31').some((q) => ENERGY_Q.has(q)));
+    // Vikipedija za pitanja: bez energetike, bez spiskova („List of…“), bez članaka o samom naselju/opštini
+    // (ime kraja i grada piše iznad kviza, pa bi odgovor bio očigledan) i bez naselja uopšte (imaju stanovništvo)
+    const names = [...new Set([...(shared.placeNames || []), stage.areaName].filter(Boolean).map(placeCore))].filter(Boolean);
+    // isto ime ili jedno sadrži drugo kao celu reč („Sebeš“ ↔ „Sebeš Ovčanski“)
+    const isPlaceName = (c) => !!c && names.some((n) => n === c || n.startsWith(c + ' ') || c.startsWith(n + ' ') || n.endsWith(' ' + c));
+    wiki.local = wiki.local.filter((w) => !K.wd.items(ents[w.qid], 'P31').some((q) => ENERGY_Q.has(q)) &&
+      !LIST_RE.test(w.title) && !isPlaceName(placeCore(w.title)) && !K.wd.claims(ents[w.qid], 'P1082').length &&
+      !K.wd.items(ents[w.qid], 'P31').some((q) => SETTLEMENT_Q.has(q)));
 
     // pitanja (i slučajnost) tek kad su svi podaci stigli, uvek istim redom
     const birdQs = birdData ? await K.birdQuestions(birdData, stage.gbifLabel).catch(() => []) : [];
@@ -151,11 +168,14 @@
     const [s, n, w, e] = area.bbox;
     const reach = Math.max(...[[s, w], [s, e], [n, w], [n, e]].map(([a, b]) => K.dist(lat, lon, a, b)));
     const loadR = Math.min(maxLoad, reach + 2500);
+    const radius = Math.min(reach, maxLoad);
     return {
-      key, lat, lon, radius: Math.min(reach, maxLoad), label: `na području: ${area.name}`, title: area.name,
+      key, lat, lon, radius, label: K.t('scope.area', { name: area.name }), title: area.name, areaName: area.name,
       inside: (a, b) => K.inGeo(area.geo, a, b),
       farOk: (a, b) => !K.inGeo(area.geo, a, b),
-      loadR, ovR: Math.min(6000, loadR),
+      loadR, ovR: Math.min(6000, loadR), far: radius + 700,
+      wikiR: Math.min(10000, Math.max(1500, radius)), wikiFar: Math.min(10000, radius + 3000),
+      gbifR: Math.min(5000, Math.max(1500, radius)), gbifLabel: K.t('scope.area', { name: area.name }),
       // brojanje radnji ima smisla samo ako je ceo poligon učitan iz oba izvora
       complete: reach + 300 < Math.min(6000, loadR)
     };
@@ -169,7 +189,7 @@
     K.setSeed(`${K.seedKey(place)}|${day}`);
 
     // Zajedničko za sve krugove: nadmorska visina kraja, „nazvano po“
-    const shared = { questions: [], wdNamed: [] };
+    const shared = { questions: [], wdNamed: [], placeNames: [place.kraj, place.grad, place.krajKey, place.gradKey] };
     log('Open-Meteo: nadmorska visina tačke…');
     const elevP = K.elevation(lat, lon).then((h) => { shared.elev = h; log(`Open-Meteo: ${Math.round(h)} m nadmorske visine.`, 'ok'); })
       .catch((e) => log(`Open-Meteo: ${e.message}`, 'warn'));
@@ -184,32 +204,50 @@
     await elevP;
     if (shared.elev != null) shared.questions.push(...K.elevationQuestions(shared.elev, place.kraj));
 
-    // kraj = najviše 1 km oko centra
-    const stages = [
-      circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: K.t('scope.gbif') })
+    // Kraj = 1 km oko tačke. Ako tu nema 10 dobrih pitanja, kviz se DOPUNJUJE (ne zamenjuje) iz šireg područja,
+    // stepenasto i tek kad zatreba: krug 2 km → naselje/grad → opština/okrug → krug 5 km.
+    // Pitanja iz užeg kraja uvek ostaju; isti podaci + isti seed po nivou = isti kviz za istu tačku i dan.
+    let adminP = null;
+    const admin = () => (adminP = adminP || K.adminPolygons(lat, lon).catch(() => []));
+    const pickArea = async (kinds) => (await admin()).find((a) => kinds.includes(a.kind));
+    const makers = [
+      async () => circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: K.t('scope.gbif') }),
+      async () => circleStage(lat, lon, 2000, { wikiR: 2000, wikiFar: 5000, gbifR: 2000, gbifLabel: K.t('scope.r', { r: '2 km' }) }),
+      async () => { const a = await pickArea(['city']); return a && areaStage(lat, lon, a, 'city', 8000); },
+      async () => { const a = await pickArea(['mun']); return a && areaStage(lat, lon, a, 'mun', 10000); },
+      async () => circleStage(lat, lon, 5000, { wikiR: 5000, wikiFar: 7000, gbifR: 5000, gbifLabel: K.t('scope.r', { r: '5 km' }) })
     ];
 
     const notes = [];
-    let used = null;
-    for (let i = 0; i < stages.length; i++) {
-      const st = stages[i];
+    const picked = [];
+    const wider = [];
+    let first = null;
+    const doneKeys = new Set();
+    for (let i = 0; i < makers.length && picked.length < TARGET; i++) {
+      const st = await makers[i]();
+      if (!st || doneKeys.has(st.key)) continue;
+      doneKeys.add(st.key);
+      if (i > 0) log(`Nedovoljno pitanja (${picked.length}), dopunjujem sa šireg područja: ${st.title}…`, 'warn');
       K.setSeed(`${K.seedKey(place)}|${day}|${st.key}`);
       const cands = await buildStage(st, shared, log);
-      log(`${st.title}: ${cands.length} dobrih pitanja.`, cands.length >= TARGET ? 'ok' : 'warn');
-      if (!used || cands.length > used.cands.length) used = { stage: st, cands, i };
-      if (cands.length >= TARGET) { used = { stage: st, cands, i }; break; }
-      if (i < stages.length - 1) log(`Nedovoljno pitanja, širim na: ${stages[i + 1].title}…`, 'warn');
+      K.setSeed(`${K.seedKey(place)}|${day}|izbor|${st.key}`);
+      const take = K.selectQuiz(cands, TARGET - picked.length, picked);
+      log(`${st.title}: ${cands.length} kandidata, uzeto ${take.length}.`, take.length ? 'ok' : 'warn');
+      for (const q of take) q.level = st.key;
+      picked.push(...take);
+      if (!first) first = st;
+      if (i > 0 && take.length) wider.push(st.areaName || st.title);
     }
-    if (used.i > 0) notes.push(K.t('note.expanded'));
+    if (wider.length) notes.push(K.t('note.expanded', { area: wider.join(', ') }));
     K.setSeed(`${K.seedKey(place)}|${day}|izbor`);
-    const questions = K.selectQuiz(used.cands, TARGET);
-    if (questions.length < TARGET) notes.push(K.t('note.few', { n: questions.length }));
+    const questions = K.shuffle(picked);
+    if (questions.length < TARGET) notes.push(K.t(questions.length === 1 ? 'note.few1' : 'note.few', { n: questions.length }));
     K.rand = Math.random;
 
     return {
       created: Date.now(), day,
       place: { kraj: place.kraj, grad: place.grad, krajKey: place.krajKey || '', gradKey: place.gradKey || '', country: place.country || '', lat, lon },
-      scope: used.stage.title, scopeKey: used.stage.key,
+      scope: first ? first.title : '', scopeKey: first ? first.key : '',
       notes, questions
     };
   };

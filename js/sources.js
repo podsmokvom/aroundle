@@ -81,7 +81,8 @@
 
   K.wikiDetails = async function (lang, pageids) {
     const out = {};
-    for (const part of K.chunk(pageids, 20)) {
+    // delovi po 20 (ograničenje API-ja za uvode) idu paralelno: ranije su išli jedan za drugim (u centru grada 20+ s)
+    await Promise.all(K.chunk(pageids, 20).map(async (part) => {
       const p = {
         action: 'query', prop: 'extracts|pageprops', exintro: '1', explaintext: '1', exsentences: '2',
         exlimit: '20', ppprop: 'wikibase_item|disambiguation', pageids: part.join('|'),
@@ -99,7 +100,7 @@
           disamb: pp.disambiguation !== undefined
         };
       }
-    }
+    }));
     return out;
   };
 
@@ -215,7 +216,13 @@
     };
   };
 
-  K.speciesName = async function (key) {
+  const speciesCache = new Map(); // ključ + jezik → obećanje (isto ime se ne traži dvaput)
+  K.speciesName = function (key) {
+    const ck = key + "|" + K.lang;
+    if (!speciesCache.has(ck)) { const p = speciesNameRaw(key); speciesCache.set(ck, p); p.catch(() => speciesCache.delete(ck)); }
+    return speciesCache.get(ck);
+  };
+  async function speciesNameRaw(key) {
     const s = await K.fetchJSON(`https://api.gbif.org/v1/species/${key}`);
     let mine = '', en = '';
     const want = K.gbifLang ? K.gbifLang() : 'srp';
@@ -309,6 +316,8 @@
       SERVICE wikibase:around { ?item wdt:P625 ?c . bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
         bd:serviceParam wikibase:radius "${radiusKm}" . bd:serviceParam wikibase:distance ?d . }
       ?item wdt:P571 ?inc .
+      # samo građevine i spomenici: bez slika i skulptura, država, kolonija, provincija i drugih teritorija
+      FILTER EXISTS { VALUES ?cls { wd:Q811979 wd:Q4989906 } ?item wdt:P31/wdt:P279* ?cls . }
     } GROUP BY ?item ORDER BY ?y LIMIT 40`;
     const j = await K.fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { headers: { Accept: 'application/sparql-results+json' } }, 8000);
     return j.results.bindings.filter((b) => b.y && b.item).map((b) => ({ qid: b.item.value.split('/').pop(), year: parseInt(b.y.value, 10), dist: parseFloat(b.dist.value) * 1000 }))
