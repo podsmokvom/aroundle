@@ -14,12 +14,11 @@ function duel_table() {
     id CHAR(8) NOT NULL PRIMARY KEY, payload MEDIUMTEXT NOT NULL, iphash CHAR(64) NOT NULL,
     created DATETIME NOT NULL, KEY k_ip (iphash, created)
   ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-  // heš sadržaja: isti izazov (isti kviz, ime i rezultat) dobija isti link, bez novog reda i bez trošenja ograničenja
-  // (proveri pa dodaj: „ADD COLUMN IF NOT EXISTS“ ne razume svaka verzija MySQL-a)
-  try {
-    $has = db()->query("SHOW COLUMNS FROM aroundle_duels LIKE 'phash'")->fetch();
-    if (!$has) db()->exec("ALTER TABLE aroundle_duels ADD COLUMN phash CHAR(64) NULL, ADD INDEX k_ph (phash)");
-  } catch (Throwable $e) { /* radi i bez ovoga, samo bez spajanja istih izazova */ }
+  // heš sadržaja u posebnoj tabeli: isti izazov (isti kviz, ime i rezultat) dobija isti link, bez novog reda
+  // i bez trošenja ograničenja. Posebna tabela jer korisnik baze sme da pravi tabele, ali ne i da ih menja (ALTER).
+  try { db()->exec("CREATE TABLE IF NOT EXISTS aroundle_duel_hash (
+    phash CHAR(64) NOT NULL PRIMARY KEY, id CHAR(8) NOT NULL
+  ) DEFAULT CHARSET=ascii"); } catch (Throwable $e) { /* bez spajanja istih izazova */ }
 }
 
 function duel_id() {
@@ -40,21 +39,23 @@ try {
     $json = json_encode($d, JSON_UNESCAPED_UNICODE);
     $ph = hash('sha256', $json);
     try { // isti izazov već postoji → isti link
-      $q = db()->prepare('SELECT id FROM aroundle_duels WHERE phash=? LIMIT 1');
+      $q = db()->prepare('SELECT id FROM aroundle_duel_hash WHERE phash=?');
       $q->execute([$ph]);
       $old = $q->fetchColumn();
       if ($old) out(['ok' => true, 'id' => $old]);
-    } catch (Throwable $e) { $ph = null; } // bez kolone phash
+    } catch (Throwable $e) { $ph = null; } // bez tabele hešova: radi i ovako
     $ip = hash('sha256', SALT . 'duel' . ($_SERVER['REMOTE_ADDR'] ?? ''));
     $q = db()->prepare('SELECT COUNT(*) FROM aroundle_duels WHERE iphash=? AND created > NOW() - INTERVAL 1 HOUR');
     $q->execute([$ip]);
     if ((int)$q->fetchColumn() >= DUEL_PER_HOUR) out(['error' => 'previše izazova, probaj kasnije'], 429);
-    $st = $ph ? db()->prepare('INSERT IGNORE INTO aroundle_duels (id, payload, iphash, created, phash) VALUES (?,?,?,NOW(),?)')
-              : db()->prepare('INSERT IGNORE INTO aroundle_duels (id, payload, iphash, created) VALUES (?,?,?,NOW())');
+    $st = db()->prepare('INSERT IGNORE INTO aroundle_duels (id, payload, iphash, created) VALUES (?,?,?,NOW())');
     for ($try = 0; $try < 5; $try++) {          // sudar id-a je praktično nemoguć, ali za svaki slučaj
       $id = duel_id();
-      $st->execute($ph ? [$id, $json, $ip, $ph] : [$id, $json, $ip]);
-      if ($st->rowCount() === 1) out(['ok' => true, 'id' => $id]);
+      $st->execute([$id, $json, $ip]);
+      if ($st->rowCount() === 1) {
+        if ($ph) { try { db()->prepare('INSERT IGNORE INTO aroundle_duel_hash (phash, id) VALUES (?,?)')->execute([$ph, $id]); } catch (Throwable $e) { /* */ } }
+        out(['ok' => true, 'id' => $id]);
+      }
     }
     out(['error' => 'pokušaj ponovo'], 500);
   }
