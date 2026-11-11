@@ -554,6 +554,7 @@
       $('shareX').href = `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`;
       $('shareMsg').textContent = K.t('share.linkInfo');
       show($('cardPreview'), false);
+      resetCards(); markDone(1080, 1920, 'aroundle-story.png'); markDone(1080, 1080, 'aroundle.png'); // kartice unapred, za „Podeli“
       show($('shareBox'));
     } catch (e) {
       $('shareMsg').textContent = K.t('share.fail', { err: e.message });
@@ -669,30 +670,57 @@
     }
     return c;
   }
-  async function shareCard(w, h, name) {
-    const c = await drawCard(w, h);
-    const url = c.toDataURL('image/png');
-    $('cardPreview').src = url;
-    show($('cardPreview'));
-    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
-    const file = new File([blob], name, { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], text: `${share.text} ${share.url}` }).catch(() => {});
-    } else {
-      const a = document.createElement('a');
-      a.href = url; a.download = name; a.click();
-      $('shareMsg').textContent = K.t('share.saved');
+  // Kartice se crtaju UNAPRED (čim se napravi link izazova): telefon dozvoljava sistemsko „Podeli“ samo odmah
+  // posle dodira, a crtanje (font, slika, PNG) traje dovoljno da ga telefon tiho odbije.
+  const cards = {}; // ključ "1080x1920" → Promise<{file, url}>
+  function prepareCard(w, h, name) {
+    const k = `${w}x${h}`;
+    if (!cards[k]) {
+      cards[k] = (async () => {
+        const c = await drawCard(w, h);
+        const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+        return { file: new File([blob], name, { type: 'image/png' }), url: URL.createObjectURL(blob) };
+      })();
+      cards[k].catch(() => { delete cards[k]; });
     }
+    return cards[k];
   }
-  $('cardStory').addEventListener('click', () => shareCard(1080, 1920, 'kviz-kraj-story.png'));
-  // Instagram nema link za deljenje sa weba: na telefonu ide slika preko sistemskog „Podeli“ (izabereš Instagram),
-  // a link se kopira da ga zalepiš kao „Link“ nalepnicu u story-ju
-  $('shareIg').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(share.url); } catch (e) { /* bez kopiranja */ }
-    await shareCard(1080, 1920, 'kviz-kraj-story.png');
-    $('shareMsg').textContent = K.t('share.ig');
+  function resetCards() { for (const k in cards) delete cards[k]; }
+  function download(card, name) {
+    const a = document.createElement('a');
+    a.href = card.url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    $('shareMsg').textContent = K.t('share.saved');
+  }
+  // withText: tekst + link uz sliku (Instagram ga ignoriše, a na nekim telefonima tada nestane sa liste aplikacija)
+  async function shareCard(w, h, name, withText = true) {
+    const k = `${w}x${h}`;
+    const ready = cards[k] && cards[k].done;
+    if (!ready) {
+      // nije gotova: pripremi i prikaži, pa traži novi dodir (prvi dodir je „potrošen“ na čekanje)
+      const card = await prepareCard(w, h, name);
+      cards[k].done = card;
+      $('cardPreview').src = card.url; show($('cardPreview'));
+      if (!(navigator.canShare && navigator.canShare({ files: [card.file] }))) { download(card, name); return 'saved'; }
+      $('shareMsg').textContent = K.t('share.tapAgain');
+      return 'prepared';
+    }
+    const card = ready;
+    $('cardPreview').src = card.url; show($('cardPreview'));
+    const data = withText ? { files: [card.file], text: `${share.text} ${share.url}` } : { files: [card.file] };
+    if (!(navigator.canShare && navigator.canShare(data))) { download(card, name); return 'saved'; }
+    try { await navigator.share(data); return 'shared'; }
+    catch (e) { if (e && e.name !== 'AbortError') download(card, name); } // odbijeno: bar sačuvaj sliku
+  }
+  const markDone = (w, h, name) => prepareCard(w, h, name).then((c) => { cards[`${w}x${h}`].done = c; }).catch(() => {});
+  $('cardStory').addEventListener('click', () => shareCard(1080, 1920, 'aroundle-story.png'));
+  // Instagram nema link za deljenje sa weba: slika ide preko sistemskog „Podeli“ (izabereš Instagram → Story),
+  // a link se kopira da ga zalepiš kao „Link“ nalepnicu. Kopiranje se pokreće odmah, bez čekanja.
+  $('shareIg').addEventListener('click', () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(share.url).catch(() => {});
+    if (cards['1080x1920'] && cards['1080x1920'].done) $('shareMsg').textContent = K.t('share.ig'); // vidi se po povratku
+    shareCard(1080, 1920, 'aroundle-story.png', false);
   });
-  $('cardSquare').addEventListener('click', () => shareCard(1080, 1080, 'kviz-kraj.png'));
+  $('cardSquare').addEventListener('click', () => shareCard(1080, 1080, 'aroundle.png'));
 
   // ---------------- Otvoren link izazova (#duel=…) ----------------
   async function openDuelFromHash() {
