@@ -438,6 +438,7 @@
     lbShow();
     show($('result'));
     reviewMaps();
+    makeShare(); // ikonice za deljenje odmah, bez dodatnog klika
     K.countAdd(quiz.place).then(showCount).catch(() => {});
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -538,7 +539,8 @@
 
   // ---------------- Izazov, tekst za Viber/WhatsApp, kartice ----------------
   let share = { text: '', url: '' };
-  $('makeDuel').addEventListener('click', async () => {
+  // link izazova + tekst + kartice; poziva se sam na kraju kviza (ikonice odmah vidljive) i na dugme (novo ime)
+  async function makeShare() {
     const me = $('myName').value.trim();
     store.set('kviz:name', me);
     $('makeDuel').disabled = true;
@@ -567,7 +569,8 @@
       $('shareMsg').textContent = K.t('share.fail', { err: e.message });
       show($('shareBox'));
     } finally { $('makeDuel').disabled = false; }
-  });
+  }
+  $('makeDuel').addEventListener('click', makeShare);
   $('shareNative').addEventListener('click', async () => {
     if (navigator.share) { navigator.share({ title: 'Aroundle', text: share.text, url: share.url }).catch(() => {}); return; }
     copyText();
