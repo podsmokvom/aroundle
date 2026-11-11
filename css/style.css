@@ -322,7 +322,8 @@ button.big { width: 100%; padding: 14px 16px; font-size: 1.05rem; margin-top: 8p
 /* ---------- Brend (vizuali 2026-11) ---------- */
 .logo { width: 104px; height: 104px; flex: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,.18)); }
 .brand h1 { font-family: "Bangers", Impact, "Arial Black", sans-serif; font-weight: 400; font-size: 2.6rem; letter-spacing: .04em; color: var(--accent); text-shadow: 2px 2px 0 #1a1a1a; }
-.brand h1 span { color: var(--blue); }
+.brand h1 span { color: var(--accent); }
+.brand h1 .pin-o { height: .78em; width: auto; margin: 0 .02em; vertical-align: -0.12em; filter: drop-shadow(2px 2px 0 #1a1a1a); }
 .card { border: 2px solid #1a1a1a; box-shadow: 4px 4px 0 rgba(26,26,26,.85); }
 button { border-color: #1a1a1a; box-shadow: 2px 2px 0 #1a1a1a; }
 button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #1a1a1a; }
