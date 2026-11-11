@@ -293,7 +293,7 @@
   function stopCountdown() { clearTimeout(readT); clearInterval(cdT); readT = cdT = null; show($('countdown'), false); }
   function startCountdown(q) {
     stopCountdown();
-    const read = Math.min(6000, 1500 + 30 * String(q.explain || '').length); // duži komentar = više vremena
+    const read = 2000; // komentar 2 s, pa odbrojavanje 3-2-1
     readT = setTimeout(() => {
       let n = 3;
       const cd = $('countdown');
