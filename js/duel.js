@@ -60,7 +60,8 @@
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
     return K.duelFromPayload(j.payload);
   };
-  K.duelShortLink = (id) => `${location.origin}${location.pathname}#d=${id}`;
+  // ?d=<id> (ne #d=): Facebook i ugrađeni pregledači (Viber, Instagram) ponekad odseku deo posle #
+  K.duelShortLink = (id) => `${location.origin}${location.pathname}?d=${id}`;
 
   K.duelFromPayload = function (d) {
     if (![1, 2].includes(d.v) || !Array.isArray(d.q)) throw new Error("neispravan izazov");

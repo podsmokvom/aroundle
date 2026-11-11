@@ -556,7 +556,7 @@
       $('shareX').href = `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`;
       $('shareMsg').textContent = K.t('share.linkInfo');
       show($('cardPreview'), false);
-      resetCards(); markDone(1080, 1920, 'aroundle-story.png'); markDone(1080, 1080, 'aroundle.png'); // kartice unapred, za „Podeli“
+      resetCards(); markDone(1080, 1920, 'aroundle-story.png'); markDone(1080, 1350, 'aroundle-post.png'); markDone(1080, 1080, 'aroundle.png'); // kartice unapred, za „Podeli“
       show($('shareBox'));
     } catch (e) {
       $('shareMsg').textContent = K.t('share.fail', { err: e.message });
@@ -644,19 +644,9 @@
     try { await document.fonts.load('80px Bangers'); } catch (e) { /* bez fonta, rezervni */ }
     const kraj = quiz.place.kraj || K.t('share.myHood');
     if (h > w) {
-      // Story: zvanična story slika (logo u sredini), ime kraja gore, rezultat dole
-      try { x.drawImage(await loadImg('assets/brand/story-1080x1920.png'), 0, 0, w, h); } catch (e) { dots(x, w, h); }
-      const lines = wrap(x, kraj, w - 120);
-      comicText(x, kraj.length > 22 ? kraj.slice(0, 21) + '…' : kraj, w / 2, 190, kraj.length > 14 ? 96 : 130, 'center');
-      resultPanel(x, 70, 1290, w - 140, 520, F);
-      const foot = `${K.t('card.footer')} · ${location.host || 'aroundle'}`;
-      x.font = `600 32px ${F}`;
-      const fw = x.measureText(foot).width + 48;
-      rrect(x, (w - fw) / 2, h - 92, fw, 64, 32); x.fillStyle = CREAM; x.fill(); x.lineWidth = 3; x.strokeStyle = INK; x.stroke();
-      x.fillStyle = BLUE; x.textAlign = 'center';
-      x.fillText(foot, w / 2, h - 49);
-      x.textAlign = 'left';
-      void lines;
+      // Story 9:16 i post 4:5: Grokov izgled (js/share-image.js) — logo gore, rezultat dole, bez adrese
+      const hood = [quiz.place.kraj, quiz.place.grad].filter((s, i, a) => s && a.indexOf(s) === i).join(', ') || kraj;
+      return K.shareImage({ width: w, height: h, hood, date: new Date(), score: result.score, n: result.n, timeSec: result.time, oks: result.oks });
     } else {
       // Kvadrat: tačkice, logo gore levo, ime kraja desno, rezultat ispod
       dots(x, w, h);
@@ -720,13 +710,16 @@
   $('shareIg').addEventListener('click', () => {
     if (navigator.clipboard) navigator.clipboard.writeText(share.url).catch(() => {});
     if (cards['1080x1920'] && cards['1080x1920'].done) $('shareMsg').textContent = K.t('share.ig'); // vidi se po povratku
-    shareCard(1080, 1920, 'aroundle-story.png', false);
+    // računar (nema sistemskog „Podeli“ sa slikom): slika se sačuva, uz jasno uputstvo
+    shareCard(1080, 1920, 'aroundle-story.png', false).then((r) => { if (r === 'saved') $('shareMsg').textContent = K.t('share.igDesktop'); });
   });
+  $('cardPost').addEventListener('click', () => shareCard(1080, 1350, 'aroundle-post.png'));
   $('cardSquare').addEventListener('click', () => shareCard(1080, 1080, 'aroundle.png'));
 
   // ---------------- Otvoren link izazova (#duel=…) ----------------
   async function openDuelFromHash() {
-    const s = /#d=([0-9A-Za-z]{8})\b/.exec(location.hash);   // kratki link (server)
+    // kratki link: ?d=<id> (novi) ili #d=<id>; stari dugi: #duel=…
+    const s = /[?&]d=([0-9A-Za-z]{8})(?![0-9A-Za-z])/.exec(location.search) || /#d=([0-9A-Za-z]{8})(?![0-9A-Za-z])/.exec(location.hash);
     const m = /#duel=([A-Za-z0-9_-]+)/.exec(location.hash);  // stari dugi link
     if (!s && !m) return;
     try {
