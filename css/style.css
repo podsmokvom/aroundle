@@ -91,7 +91,9 @@ button:disabled { opacity: .55; cursor: default; }
 
 #map { height: 320px; margin-top: 12px; border-radius: 10px; border: 1px solid var(--line); z-index: 0; }
 .hint { margin: 6px 0 0; color: var(--muted); font-size: .9rem; }
-.picked { margin-top: 14px; display: grid; gap: 10px; }
+.picked { margin: 12px 0; display: grid; gap: 6px; }
+.picked-top { justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.picked-top #build { flex: 0 0 auto; }
 .muted { color: var(--muted); }
 .small { font-size: .85rem; margin: 0; }
 
@@ -350,3 +352,4 @@ button.ghost { color: var(--accent); background: var(--card); }
 @keyframes cdpop { from { transform: scale(1.5); opacity: .3; } to { transform: scale(1); opacity: 1; } }
 .feedback { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .cdnum { animation: none; } }
+.linkish { background: none; border: 0; padding: 0 0 0 6px; color: var(--blue); text-decoration: underline; cursor: pointer; box-shadow: none; font-weight: 400; }

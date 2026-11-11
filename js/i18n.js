@@ -4,8 +4,9 @@
   K.I18N = K.I18N || {};
   K.LANGS = { sr: 'Srpski', hr: 'Hrvatski', bs: 'Bosanski', en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español', ru: 'Русский' };
 
+  K.langManual = false; // true kad je igrač sam izabrao jezik (to se pamti i uvek ima prednost)
   function detect() {
-    try { const s = localStorage.getItem('kviz:lang'); if (s && K.LANGS[s]) return s; } catch (e) { /* bez memorije */ }
+    try { const s = localStorage.getItem('kviz:lang'); if (s && K.LANGS[s]) { K.langManual = true; return s; } } catch (e) { /* bez memorije */ }
     const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']);
     const codes = list.map((l) => {
       const c = String(l).toLowerCase();
@@ -71,7 +72,27 @@
   K.setLang = function (code) {
     if (!K.LANGS[code]) return;
     K.lang = code;
+    K.langManual = true;
     try { localStorage.setItem('kviz:lang', code); } catch (e) { /* bez memorije */ }
     K.applyI18n();
+  };
+
+  // Jezik države (ISO 3166-1 alpha-2) za „Moja lokacija“: ako tu državu nemamo prevedenu, engleski
+  const BY_COUNTRY = {
+    sr: 'rs me', hr: 'hr', bs: 'ba', de: 'de at li', fr: 'fr mc',
+    es: 'es mx gt hn sv ni cr pa cu do co ve ec pe bo cl ar uy py',
+    ru: 'ru by'
+  };
+  K.langForCountry = function (cc) {
+    cc = String(cc || '').toLowerCase();
+    for (const l in BY_COUNTRY) if (BY_COUNTRY[l].split(' ').includes(cc)) return l;
+    return 'en';
+  };
+  // promena jezika bez pamćenja (automatski izbor, ne ručni)
+  K.useLang = function (code) {
+    if (!K.LANGS[code] || code === K.lang) return false;
+    K.lang = code;
+    K.applyI18n();
+    return true;
   };
 })(globalThis.Kviz = globalThis.Kviz || {});

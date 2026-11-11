@@ -52,7 +52,10 @@
 
   async function setPoint(rawLat, rawLon, noShift) {
     const [lat, lon] = noShift ? [rawLat, rawLon] : shift(rawLat, rawLon); // već pomerena tačka se ne pomera ponovo
-    show($('picked'));
+    show($('picked')); show($('pickedInfo'));
+    show($('searchForm'), false); show($('results'), false); // mesto je izabrano: pretraga samo zauzima prostor („promeni“ je vraća)
+    const pb = $('picked').getBoundingClientRect();
+    if (pb.top < 0 || pb.bottom > innerHeight) $('picked').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     $('pickedName').textContent = K.t('pick.finding');
     $('build').disabled = true;
     let addr = null;
@@ -105,14 +108,23 @@
       ul.innerHTML = `<li class="muted">${K.esc(K.t('search.fail', { err: err.message }))}</li>`;
     }
   });
+  $('searchAgain').addEventListener('click', () => {
+    show($('searchForm'));
+    $('q').focus();
+  });
   $('locate').addEventListener('click', () => {
     if (!navigator.geolocation) return alertBox(K.t('geo.unsupported'));
     $('locate').disabled = true;
     navigator.geolocation.getCurrentPosition(
       (p) => {
         $('locate').disabled = false;
-        setPoint(p.coords.latitude, p.coords.longitude);
-        alertBox(K.t('geo.shifted'));
+        setPoint(p.coords.latitude, p.coords.longitude).then(() => {
+          // „Moja lokacija“: jezik države u kojoj je igrač (engleski ako je nemamo), osim ako je jezik sam izabrao
+          if (!K.langManual && place && place.country && K.useLang(K.langForCountry(place.country))) {
+            sel.value = K.lang;
+            return setPoint(place.lat, place.lon, true); // ime kraja i tekstovi na novom jeziku
+          }
+        }).finally(() => alertBox(K.t('geo.shifted')));
       },
       () => { $('locate').disabled = false; alertBox(K.t('geo.denied')); },
       { enableHighAccuracy: false, timeout: 15000 }

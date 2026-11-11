@@ -70,6 +70,7 @@
     'svc.supermarket': C('supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarkets', 'Supermarkt|Supermärkte', 'supermarché|supermarchés', 'supermercado|supermercados', 'супермаркет|супермаркетов'),
     'svc.hotel': C('hotel|hotela', 'hotel|hotela', 'hotel|hotela', 'hotel|hotels', 'Hotel|Hotels', 'hôtel|hôtels', 'hotel|hoteles', 'отель|отелей'),
 
+    'pick.change': C('promeni', 'promijeni', 'promijeni', 'change', 'ändern', 'changer', 'cambiar', 'изменить'),
     'lb.hoods': C('Najbolji krajevi', 'Najbolje četvrti', 'Najbolja naselja', 'Best-known hoods', 'Bestbekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучшие районы'),
     'lb.hoodsLabel': C('krajevi koje igrači najbolje poznaju (prosek tačnih odgovora, bar {n} igrača po kraju).', 'četvrti koje igrači najbolje poznaju (prosjek točnih odgovora, barem {n} igrača po četvrti).', 'naselja koja igrači najbolje poznaju (prosjek tačnih odgovora, najmanje {n} igrača po naselju).',
       'neighbourhoods players know best (average share of correct answers, at least {n} players each).', 'Viertel, die die Spieler am besten kennen (Durchschnitt richtiger Antworten, mindestens {n} Spieler je Viertel).', 'quartiers que les joueurs connaissent le mieux (moyenne de bonnes réponses, au moins {n} joueurs par quartier).',

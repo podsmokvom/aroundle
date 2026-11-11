@@ -52,16 +52,18 @@
         <button type="button" id="locate" class="ghost" data-i18n="pick.locate" data-i18n-title="pick.locateTitle"></button>
       </form>
       <ul id="results" class="results" hidden></ul>
-      <div id="map" data-i18n-aria="pick.mapAria"></div>
-      <p class="hint" data-i18n-html="pick.hint"></p>
+      <!-- posle izbora tačke: kraj i dugme za početak iznad mape, da se na telefonu ne skroluje -->
       <div id="picked" class="picked" hidden>
-        <div><span class="muted" data-i18n="pick.yourHood"></span> <strong id="pickedName"></strong></div>
-        <p class="muted small" data-i18n="pick.info"></p>
-        <div class="row">
+        <div class="row picked-top">
+          <div><span class="muted" data-i18n="pick.yourHood"></span> <strong id="pickedName"></strong>
+            <button type="button" id="searchAgain" class="linkish small" data-i18n="pick.change"></button></div>
           <button id="build" data-i18n="pick.start"></button>
         </div>
         <p id="cacheInfo" class="muted small" hidden></p>
       </div>
+      <div id="map" data-i18n-aria="pick.mapAria"></div>
+      <p class="hint" data-i18n-html="pick.hint"></p>
+      <p id="pickedInfo" class="muted small" data-i18n="pick.info" hidden></p>
     </section>
 
     <!-- 2. Pravljenje -->
