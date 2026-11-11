@@ -8,7 +8,7 @@
     street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, stop: 1,
     etym: 2, wikiNear: 2, wikiText: 2, wikiYear: 2, birds: 1,
     svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 1, elev: 1,
-    dir: 1, chain: 1, cuisine: 1, oldest: 1
+    dir: 1, chain: 1, cuisine: 1, oldest: 1, plants: 1, streetPeople: 1
   };
 
   // naziv radnje na jeziku igrača: „jedna|množina“
@@ -223,7 +223,7 @@
   }
 
   // ---------------- GBIF: ptice ----------------
-  K.birdQuestions = async function (birds, label) {
+  K.birdQuestions = async function (birds, label, kind = 'birds') { // kind: 'birds' ili 'plants'
     if (!birds || birds.species.length < 6 || birds.species[0].count < 20) return [];
     const top = birds.species[0];
     // netačni: vrste koje su ovde ređe zabeležene (6.–25. mesto), sa jasno manjim brojem nalaza
@@ -233,9 +233,9 @@
     const names = await Promise.all([top, ...picks].map((s) => K.speciesName(s.key).catch(() => null)));
     if (!names[0]) return [];
     const q = makeQ({
-      cat: 'birds', text: K.t('q.birds', { scope: label }),
+      cat: kind, text: K.t('q.' + kind, { scope: label }),
       correct: names[0].label, wrongs: names.slice(1).filter(Boolean).map((n) => n.label),
-      explain: K.t('q.birds.explain', { name: names[0].label, n: K.fmtNum(top.count, 0), total: K.fmtNum(birds.total, 0) }),
+      explain: K.t('q.' + kind + '.explain', { name: names[0].label, n: K.fmtNum(top.count, 0), total: K.fmtNum(birds.total, 0) }),
       source: { name: 'GBIF', url: birds.url }
     });
     return q ? [q] : [];
@@ -521,6 +521,28 @@
       explain: K.t('q.oldest.explain', { list: opts.slice().sort((a, b) => a.year - b.year).map((o) => `${o.label} (${K.fmtYear(o.year)})`).join(', ') }),
       source: { name: 'Wikidata', url: `https://www.wikidata.org/wiki/${first.qid}` },
       fact: K.t('q.oldest.fact', { name: first.label, year: K.fmtYear(first.year) })
+    });
+    return q ? [q] : [];
+  };
+
+  // ---------------- Ulice nazvane po ljudima: ko je najstariji (rođen najranije)? ----------------
+  // Radi gde Wikidata ima ulice (npr. Berlin); drugde se preskače.
+  K.streetPeopleQuestions = function (stage, list, ents) {
+    const rows = K.uniqBy((list || []).filter((o) => o.dist <= (stage.radius || 1000) && ents[o.qid] && ents[o.person])
+      .map((o) => ({ ...o, street: K.wd.label(ents[o.qid]), name: K.wd.label(ents[o.person]) }))
+      .filter((o) => o.street && o.name && !K.isBanned(o.street)), (o) => K.norm(o.street))
+      .sort((a, b) => a.year - b.year);
+    if (rows.length < 4) return [];
+    const first = rows[0];
+    const later = rows.filter((o) => o.year >= first.year + 10); // jasna razlika, bez spornih godina
+    if (later.length < 3) return [];
+    const opts = [first, ...K.shuffle(later).slice(0, 3)];
+    const q = makeQ({
+      cat: 'streetPeople', names: true, text: K.t('q.streetPeople'),
+      correct: first.street, wrongs: opts.slice(1).map((o) => o.street),
+      explain: K.t('q.streetPeople.explain', { list: opts.slice().sort((a, b) => a.year - b.year).map((o) => `${o.street} ← ${o.name} (${K.fmtYear(o.year)})`).join('; ') }),
+      source: { name: 'Wikidata', url: `https://www.wikidata.org/wiki/${first.person}` },
+      fact: K.t('q.streetPeople.fact', { street: first.street, name: first.name, year: K.fmtYear(first.year) })
     });
     return q ? [q] : [];
   };

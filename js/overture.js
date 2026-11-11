@@ -111,7 +111,11 @@
     watch_repair_service: 'watches', beauty_salon: 'beauty', nail_salon: 'beauty', veterinarian: 'vet', dentist: 'dentist',
     jewelry_store: 'jewelry', hardware_store: 'hardware',
     health_food_store: 'health_food', organic_grocery_store: 'health_food', cafe: 'cafe', coffee_shop: 'cafe',
-    indoor_playground: 'kids_play', kids_recreation_and_party: 'kids_play', playground: 'playground', ice_cream_shop: 'ice_cream'
+    indoor_playground: 'kids_play', kids_recreation_and_party: 'kids_play', playground: 'playground', ice_cream_shop: 'ice_cream',
+    fast_food_restaurant: 'fast_food', bank_credit_union: 'bank', banks: 'bank', bank: 'bank', hospital: 'hospital', medical_center: 'clinic',
+    doctor: 'clinic', health_center: 'clinic', police_department: 'police', town_hall: 'townhall', city_hall: 'townhall',
+    movie_theater: 'cinema', cinema: 'cinema', theatre: 'theatre', performing_arts_theater: 'theatre', museum: 'museum',
+    art_museum: 'museum', history_museum: 'museum'
   };
   // ime lanca (brand) iz Overture-a: JSON sa names.primary
   const brandOf = (b) => {

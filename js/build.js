@@ -70,7 +70,7 @@
     log('Vikipedija (sr, pa en): članci u blizini…');
     log('GBIF: najčešće zabeležene ptice (samo CC0 i CC BY)…');
     log('Transitous: linije gradskog prevoza na stanicama u kraju…');
-    const [osm, ov, wiki, birdData, transit] = await Promise.all([
+    const [osm, ov, wiki, birdData, transit, plantData] = await Promise.all([
       K.osmFromTiles(lat, lon, stage.loadR, stage.inside, stage.farOk)
         .then((r) => { log(`OpenStreetMap: ${r.local.items.length} objekata i ${r.services.filter((s) => s.inside).length} radnji ${stage.label}.`, 'ok'); return r; })
         .catch((e) => { log(`OpenStreetMap pločice: ${e.message}`, 'warn'); return { local: empty(), far: empty(), services: [] }; }),
@@ -84,14 +84,18 @@
         .catch((e) => { log(`GBIF: ${e.message}`, "warn"); return null; }),
       K.transitData(lat, lon, stage.inside, Math.min(stage.radius, 3000))
         .then((r) => { log(`Transitous: ${r.local.length} stanica u kraju sa voznim redom.`, 'ok'); return r; })
-        .catch((e) => { log(`Transitous: ${e.message}`, 'warn'); return null; })
+        .catch((e) => { log(`Transitous: ${e.message}`, 'warn'); return null; }),
+      K.birds(lat, lon, stage.gbifR, { kingdomKey: '6' }) // biljke
+        .catch(() => null)
     ]);
 
     // Wikidata: detalji članaka + „nazvano po“
     if (shared.namedP) await shared.namedP;
     const wdNamed = (shared.wdNamed || []).filter((w) => w.dist <= Math.max(3000, stage.wikiR));
     if (shared.oldestP) await shared.oldestP;
-    const ids = wiki.local.map((w) => w.qid).concat((shared.oldest || []).slice(0, 25).map((o) => o.qid)).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean);
+    if (shared.peopleP) await shared.peopleP;
+    const ids = wiki.local.map((w) => w.qid).concat((shared.oldest || []).slice(0, 25).map((o) => o.qid))
+      .concat((shared.people || []).filter((o) => o.dist <= stage.radius).slice(0, 30).flatMap((o) => [o.qid, o.person])).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean);
     let ents = {};
     if (ids.length) {
       try {
@@ -107,6 +111,7 @@
 
     // pitanja (i slučajnost) tek kad su svi podaci stigli, uvek istim redom
     const birdQs = birdData ? await K.birdQuestions(birdData, stage.gbifLabel).catch(() => []) : [];
+    const plantQs = plantData ? await K.birdQuestions(plantData, stage.gbifLabel, 'plants').catch(() => []) : [];
     const services = K.mergeServices(osm.services, ov, stage.inside, lat, lon);
     return [
       ...K.osmQuestions(stage, osm.local, osm.far),
@@ -116,6 +121,8 @@
       ...K.dirQuestions(stage, osm.local),
       ...K.overtureQuestions(stage, ov),
       ...K.oldestQuestions(stage, shared.oldest, ents),
+      ...K.streetPeopleQuestions(stage, shared.people, ents),
+      ...plantQs,
       ...K.etymQuestions(stage, osm.local, osm.far, wiki.local, ents, wdNamed),
       ...K.wikiQuestions(stage, wiki.local, wiki.far, ents),
       ...birdQs,
@@ -170,6 +177,8 @@
     shared.namedP = namedP;
     // najstariji objekti u blizini (Wikidata, brzo); ako ne uspe, pitanje se preskače
     shared.oldestP = K.wdOldest(lat, lon, 1).then((r) => { shared.oldest = r; }).catch(() => { shared.oldest = []; });
+    // ulice nazvane po ljudima sa godinom rođenja (Wikidata; ima ih uglavnom u većim gradovima Zapadne Evrope)
+    shared.peopleP = K.wdStreetPeople(lat, lon, 1).then((r) => { shared.people = r; }).catch(() => { shared.people = []; });
     await elevP;
     if (shared.elev != null) shared.questions.push(...K.elevationQuestions(shared.elev, place.kraj));
 

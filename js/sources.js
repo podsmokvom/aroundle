@@ -191,13 +191,13 @@
   };
 
   // ================= GBIF (ptice, samo CC0 i CC BY) =================
-  K.birds = async function (lat, lon, radiusM) {
+  K.birds = async function (lat, lon, radiusM, taxon = { classKey: '212' }) { // ptice; biljke: { kingdomKey: '6' }
     const dLat = radiusM / 111320;
     const dLon = radiusM / (111320 * Math.cos(lat * Math.PI / 180));
     const qs = new URLSearchParams({
       decimalLatitude: `${(lat - dLat).toFixed(4)},${(lat + dLat).toFixed(4)}`,
       decimalLongitude: `${(lon - dLon).toFixed(4)},${(lon + dLon).toFixed(4)}`,
-      classKey: '212', occurrenceStatus: 'PRESENT', hasGeospatialIssue: 'false',
+      ...taxon, occurrenceStatus: 'PRESENT', hasGeospatialIssue: 'false',
       facet: 'speciesKey', facetLimit: '25', limit: '0'
     });
     qs.append('license', 'CC0_1_0');
@@ -309,6 +309,23 @@
     } GROUP BY ?item ORDER BY ?y LIMIT 40`;
     const j = await K.fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { headers: { Accept: 'application/sparql-results+json' } }, 8000);
     return j.results.bindings.filter((b) => b.y && b.item).map((b) => ({ qid: b.item.value.split('/').pop(), year: parseInt(b.y.value, 10), dist: parseFloat(b.dist.value) * 1000 }))
+      .filter((o) => Number.isFinite(o.year));
+  };
+})(globalThis.Kviz = globalThis.Kviz || {});
+
+/* ================= Wikidata SPARQL: ulice nazvane po ljudima, sa godinom rođenja (P138 + P569) ================= */
+(function (K) {
+  'use strict';
+  K.wdStreetPeople = async function (lat, lon, radiusKm = 1) {
+    const q = `SELECT ?item ?person (MIN(YEAR(?born)) AS ?y) (MIN(?d) AS ?dist) WHERE {
+      SERVICE wikibase:around { ?item wdt:P625 ?c . bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
+        bd:serviceParam wikibase:radius "${radiusKm}" . bd:serviceParam wikibase:distance ?d . }
+      ?item wdt:P31/wdt:P279* wd:Q83620 .
+      ?item wdt:P138 ?person . ?person wdt:P31 wd:Q5 ; wdt:P569 ?born .
+    } GROUP BY ?item ?person LIMIT 120`;
+    const j = await K.fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { headers: { Accept: 'application/sparql-results+json' } }, 8000);
+    const id = (u) => u.split('/').pop();
+    return j.results.bindings.filter((b) => b.y).map((b) => ({ qid: id(b.item.value), person: id(b.person.value), year: parseInt(b.y.value, 10), dist: parseFloat(b.dist.value) * 1000 }))
       .filter((o) => Number.isFinite(o.year));
   };
 })(globalThis.Kviz = globalThis.Kviz || {});

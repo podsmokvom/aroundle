@@ -210,7 +210,9 @@
     cafe: { one: 'kafić', many: 'kafića' },
     playground: { one: 'dečje igralište', many: 'dečjih igrališta' },
     kids_play: { one: 'igraonica za decu', many: 'igraonica za decu' },
-    ice_cream: { one: 'poslastičarnica / sladoled', many: 'poslastičarnica i sladoledžinica' }
+    ice_cream: { one: 'poslastičarnica / sladoled', many: 'poslastičarnica i sladoledžinica' },
+    // javne ustanove, zdravstvo, banke, kultura (nazivi su u rečnicima: svc.<vrsta>)
+    fast_food: {}, bank: {}, hospital: {}, clinic: {}, police: {}, townhall: {}, cinema: {}, theatre: {}, museum: {}
   };
 
   // OSM + Overture zajedno: ista vrsta na <60 m sa sličnim (ili bez) imenom = ista radnja
@@ -271,8 +273,10 @@
       const p = f.props;
       const isIn = inside(f.lat, f.lon);
       const d = K.dist(lat, lon, f.lat, f.lon);
-      if (K.SERVICES[p.subclass]) {
-        services.push({ kind: p.subclass, name: p.name ? K.toLatin(p['name:sr-Latn'] || p.name) : '', lat: f.lat, lon: f.lon, d, inside: isIn, id: f.id });
+      // ista vrsta pod drugim OSM imenom (npr. ambulanta: clinic / doctors)
+      const kind = ({ doctors: 'clinic', town_hall: 'townhall' })[p.subclass] || p.subclass;
+      if (K.SERVICES[kind]) {
+        services.push({ kind, name: p.name ? K.toLatin(p['name:sr-Latn'] || p.name) : '', lat: f.lat, lon: f.lon, d, inside: isIn, id: f.id });
       }
       const cat = catOfPoi(p);
       if (!cat || !p.name) continue;
