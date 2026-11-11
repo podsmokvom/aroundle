@@ -74,6 +74,12 @@
       'Betting shops are deliberately left out of the questions, because they are evil.', 'Wettbüros sind absichtlich nicht dabei, denn sie sind böse.', 'Les paris sportifs sont volontairement exclus des questions, parce que c’est le mal.',
       'Las casas de apuestas quedan fuera de las preguntas a propósito, porque son el mal.', 'Букмекерские конторы намеренно исключены из вопросов, потому что это зло.'),
 
+    'quiz.nextIn': C('sledeće pitanje…', 'sljedeće pitanje…', 'sljedeće pitanje…', 'next question…', 'nächste Frage…', 'question suivante…', 'siguiente pregunta…', 'следующий вопрос…'),
+    'quiz.resultIn': C('rezultat…', 'rezultat…', 'rezultat…', 'your result…', 'dein Ergebnis…', 'ton résultat…', 'tu resultado…', 'результат…'),
+    'quiz.paused': C('Pauzirano — klikni „Dalje“ kad pročitaš.', 'Pauzirano — klikni „Dalje“ kad pročitaš.', 'Pauzirano — klikni „Dalje“ kad pročitaš.',
+      'Paused — tap “Next” when you’re done reading.', 'Pausiert — tippe auf „Weiter“, wenn du fertig bist.', 'En pause — touche « Suivant » quand tu as lu.',
+      'En pausa — pulsa «Siguiente» cuando termines de leer.', 'Пауза — нажми «Дальше», когда прочитаешь.'),
+
     'cuisine.pizza': C('pica', 'pizza', 'pizza', 'pizza', 'Pizza', 'pizza', 'pizza', 'пицца'),
     'cuisine.italian': C('italijanska', 'talijanska', 'italijanska', 'Italian', 'italienisch', 'italienne', 'italiana', 'итальянская'),
     'cuisine.burger': C('burgeri', 'burgeri', 'burgeri', 'burgers', 'Burger', 'burgers', 'hamburguesas', 'бургеры'),

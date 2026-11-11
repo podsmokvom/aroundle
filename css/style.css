@@ -337,3 +337,14 @@ button.ghost { color: var(--accent); background: var(--card); }
   .logo { width: 76px; height: 76px; }
   .brand h1 { font-size: 2.1rem; }
 }
+
+/* ---------- Odbrojavanje do sledećeg pitanja ---------- */
+.countdown { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; color: var(--muted); font-weight: 600; }
+.cdnum {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: 2px solid #1a1a1a; box-shadow: 2px 2px 0 #1a1a1a;
+  font-family: "Bangers", Impact, sans-serif; font-size: 1.7rem; animation: cdpop .9s ease-out;
+}
+@keyframes cdpop { from { transform: scale(1.5); opacity: .3; } to { transform: scale(1); opacity: 1; } }
+.feedback { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .cdnum { animation: none; } }

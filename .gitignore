@@ -3,5 +3,3 @@ node_modules/
 Thumbs.db
 *.log
 
-# Vizuali sa logom čekaju novu verziju (majica sa imenom benda) — ne objavljivati
-assets/brand/

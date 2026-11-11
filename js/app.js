@@ -284,7 +284,40 @@
     $('next').textContent = K.t(idx + 1 < quiz.questions.length ? 'quiz.next' : 'quiz.result');
     show($('next'));
     $('next').focus();
+    startCountdown(q);
   }
+
+  // Posle odgovora: vreme za čitanje komentara, pa odbrojavanje 3, 2, 1 i sledeće pitanje.
+  // Dodir na komentar pauzira (za one koji čitaju sporije); „Dalje“ preskače odmah.
+  let readT = null, cdT = null;
+  function stopCountdown() { clearTimeout(readT); clearInterval(cdT); readT = cdT = null; show($('countdown'), false); }
+  function startCountdown(q) {
+    stopCountdown();
+    const read = Math.min(6000, 1500 + 30 * String(q.explain || '').length); // duži komentar = više vremena
+    readT = setTimeout(() => {
+      let n = 3;
+      const cd = $('countdown');
+      const tickCd = () => {
+        cd.innerHTML = `<span class="cdnum">${n}</span> ${K.esc(K.t(idx + 1 < quiz.questions.length ? 'quiz.nextIn' : 'quiz.resultIn'))}`;
+        show(cd);
+      };
+      tickCd();
+      cdT = setInterval(() => {
+        n--;
+        if (n <= 0) { stopCountdown(); $('next').click(); return; }
+        tickCd();
+      }, 1000);
+    }, read);
+  }
+  $('feedback').addEventListener('click', (e) => {
+    if (e.target.closest('a')) return; // klik na izvor ne pauzira
+    if (readT || cdT) {
+      stopCountdown();
+      const cd = $('countdown');
+      cd.textContent = K.t('quiz.paused');
+      show(cd);
+    }
+  });
 
   function answer(i) {
     const q = quiz.questions[idx];
@@ -330,6 +363,7 @@
   });
 
   $('next').addEventListener('click', () => {
+    stopCountdown();
     idx++;
     if (idx < quiz.questions.length) render();
     else finish();
