@@ -1,0 +1,5 @@
+# Aroundle API: ne prikazuj šemu baze ni podešavanja
+<FilesMatch "\.(sql|md)$|^config(\.sample)?\.php$">
+  Require all denied
+</FilesMatch>
+Options -Indexes
