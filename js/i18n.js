@@ -7,13 +7,30 @@
   function detect() {
     try { const s = localStorage.getItem('kviz:lang'); if (s && K.LANGS[s]) return s; } catch (e) { /* bez memorije */ }
     const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']);
-    for (const l of list) {
+    const codes = list.map((l) => {
       const c = String(l).toLowerCase();
       if (/^(sr|sh|cnr|me)\b/.test(c)) return 'sr';
       const base = c.split('-')[0];
-      if (K.LANGS[base]) return base;
-    }
-    return 'en';
+      return K.LANGS[base] ? base : '';
+    }).filter(Boolean);
+    // Pregledač na engleskom (čest slučaj i kod nas): ako je u listi jezika pregledača i neki drugi naš jezik
+    // (npr. en-US, en, sr), to je verovatno jezik mesta gde igrač živi. Inače jezik po vremenskoj zoni uređaja.
+    // Ništa se ne šalje i ne traži dozvola; ručni izbor jezika uvek ima prednost.
+    if (!codes.length || codes[0] === 'en') return codes.find((c) => c !== 'en') || byTimeZone() || 'en';
+    return codes[0];
+  }
+  function byTimeZone() {
+    let tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { return ''; }
+    const city = tz.split('/').pop();
+    const TZ = {
+      sr: 'Belgrade Podgorica', hr: 'Zagreb', bs: 'Sarajevo',
+      de: 'Berlin Busingen Vienna Zurich Vaduz', fr: 'Paris Monaco',
+      es: 'Madrid Canary Ceuta Mexico_City Monterrey Merida Cancun Tijuana Chihuahua Bogota Lima Santiago Caracas Buenos_Aires Cordoba Mendoza Montevideo Asuncion La_Paz Guayaquil Quito Guatemala El_Salvador Tegucigalpa Managua Costa_Rica Panama Havana Santo_Domingo',
+      ru: 'Moscow Kaliningrad Volgograd Samara Saratov Ulyanovsk Astrakhan Kirov Yekaterinburg Omsk Novosibirsk Barnaul Tomsk Novokuznetsk Krasnoyarsk Irkutsk Chita Yakutsk Vladivostok Magadan Sakhalin Kamchatka Anadyr Minsk'
+    };
+    for (const l in TZ) if (TZ[l].split(' ').includes(city)) return l;
+    return '';
   }
   K.lang = detect();
 
