@@ -91,6 +91,9 @@
       if (np && HOOD.has(np.cls) && np.d <= 1500) { p.kraj = np.name; p.krajKey = np.local || np.name; }
       else if (np && !p.kraj) { p.kraj = np.name; p.krajKey = np.local || np.name; }
     } catch (e) { /* ostaje ime iz adrese */ }
+    // ime koje igrač ne može da pročita (npr. persijsko „بهار“ u engleskom kvizu): grad, ili bez imena kraja
+    if (!K.readable(p.kraj)) p.kraj = K.readable(p.grad) ? p.grad : '';
+    if (!K.readable(p.grad)) p.grad = '';
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
@@ -259,7 +262,7 @@
 
   function badge() {
     const t = Math.floor((performance.now() - qStart) / 1000);
-    $('score').innerHTML = `<span class="qtimer">⏱ ${t} s</span> · <span class="pts">${K.fmtNum(points, 0)} p</span>`;
+    $('score').innerHTML = `<span class="qtimer">⏱ ${K.mmss(t)}</span> · <span class="pts">${K.unitP(points)}</span>`;
   }
 
   // OpenFreeMap stil bez natpisa (bez slojeva tipa "symbol"), da mapa ne oda odgovor
@@ -408,7 +411,7 @@
     else finish();
   });
 
-  const answerText = (a) => (a.q.type === 'map' ? K.t('res.fromTarget', { d: `${K.fmtNum(Math.round(a.dist), 0)} m` }) : a.q.options[a.q.answer]);
+  const answerText = (a) => (a.q.type === 'map' ? K.t('res.fromTarget', { d: K.unitM(Math.round(a.dist)) }) : a.q.options[a.q.answer]);
   const grid = (oks) => oks.map((o) => (o ? '🟩' : '🟥')).join('');
   let result = null;   // {score, n, points, time, oks}
 
@@ -435,7 +438,7 @@
       // objašnjenje i izvor su ovde, na kraju (tokom kviza se ne prikazuju)
       const mine = a.q.type === 'map' || a.ok ? '' : ` <span class="muted small">(${K.esc(K.t('res.yourAnswer', { a: a.q.options[a.chosen] }))})</span>`;
       const src = a.q.source && a.q.source.url ? ` <a class="small" href="${K.esc(a.q.source.url)}" target="_blank" rel="noopener">${K.esc(a.q.source.name)}</a>` : '';
-      return `<li><span class="${a.ok ? 'r' : 'w'}">${a.ok ? '✓' : '✗'}</span> ${K.esc(a.q.text.split('\n')[0])} — <strong>${K.esc(answerText(a))}</strong>${mine} <span class="muted small">+${a.got} p</span>${his}` +
+      return `<li><span class="${a.ok ? 'r' : 'w'}">${a.ok ? '✓' : '✗'}</span> ${K.esc(a.q.text.split('\n')[0])} — <strong>${K.esc(answerText(a))}</strong>${mine} <span class="muted small">+${K.unitP(a.got)}</span>${his}` +
         (a.q.explain ? `<div class="muted small rv-ex">${K.esc(a.q.explain)}${src}</div>` : '') +
         (a.q.type === 'map' && a.pin && a.q.target ? `<div class="rv-map" data-i="${i}" style="height:190px;margin:4px 0 10px 22px;border:2px solid #1a1a1a;border-radius:10px;overflow:hidden"></div><div class="muted small" style="margin:-6px 0 8px 22px">${K.esc(K.t('res.mapLegend'))}</div>` : '') + '</li>';
     }).join('');
@@ -506,7 +509,7 @@
       }
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
       $('lbList').innerHTML = rows.length ? rows.map((r) =>
-        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${K.mmss(r.secs)} <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
+        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> ${K.t('u.p')} · ${r.correct}/${r.total} · ${K.mmss(r.secs)} <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
       ).join('') : `<li class="muted">${K.esc(K.t('lb.empty'))}</li>`;
       const label = lbScope === 'continent' ? (keys.continent ? K.t('cont.' + keys.continent) : K.t('lb.continent')) : lbScope === 'near' ? K.t('lb.nearLabel', { kraj: quiz.place.kraj || '' }) : lbScope === 'city' ? (quiz.place.grad || K.t('lb.city')) : lbScope === 'country' ? ((quiz.place.country || '').toUpperCase() || K.t('lb.country')) : K.t('lb.worldLabel');
       $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')}: ${label}.` + (lbMine && lbMine.rank ? K.t('lb.myRank', { rank: lbMine.rank[lbScope] }) : '');

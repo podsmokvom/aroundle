@@ -37,9 +37,9 @@
         await Promise.all(jobs);
       } catch (e) { log(`Vikipedija (${lang}) nedostupna: ${e.message}`, 'warn'); }
     }));
-    // sr pre en (kod duplikata ostaje srpski članak)
-    const main = K.wikiLangs()[0];
-    const byLangId = (a, b) => (a.lang === b.lang ? a.pageid - b.pageid : a.lang === main ? -1 : 1);
+    // jezik igrača pre susednih (kod duplikata ostaje članak na jeziku igrača)
+    const order = K.wikiLangs();
+    const byLangId = (a, b) => (a.lang === b.lang ? a.pageid - b.pageid : order.indexOf(a.lang) - order.indexOf(b.lang));
     local.sort(byLangId); far.sort(byLangId); // stabilan redosled (isti kviz za sve)
     // detalji za lokalne: uvod + Wikidata ID
     await Promise.all(K.wikiLangs().map(async (lang) => {
@@ -149,7 +149,7 @@
     ];
   }
 
-  const fmtR = (r) => (r >= 1000 ? K.fmtNum(r / 1000, 0) + ' km' : r + ' m');
+  const fmtR = (r) => (r >= 1000 ? K.unitKm(r / 1000) : K.unitM(r));
 
   // Krug od r metara
   function circleStage(lat, lon, r, opts) {
@@ -158,7 +158,7 @@
       key: "r" + r, lat, lon, radius: r, label: K.t('scope.r', { r: fmtR(r) }), title: K.t('scope.title', { r: fmtR(r) }),
       inside: (a, b) => K.dist(lat, lon, a, b) <= r,
       farOk: (a, b, d) => (d != null ? d : K.dist(lat, lon, a, b)) > gap,
-      loadR: Math.max(3000, r * 2.5), ovR: Math.min(6000, Math.max(1800, r * 2.2)), far: gap,
+      loadR: Math.min(12000, Math.max(3000, r * 2.5)), ovR: Math.min(6000, Math.max(1800, r * 2.2)), far: gap,
       complete: true, ...opts
     };
   }
@@ -212,10 +212,12 @@
     const pickArea = async (kinds) => (await admin()).find((a) => kinds.includes(a.kind));
     const makers = [
       async () => circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: K.t('scope.gbif') }),
-      async () => circleStage(lat, lon, 2000, { wikiR: 2000, wikiFar: 5000, gbifR: 2000, gbifLabel: K.t('scope.r', { r: '2 km' }) }),
+      async () => circleStage(lat, lon, 2000, { wikiR: 2000, wikiFar: 5000, gbifR: 2000, gbifLabel: K.t('scope.r', { r: fmtR(2000) }) }),
       async () => { const a = await pickArea(['city']); return a && areaStage(lat, lon, a, 'city', 8000); },
       async () => { const a = await pickArea(['mun']); return a && areaStage(lat, lon, a, 'mun', 10000); },
-      async () => circleStage(lat, lon, 5000, { wikiR: 5000, wikiFar: 7000, gbifR: 5000, gbifLabel: K.t('scope.r', { r: '5 km' }) })
+      async () => circleStage(lat, lon, 5000, { wikiR: 5000, wikiFar: 7000, gbifR: 5000, gbifLabel: K.t('scope.r', { r: fmtR(5000) }) }),
+      // poslednja rezerva za mala sela (Palco, Dana…): 10 km, pločice najviše 12 km
+      async () => circleStage(lat, lon, 10000, { wikiR: 10000, wikiFar: 0, gbifR: 10000, gbifLabel: K.t('scope.r', { r: fmtR(10000) }) })
     ];
 
     const notes = [];

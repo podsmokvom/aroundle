@@ -12,6 +12,7 @@ globalThis.KvizTest = async function (list, lang = 'sr') {
     const p = K.placeFromAddress(addr, lat, lon);
     p.gradKey = p.grad; p.krajKey = p.kraj;
     try { const np = await K.nearestPlace(lat, lon); if (np) { p.kraj = np.name; p.krajKey = np.local; } } catch (e) { /* */ }
+    if (!K.readable(p.kraj)) p.kraj = K.readable(p.grad) ? p.grad : ''; if (!K.readable(p.grad)) p.grad = '';
     const place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     const log = [];
     const q = await K.buildQuiz(place, (m, c) => log.push(`${((performance.now() - t0) / 1000).toFixed(1)}s ${c ? c + ': ' : ''}${m}`));

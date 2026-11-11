@@ -98,7 +98,26 @@
     'share.tapAgain': C('Slika je spremna. Dodirni dugme još jednom da je podeliš.', 'Slika je spremna. Dodirni gumb još jednom da je podijeliš.', 'Slika je spremna. Dodirni dugme još jednom da je podijeliš.',
       'The image is ready. Tap the button once more to share it.', 'Das Bild ist fertig. Tippe noch einmal auf den Knopf, um es zu teilen.', 'L’image est prête. Touche encore une fois le bouton pour la partager.',
       'La imagen está lista. Toca el botón una vez más para compartirla.', 'Картинка готова. Нажми кнопку ещё раз, чтобы поделиться.'),
-    // kratko, da ne bude odsečeno na telefonu (savet „ne kućna adresa“ je u tekstu ispod mape)
+    // jedinice (ruski: км, м, оч.)
+    'u.m': C('m', 'm', 'm', 'm', 'm', 'm', 'm', 'м'),
+    'u.km': C('km', 'km', 'km', 'km', 'km', 'km', 'km', 'км'),
+    'u.p': C('p', 'b', 'b', 'pts', 'Pkt.', 'pts', 'pts', 'оч.'),
+    'duel.invalid': C('neispravan izazov', 'neispravan izazov', 'neispravan izazov', 'invalid challenge', 'ungültige Herausforderung', 'défi invalide', 'reto no válido', 'неверный вызов'),
+    // bez dvostrukih zagrada i jednine („ima 3 (krojač (šnajder))“): broj, pa vrsta
+    'q.svcCount.explain': C('Na otvorenim mapama (OSM + Overture) {scope} ima {n} — vrsta: {one}. Stvarnih može biti i više.',
+      'Na otvorenim kartama (OSM + Overture) {scope} ima {n} — vrsta: {one}. Stvarnih može biti i više.',
+      'Na otvorenim mapama (OSM + Overture) {scope} ima {n} — vrsta: {one}. Stvarnih može biti i više.',
+      'Open maps (OSM + Overture) show {n} {scope} — kind: {one}. There may be more in reality.',
+      'Offene Karten (OSM + Overture) zeigen {scope} {n} — Art: {one}. In Wirklichkeit können es mehr sein.',
+      'Les cartes ouvertes (OSM + Overture) en indiquent {n} {scope} — type : {one}. Il peut y en avoir plus en réalité.',
+      'Los mapas abiertos (OSM + Overture) muestran {n} {scope} — tipo: {one}. En realidad puede haber más.',
+      'Открытые карты (OSM + Overture) показывают {scope}: {n} — вид: {one}. В реальности может быть больше.'),
+    // „mesta“ umesto „radnji“ (hotel, biblioteka nisu radnje)
+    'q.svcName': C('Koje od ovih mesta ({one}) se nalazi {scope}?', 'Koje se od ovih mjesta ({one}) nalazi {scope}?', 'Koje se od ovih mjesta ({one}) nalazi {scope}?',
+      'Which of these places ({one}) is {scope}?', 'Welcher dieser Orte ({one}) liegt {scope}?', 'Lequel de ces lieux ({one}) se trouve {scope} ?', '¿Cuál de estos lugares ({one}) está {scope}?', 'Какое из этих мест ({one}) находится {scope}?'),
+    // kratko, da ne bude odsečeno na telefonu
+    'lb.namePh': C('Tvoje ime', 'Tvoje ime', 'Tvoje ime', 'Your name', 'Dein Name', 'Ton nom', 'Tu nombre', 'Твоё имя'),
+    // pretraga: kratko (savet „ne kućna adresa“ je u tekstu ispod mape)
     'pick.searchPh': C('Kraj, ulica, park, škola…', 'Kvart, ulica, park, škola…', 'Naselje, ulica, park, škola…', 'Hood, street, park, school…', 'Viertel, Straße, Park, Schule…', 'Quartier, rue, parc, école…', 'Barrio, calle, parque, escuela…', 'Район, улица, парк, школа…'),
     'pick.other': C('Izaberi drugi kraj', 'Odaberi drugi kvart', 'Izaberi drugo naselje', 'Pick another hood', 'Anderes Viertel wählen', 'Choisir un autre quartier', 'Elegir otro barrio', 'Выбрать другой район'),
     'pick.title': C('1. Izaberi kraj', '1. Odaberi kvart', '1. Izaberi naselje', '1. Pick your hood', '1. Wähle dein Viertel', '1. Choisis ton quartier', '1. Elige tu barrio', '1. Выбери свой район'),
@@ -124,7 +143,7 @@
       '🟢 bon endroit · 🔴 ta réponse', '🟢 lugar correcto · 🔴 tu respuesta', '🟢 правильное место · 🔴 твой ответ'),
     'res.yourAnswer': C('tvoj odgovor: {a}', 'tvoj odgovor: {a}', 'tvoj odgovor: {a}', 'your answer: {a}', 'deine Antwort: {a}', 'ta réponse : {a}', 'tu respuesta: {a}', 'твой ответ: {a}'),
     'pick.change': C('promeni', 'promijeni', 'promijeni', 'change', 'ändern', 'changer', 'cambiar', 'изменить'),
-    'lb.hoods': C('Najbolji krajevi', 'Najbolje četvrti', 'Najbolja naselja', 'Best-known hoods', 'Bestbekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучшие районы'),
+    'lb.hoods': C('Najbolji krajevi', 'Najbolje četvrti', 'Najbolja naselja', 'Best-known hoods', 'Am besten gekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучшие районы'),
     'lb.hoodsLabel': C('krajevi koje igrači najbolje poznaju (prosek tačnih odgovora, bar {n} igrača po kraju).', 'četvrti koje igrači najbolje poznaju (prosjek točnih odgovora, barem {n} igrača po četvrti).', 'naselja koja igrači najbolje poznaju (prosjek tačnih odgovora, najmanje {n} igrača po naselju).',
       'neighbourhoods players know best (average share of correct answers, at least {n} players each).', 'Viertel, die die Spieler am besten kennen (Durchschnitt richtiger Antworten, mindestens {n} Spieler je Viertel).', 'quartiers que les joueurs connaissent le mieux (moyenne de bonnes réponses, au moins {n} joueurs par quartier).',
       'barrios que los jugadores mejor conocen (media de respuestas correctas, al menos {n} jugadores por barrio).', 'районы, которые игроки знают лучше всего (средняя доля верных ответов, не меньше {n} игроков на район).'),

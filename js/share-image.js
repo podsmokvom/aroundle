@@ -40,8 +40,9 @@
     return size;
   }
   const loadImg = (src) => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
-  let logoP = null;
-  const logo = () => (logoP = logoP || loadImg('assets/brand/aroundle-logo-1024.png').catch(() => { logoP = null; return null; }));
+  // logo sa sloganom na jeziku igrača (1024 px); ako ga nema, zajednički (engleski)
+  const logoP = {};
+  const logo = () => { const src = K.logoFor ? K.logoFor(1024) : 'assets/brand/aroundle-logo-1024.png'; return (logoP[src] = logoP[src] || loadImg(src).catch(() => loadImg('assets/brand/aroundle-logo-1024.png')).catch(() => { delete logoP[src]; return null; })); };
 
   K.shareImage = async function (opt) {
     const w = opt.width || 1080, h = opt.height || 1920;

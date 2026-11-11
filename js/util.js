@@ -101,6 +101,10 @@
   K.fmtYear = (y) => (K.t ? (y < 0 ? K.t('fmt.yearBC', { y: -y }) : K.t('fmt.year', { y })) : String(y));
   // ćirilica -> latinica samo za igrače na latiničnim jezicima (ruski igrač vidi originalna imena)
   K.toLatin = (s) => (K.lang === 'ru' ? String(s || '') : K.translit(s));
+  // jedinice kroz prevod (ruski: км, м, оч.)
+  K.unitM = (n) => `${K.fmtNum(n, 0)} ${K.t('u.m')}`;
+  K.unitKm = (n) => `${K.fmtNum(n, 0)} ${K.t('u.km')}`;
+  K.unitP = (n) => `${K.fmtNum(n, 0)} ${K.t('u.p')}`;
   // vreme svuda kao m:ss (102 → „1:42“)
   K.mmss = (sec) => { if (sec == null || !isFinite(sec)) return '?'; const s = Math.max(0, Math.round(sec)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
@@ -122,7 +126,10 @@
       const ok = L === 'ru' ? READ_CYR.test(n) : READ_LAT.test(n) || ((L === 'sr' || L === 'hr' || L === 'bs') && SR_CYR.test(n));
       s = ok ? n : pick('name:latin', 'name_int') || n;
     }
-    return K.toLatin(s).trim();
+    s = K.toLatin(s).trim();
+    // sirova/tehnička OSM imena („Al Hamra turn off_1“, „xyz_2“) nisu za kviz
+    if (/_\d+$/.test(s) || /\bturn ?off\b/i.test(s)) return '';
+    return s;
   };
   // Link ka objektu na openstreetmap.org. ID iz OpenMapTiles pločica = OSM ID × 10 + tip (1 node, 2 way, 3 relation).
   // Bez ID-a (ulice su spojene linije, Overture mesta): mapa sa markerom na tom mestu.
@@ -133,6 +140,10 @@
     const a = (+lat).toFixed(5), b = (+lon).toFixed(5);
     return `https://www.openstreetmap.org/?mlat=${a}&mlon=${b}#map=18/${a}/${b}`;
   };
+  // da li igrač može da pročita tekst (latinica; za ruski i ćirilica) — japanski, arapski… se ne prikazuju
+  K.readable = (s) => (K.lang === 'ru' ? READ_CYR : READ_LAT).test(K.toLatin(String(s || '')).replace(/\s+/g, ' '));
+  // zagrade sa tuđim pismom iz Vikipedije („Kremlj (Russian: Арсенал…)“, „(三条京阪駅)“) se izbacuju iz teksta
+  K.stripForeign = (s) => String(s || '').replace(/\s*[(（][^)）]*[)）]/g, (m) => (K.readable(m) ? m : ''));
   // Lokalno ime (isto za sve jezike igrača) — za ključ kraja i rang-liste
   K.localName = function (p) {
     if (!p || !p.name) return '';
@@ -144,7 +155,16 @@
   // ---------- Mreža ----------
   K.sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   K.extraHeaders = {};
+  // HTTP 429 (previše zahteva, npr. GBIF): jednom ponovi posle kratke pauze
   K.fetchJSON = async function (url, opts = {}, timeout = 30000) {
+    try { return await fetchOnce(url, opts, timeout); }
+    catch (e) {
+      if (!/HTTP 429/.test(e.message)) throw e;
+      await K.sleep(1200 + Math.random() * 800);
+      return fetchOnce(url, opts, timeout);
+    }
+  };
+  async function fetchOnce(url, opts, timeout) {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), timeout);
     try {

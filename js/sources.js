@@ -95,7 +95,7 @@
         const pg = pages[id];
         const pp = pg.pageprops || {};
         out[id] = {
-          extract: K.toLatin(pg.extract || ''),
+          extract: K.stripForeign(K.toLatin(pg.extract || '')), // bez zagrada na tuđem pismu
           qid: pp.wikibase_item || null,
           disamb: pp.disambiguation !== undefined
         };
@@ -230,11 +230,13 @@
       const v = await K.fetchJSON(`https://api.gbif.org/v1/species/${key}/vernacularNames?limit=300`);
       for (const r of v.results || []) {
         const lang = (r.language || '').toLowerCase();
-        if (!mine && lang === want) mine = K.toLatin(r.vernacularName);
-        if (!en && (lang === 'eng' || lang === 'en')) en = r.vernacularName;
+        const nm = String(r.vernacularName || '').trim();
+        if (!nm || /^[A-Z]{3,6}$/.test(nm) || /\d/.test(nm)) continue; // kodovi tipa „GSWO“ nisu imena
+        if (!mine && lang === want) mine = K.toLatin(nm);
+        if (!en && (lang === 'eng' || lang === 'en')) en = nm;
       }
     } catch (e) { /* bez narodnog imena */ }
-    if (!en && s.vernacularName) en = s.vernacularName;
+    // (bez s.vernacularName: ume da bude na trećem jeziku, npr. španski u engleskom kvizu)
     const sci = s.canonicalName || s.scientificName || '';
     const common = mine ? mine.charAt(0).toUpperCase() + mine.slice(1) : en;
     return { key, sci, common, label: common ? `${common} (${sci})` : sci };

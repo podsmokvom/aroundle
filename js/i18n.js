@@ -52,13 +52,17 @@
   };
 
   // Jezici za izvore podataka
-  K.wikiLangs = () => (K.lang === 'en' ? ['en'] : [K.lang, 'en']);
+  // Vikipedija samo na jeziku igrača (ranije i engleska kao dopuna: engleski naslovi u ruskom/španskom kvizu);
+  // za sr/hr/bs i susedni jezici, jer su razumljivi
+  K.wikiLangs = () => ({ sr: ['sr', 'hr', 'bs'], hr: ['hr', 'sr', 'bs'], bs: ['bs', 'hr', 'sr'] }[K.lang] || [K.lang]);
   K.wdLangs = () => ({ sr: ['sr-el', 'sr'], hr: ['hr', 'sh'], bs: ['bs', 'sh'] }[K.lang] || [K.lang]).concat(K.lang === 'en' ? [] : ['en']);
   K.acceptLang = () => ({ sr: 'sr-Latn,sr,en', hr: 'hr,sr-Latn,en', bs: 'bs,hr,sr-Latn,en' }[K.lang] || `${K.lang},en`);
   K.gbifLang = () => ({ sr: 'srp', hr: 'hrv', bs: 'bos', en: 'eng', de: 'deu', fr: 'fra', es: 'spa', ru: 'rus' }[K.lang] || 'eng');
   K.locale = () => ({ sr: 'sr-Latn-RS', hr: 'hr-HR', bs: 'bs-Latn-BA', en: 'en-GB', de: 'de-DE', fr: 'fr-FR', es: 'es-ES', ru: 'ru-RU' }[K.lang] || 'en');
 
   // Statični tekstovi u HTML-u: data-i18n (tekst), data-i18n-html, data-i18n-ph (placeholder), data-i18n-title, data-i18n-aria
+  K.LOGO_LANGS = ['en', 'sr', 'hr', 'bs', 'de', 'fr', 'es', 'ru'];
+  K.logoFor = (size) => `assets/brand/i18n/aroundle-logo-${K.LOGO_LANGS.includes(K.lang) ? K.lang : 'en'}-${size}.png`;
   K.applyI18n = function (root = document) {
     document.documentElement.lang = K.lang === 'sr' ? 'sr-Latn' : K.lang;
     root.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = K.t(el.dataset.i18n); });
@@ -67,6 +71,12 @@
     root.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = K.t(el.dataset.i18nTitle); });
     root.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', K.t(el.dataset.i18nAria)); });
     document.title = K.t('page.title');
+    // logo sa sloganom na jeziku igrača (assets/brand/i18n, odobrio korisnik 2026-11-11); favicon i ikonice ostaju iste
+    root.querySelectorAll('img[data-i18n-logo]').forEach((el) => {
+      const L = K.LOGO_LANGS.includes(K.lang) ? K.lang : 'en';
+      el.src = `assets/brand/i18n/aroundle-logo-${L}-192.png`;
+      el.srcset = `assets/brand/i18n/aroundle-logo-${L}-192.png 1x, assets/brand/i18n/aroundle-logo-${L}-512.png 2x`;
+    });
   };
 
   K.setLang = function (code) {

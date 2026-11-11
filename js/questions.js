@@ -15,7 +15,7 @@
   K.svcOne = (k) => K.t('svc.' + k).split('|')[0];
   K.svcMany = (k) => { const p = K.t('svc.' + k).split('|'); return p[1] || p[0]; };
   const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-  const meters = (d) => `${K.fmtNum(Math.round(d / 10) * 10, 0)} m`;
+  const meters = (d) => K.unitM(Math.round(d / 10) * 10);
 
   // Napravi pitanje sa 4 ponuđena odgovora; vrati null ako nema 3 različita netačna
   function makeQ(o) {
@@ -29,6 +29,8 @@
       if (wrongs.length === 3) break;
     }
     if (wrongs.length < 3 || !o.correct) return null;
+    // pismo koje igrač ne čita (japanski, arapski…) u odgovorima ili pitanju: preskoči pitanje
+    if (![o.correct, ...wrongs, o.text].every(K.readable)) return null;
     const options = K.shuffle([o.correct, ...wrongs]);
     return {
       cat: o.cat, text: o.text, options, answer: options.indexOf(o.correct),
@@ -427,9 +429,9 @@
   K.elevationQuestions = function (h, kraj) {
     const v = Math.round(h);
     const step = v < 60 ? 15 : v < 300 ? 30 : 60;
-    const n = numeric(v, step, (x) => `${K.fmtNum(Math.round(x), 0)} m`, v > 5 ? 2 : -Infinity);
+    const n = numeric(v, step, (x) => K.unitM(Math.round(x)), v > 5 ? 2 : -Infinity);
     const q = makeQ({
-      cat: 'elev', text: K.t('q.elev', { kraj: kraj || '—' }), ...n,
+      cat: 'elev', text: K.t('q.elev', { kraj: kraj || K.t('share.myHood') }), ...n,
       explain: K.t('q.elev.explain', { h: n.correct }),
       fact: K.t('q.elev.fact', { h: n.correct }),
       source: { name: 'Open-Meteo Elevation API', url: 'https://open-meteo.com/en/docs/elevation-api' }
@@ -582,6 +584,8 @@
     const all = have.concat(out);
     // bar 2 pitanja o zanatlijama i radnjama (prvo „koliko ih ima“), iz različitih šablona
     const svcCats = new Set(all.filter((q) => /^svc/.test(q.cat)).map((q) => q.cat));
+    // sa šireg područja ne ponavljaj tipove koji već postoje iz užeg (npr. „koliko hotela“ u 1, 2 i 5 km)
+    if (have.length) { const hc = new Set(have.map((q) => q.cat)); const ONE = /^(svc|elev|dir|mapPin|transit|birds|plants|chain|cuisine|oldest|wikiYear)/; cands = cands.filter((q) => !(ONE.test(q.cat) && hc.has(q.cat))); }
     const svc = K.shuffle(cands.filter((q) => /^svc/.test(q.cat))).sort((a, b) => (b.cat === 'svcCount') - (a.cat === 'svcCount'));
     for (const q of svc) { if (svcCats.size >= 2) break; if (!svcCats.has(q.cat) && add(q)) svcCats.add(q.cat); }
     // po jedno „pokaži na mapi“ i pitanje o gradskom prevozu, kad postoje (i ako ih već nema)

@@ -64,7 +64,7 @@
   K.duelShortLink = (id) => `${location.origin}${location.pathname}?d=${id}`;
 
   K.duelFromPayload = function (d) {
-    if (![1, 2].includes(d.v) || !Array.isArray(d.q)) throw new Error("neispravan izazov");
+    if (![1, 2].includes(d.v) || !Array.isArray(d.q)) throw new Error(K.t('duel.invalid'));
     return {
       quiz: {
         created: Date.now(), duel: true, day: d.d || K.today(),
@@ -76,7 +76,7 @@
           ...(q.tg ? { type: 'map', target: { lat: q.tg[0], lon: q.tg[1], tol: q.tg[2] } } : {})
         }))
       },
-      from: { name: d.n || "Komšija", score: d.r, points: d.pt || 0, time: d.t || null, oks: d.ok || [] }
+      from: { name: d.n || K.t('share.defaultName'), score: d.r, points: d.pt || 0, time: d.t || null, oks: d.ok || [] }
     };
   };
 
