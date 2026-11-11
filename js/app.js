@@ -65,8 +65,6 @@
       else if (np && !p.kraj) p.kraj = np.name;
     } catch (e) { /* ostaje ime iz adrese */ }
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
-    // spori Overpass kreće odmah, dok igrač tek razmišlja; kviz ga kasnije čeka najviše 8 s
-    place.extrasP = K.hoodExtras(place.lat, place.lon, 1000, 45000).catch(() => null);
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
       marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip(K.t('pick.marker'));

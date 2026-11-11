@@ -8,7 +8,7 @@
     street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, stop: 1,
     etym: 2, wikiNear: 2, wikiText: 2, wikiYear: 2, birds: 1,
     svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 1, elev: 1,
-    dir: 1, oldName: 1, women: 1, chain: 1, cuisine: 1, nonstop: 1
+    dir: 1
   };
 
   // naziv radnje na jeziku igrača: „jedna|množina“
@@ -425,16 +425,9 @@
     return q ? [q] : [];
   };
 
-  // ---------------- Dodatna pitanja (Overpass u pozadini + položaj objekata) ----------------
-  // Svako najviše jednom po kvizu; preskače se ako nema dovoljno podataka.
-  const CUISINES = ['pizza', 'italian', 'burger', 'chinese', 'kebab', 'sushi', 'japanese', 'regional', 'local', 'greek',
-    'mexican', 'indian', 'thai', 'turkish', 'french', 'german', 'vietnamese', 'balkan', 'sandwich', 'chicken', 'seafood', 'bakery', 'ice_cream'];
-
-  K.extraQuestions = function (stage, ex, local, ents) {
+  // ---------------- Strana sveta: u kom pravcu od tvoje tačke je neki objekat ----------------
+  K.dirQuestions = function (stage, local) {
     const qs = [];
-    const src = { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=16/${stage.lat.toFixed(5)}/${stage.lon.toFixed(5)}` };
-
-    // 1) Strana sveta: u kom pravcu od tvoje tačke je neki objekat (radi i bez Overpass-a)
     const DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const bearing = (la1, lo1, la2, lo2) => {
       const r = Math.PI / 180, y = Math.sin((lo2 - lo1) * r) * Math.cos(la2 * r);
@@ -451,80 +444,12 @@
       // netačni: suprotan i dva bočna pravca (nikad susedni, da odgovor ne bude sporan)
       const opts = [i, (i + 4) % 8, (i + 2) % 8, (i + 6) % 8].map((k) => K.t('dir.' + DIRS[k]));
       const q = makeQ({
-        cat: 'dir', names: false, text: K.t('q.dir', { name: it.name }),
+        cat: 'dir', text: K.t('q.dir', { name: it.name }),
         correct: opts[0], wrongs: opts.slice(1),
         explain: K.t('q.dir.explain', { name: it.name, dir: opts[0], d: meters(d) }),
         source: { name: 'OpenStreetMap', url: `https://www.openstreetmap.org/#map=18/${it.lat.toFixed(5)}/${it.lon.toFixed(5)}` }
       });
       if (q) { qs.push(q); break; }
-    }
-    if (!ex) return qs;
-    const scope1k = K.t('scope.r', { r: K.fmtNum(1, 0) + ' km' }); // dodatni podaci se uvek skupljaju u krugu od 1 km
-
-    // 2) Staro ime ulice
-    const oldPool = [...new Set(ex.oldNames.map((o) => o.old).concat(ex.farOldNames))];
-    for (const o of K.shuffle(ex.oldNames)) {
-      if (K.isBanned(o.old) || K.tooClose(o.old, o.name)) continue; // staro ime ne sme da liči na novo
-      const q = makeQ({
-        cat: 'oldName', names: true, text: K.t('q.oldName', { name: o.name }),
-        correct: o.old, wrongs: K.shuffle(oldPool.filter((x) => K.norm(x) !== K.norm(o.old) && !K.tooClose(x, o.name))),
-        explain: K.t('q.oldName.explain', { name: o.name, old: o.old }), source: src,
-        fact: K.t('q.oldName.explain', { name: o.name, old: o.old })
-      });
-      if (q) { qs.push(q); break; }
-    }
-
-    // 3) Ulica nazvana po ženi (Wikidata P21 = žensko)
-    const FEMALE = 'Q6581072', MALE = 'Q6581097';
-    const sex = (qid) => K.wd.items(ents[qid], 'P21')[0];
-    const women = ex.etym.filter((s) => sex(s.qid) === FEMALE);
-    const men = ex.etym.filter((s) => sex(s.qid) === MALE);
-    if (women.length && men.length >= 3) {
-      const w = K.pick(women);
-      const label = K.wd.label(ents[w.qid]);
-      const q = makeQ({
-        cat: 'women', names: true, text: K.t('q.women'),
-        correct: w.name, wrongs: K.shuffle(men.map((m) => m.name)),
-        explain: K.t('q.women.explain', { name: w.name, label: label || '?' }),
-        source: { name: 'Wikidata', url: `https://www.wikidata.org/wiki/${w.qid}` },
-        fact: K.t('q.women.explain', { name: w.name, label: label || '?' })
-      });
-      if (q) qs.push(q);
-    }
-
-    // 4) Najzastupljeniji lanac radnji
-    const brands = Object.entries(ex.brands).sort((a, b) => b[1] - a[1]);
-    if (brands.length >= 4 && brands[0][1] >= 2 && brands[0][1] > brands[1][1]) {
-      const q = makeQ({
-        cat: 'chain', names: true, text: K.t('q.chain', { scope: scope1k }),
-        correct: brands[0][0], wrongs: K.shuffle(brands.slice(1, 10).map((b) => b[0])),
-        explain: K.t('q.chain.explain', { list: brands.slice(0, 4).map((b) => `${b[0]}: ${b[1]}`).join(', ') }), source: src
-      });
-      if (q) qs.push(q);
-    }
-
-    // 5) Najčešća kuhinja u restoranima (samo poznate vrste, sa prevodom)
-    const cz = Object.entries(ex.cuisines).filter(([k]) => CUISINES.includes(k)).sort((a, b) => b[1] - a[1]);
-    if (cz.length >= 2 && cz[0][1] >= 2 && cz[0][1] > (cz[1] ? cz[1][1] : 0)) {
-      const others = CUISINES.filter((c) => c !== cz[0][0] && !(ex.cuisines[c] >= cz[0][1]));
-      const wrongs = cz.slice(1).map((c) => c[0]).concat(K.shuffle(others)).filter((c, i, a) => a.indexOf(c) === i);
-      const q = makeQ({
-        cat: 'cuisine', text: K.t('q.cuisine', { scope: scope1k }),
-        correct: K.t('cuisine.' + cz[0][0]), wrongs: wrongs.map((c) => K.t('cuisine.' + c)),
-        explain: K.t('q.cuisine.explain', { list: cz.slice(0, 4).map(([k, n]) => `${K.t('cuisine.' + k)}: ${n}`).join(', ') }), source: src
-      });
-      if (q) qs.push(q);
-    }
-
-    // 6) Non-stop (0–24) radnje
-    if (ex.nonstop >= 1) {
-      const c = ex.nonstop, step = Math.max(1, Math.round(c * 0.4));
-      const n = numeric(c, step, (v) => String(Math.round(v)), 0);
-      const q = makeQ({
-        cat: 'nonstop', text: K.t('q.nonstop', { scope: scope1k }), ...n,
-        explain: K.t('q.nonstop.explain', { n: c, scope: scope1k }), source: src
-      });
-      if (q) qs.push(q);
     }
     return qs;
   };
