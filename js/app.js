@@ -248,6 +248,15 @@
         qmap = new maplibregl.Map({ container: 'qmap', style, center: [quiz.place.lon, quiz.place.lat], zoom: 15.3, attributionControl: { compact: true } });
         qmap.addControl(new maplibregl.NavigationControl({ showCompass: false }));
         qmap.touchZoomRotate.disableRotation();
+        // ceo krug kviza (1 km, ili dalje ako je cilj dalje) u vidnom polju: tačka je uvek vidljiva bez pomeranja mape.
+        // Isti okvir za svako pitanje, da prikaz ne odaje pravac ni udaljenost cilja.
+        let R = 1000;
+        if (q.target) R = Math.max(R, K.dist(quiz.place.lat, quiz.place.lon, q.target.lat, q.target.lon) || 0);
+        R *= 1.08;
+        const dLat = R / 111320, dLon = R / (111320 * Math.cos(quiz.place.lat * Math.PI / 180));
+        qmap.fitBounds([[quiz.place.lon - dLon, quiz.place.lat - dLat], [quiz.place.lon + dLon, quiz.place.lat + dLat]], { padding: 8, animate: false });
+        const box = $('qmap').getBoundingClientRect();
+        if (box.top < 0 || box.bottom > innerHeight) $('qmap').scrollIntoView({ behavior: 'smooth', block: box.height > innerHeight ? 'start' : 'center' });
         const dot = document.createElement('div');
         dot.className = 'me-dot';
         dot.title = K.t('quiz.myPoint');
