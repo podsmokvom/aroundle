@@ -68,7 +68,7 @@
   'lb.title': 'Rang-lista',
   'lb.namePh': 'Ime za rang-listu',
   'lb.submit': 'Upiši me',
-  'lb.near': 'Kraj (1,5 km)',
+  'lb.near': 'Komšiluk (1,5 km)',
   'lb.city': 'Grad',
   'lb.country': 'Država',
   'lb.continent': 'Kontinent',

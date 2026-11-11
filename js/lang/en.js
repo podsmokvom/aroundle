@@ -68,7 +68,7 @@
   'lb.title': 'Leaderboard',
   'lb.namePh': 'Name for the leaderboard',
   'lb.submit': 'Add me',
-  'lb.near': 'Area (1.5 km)',
+  'lb.near': 'Hood (1.5 km)',
   'lb.city': 'City',
   'lb.country': 'Country',
   'lb.continent': 'Continent',
