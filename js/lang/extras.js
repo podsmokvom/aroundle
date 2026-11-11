@@ -102,6 +102,13 @@
       'Aroundle was created by Duca to help people get to know the part of town they live in.', 'Aroundle hat sich Duca ausgedacht, damit Menschen den Teil der Stadt, in dem sie leben, besser kennenlernen.',
       'Aroundle a été imaginé par Duca pour que chacun connaisse mieux le coin de la ville où il vit.', 'Aroundle lo ideó Duca para que la gente conozca mejor la parte de la ciudad en la que vive.',
       'Игру придумал Дуца, чтобы люди лучше узнали часть города, в которой живут.'),
+    'pick.openMap': C('🗺️ ili izaberi na mapi', '🗺️ ili odaberi na karti', '🗺️ ili izaberi na mapi', '🗺️ or pick on the map', '🗺️ oder auf der Karte wählen', '🗺️ ou choisis sur la carte', '🗺️ o elige en el mapa', '🗺️ или выбери на карте'),
+    'home.title': C('Ko najbolje poznaje svoj kraj? 🏆', 'Tko najbolje poznaje svoj kvart? 🏆', 'Ko najbolje poznaje svoje naselje? 🏆', 'Who knows their hood best? 🏆', 'Wer kennt sein Viertel am besten? 🏆',
+      'Qui connaît le mieux son quartier ? 🏆', '¿Quién conoce mejor su barrio? 🏆', 'Кто лучше всех знает свой район? 🏆'),
+    'home.players': C('Najbolji danas (ceo svet)', 'Najbolji danas (cijeli svijet)', 'Najbolji danas (cijeli svijet)', 'Top players today (worldwide)', 'Beste heute (weltweit)', 'Meilleurs du jour (monde)', 'Mejores de hoy (mundo)', 'Лучшие сегодня (весь мир)'),
+    'home.hoods': C('Najbolje poznati krajevi', 'Najbolje poznati kvartovi', 'Najbolje poznata naselja', 'Best-known hoods', 'Am besten gekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучше всего известные районы'),
+    'home.empty': C('Danas još niko — budi prvi! 🚀', 'Danas još nitko — budi prvi! 🚀', 'Danas još niko — budi prvi! 🚀', 'Nobody yet today — be the first! 🚀', 'Heute noch niemand — sei der Erste! 🚀',
+      'Personne encore aujourd’hui — sois le premier ! 🚀', 'Hoy todavía nadie — ¡sé el primero! 🚀', 'Сегодня ещё никого — будь первым! 🚀'),
     'nav.home': C('Aroundle — početna', 'Aroundle — početna', 'Aroundle — početna', 'Aroundle — home', 'Aroundle — Startseite', 'Aroundle — accueil', 'Aroundle — inicio', 'Aroundle — главная'),
     'foot.contact': C('Kontakt:', 'Kontakt:', 'Kontakt:', 'Contact:', 'Kontakt:', 'Contact :', 'Contacto:', 'Контакт:'),
     // jedinice (ruski: км, м, оч.)

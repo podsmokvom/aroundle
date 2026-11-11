@@ -394,3 +394,10 @@ button.ghost { color: var(--accent); background: var(--card); }
 /* logo i naslov vode na početnu */
 a.home { display: inline-block; line-height: 0; text-decoration: none; flex: none; }
 a.home:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 8px; }
+/* mapa zatvorena do pretrage / „Moja lokacija“ */
+.mapopen { display: inline-block; margin: 10px 0 2px; padding: 0; }
+/* rang-liste na početnoj */
+.homestats h2 { margin-top: 0; }
+.homestats h3 { margin: 6px 0 2px; font-size: 1rem; }
+.hs-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
+@media (max-width: 600px) { .hs-cols { grid-template-columns: 1fr; } }

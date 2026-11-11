@@ -62,9 +62,28 @@
         </div>
         <p id="cacheInfo" class="muted small" hidden></p>
       </div>
-      <div id="map" data-i18n-aria="pick.mapAria"></div>
-      <p class="hint" data-i18n-html="pick.hint"></p>
+      <!-- mapa je zatvorena dok igrač ne pritisne „Moja lokacija“, ne počne pretragu ili ne otvori mapu -->
+      <button type="button" id="openMap" class="linkish small mapopen" data-i18n="pick.openMap"></button>
+      <div id="mapWrap" hidden>
+        <div id="map" data-i18n-aria="pick.mapAria"></div>
+        <p class="hint" data-i18n-html="pick.hint"></p>
+      </div>
       <p id="pickedInfo" class="muted small" data-i18n="pick.info" hidden></p>
+    </section>
+
+    <!-- početna: rang-liste da motivišu (danas ceo svet + najbolje poznati krajevi) -->
+    <section id="homeStats" class="card homestats">
+      <h2 data-i18n="home.title"></h2>
+      <div class="hs-cols">
+        <div>
+          <h3 data-i18n="home.players"></h3>
+          <ol id="hsPlayers" class="lblist"></ol>
+        </div>
+        <div>
+          <h3 data-i18n="home.hoods"></h3>
+          <ol id="hsHoods" class="lblist"></ol>
+        </div>
+      </div>
     </section>
 
     <!-- 2. Pravljenje -->

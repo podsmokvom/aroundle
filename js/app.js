@@ -34,8 +34,40 @@
   }
   K.countGet().then(showCount).catch(() => {});
   // uvodna rečenica („Izaberi svoj kraj…“) samo dok se bira kraj; tokom kviza i na rezultatu je višak (telefon)
+  // mapa za izbor kraja je zatvorena dok igrač ne pritisne „Moja lokacija“, ne počne pretragu ili ne otvori mapu
+  function openMap() {
+    if (!$('mapWrap').hidden) return;
+    show($('mapWrap')); show($('openMap'), false);
+    setTimeout(() => map.invalidateSize(), 30);
+  }
+  $('openMap').addEventListener('click', openMap);
+  $('q').addEventListener('input', () => { if ($('q').value.trim().length >= 2) openMap(); });
   const leadEl = document.querySelector('.lead');
   if (leadEl) new MutationObserver(() => { leadEl.hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
+  // Rang-liste na početnoj (motivacija): najbolji igrači danas u svetu + najbolje poznati krajevi (svih vremena).
+  // Vidljive samo dok se bira kraj; bez servera (lokalno) se sakriju.
+  let hsAt = 0;
+  async function homeStats() {
+    if (Date.now() - hsAt < 60000) return; // najviše jednom u minuti
+    hsAt = Date.now();
+    try {
+      // krajevi: danas (bar 3 igrača), pa nedelja (5), pa svih vremena (10) — prvo što ima nekoga
+      const [players, hd, hw] = await Promise.all([K.lbTop('world', '*', 'day'), K.lbHoods('day'), K.lbHoods('week').catch(() => null)]);
+      let hoods = hd.rows.length ? hd : hw && hw.rows.length ? hw : await K.lbHoods('all').catch(() => hd);
+      if (!hoods.rows.length) hoods = hd; // niko nigde: poruka sa najmanjim pragom („bar 3 igrača“), lakše za motivaciju
+      $('hsPlayers').innerHTML = players.length ? players.slice(0, 5).map((r) =>
+        `<li><strong>${K.esc(r.name)}</strong> · ${K.unitP(r.points)} · ${r.correct}/${r.total} <span class="muted small">(${K.esc(r.hood_name || r.city || '')})</span></li>`).join('')
+        : `<li class="muted">${K.esc(K.t('home.empty'))}</li>`;
+      $('hsHoods').innerHTML = hoods.rows.length ? hoods.rows.slice(0, 5).map((r) =>
+        `<li><strong>${K.esc(r.hood_name || r.city)}</strong>${r.city && r.city !== r.hood_name ? ', ' + K.esc(r.city) : ''} · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`).join('')
+        : `<li class="muted">${K.esc(K.t('lb.hoodsEmpty', { n: hoods.min }))}</li>`;
+      show($('homeStats'), !$('pick').hidden);
+    } catch (e) { show($('homeStats'), false); hsAt = 0; }
+  }
+  show($('homeStats'), false);
+  homeStats();
+  new MutationObserver(() => { if ($('pick').hidden) show($('homeStats'), false); else homeStats().then(() => show($('homeStats'), !$('pick').hidden && $('hsPlayers').children.length > 0)); })
+    .observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
   // tokom kviza (telefon): niže zaglavlje, da pitanje i svi odgovori stanu na ekran (CSS body.playing)
   new MutationObserver(() => document.body.classList.toggle('playing', !$('quiz').hidden)).observe($('quiz'), { attributes: true, attributeFilter: ['hidden'] });
 
@@ -66,6 +98,7 @@
   }
 
   async function setPoint(rawLat, rawLon, noShift) {
+    openMap();
     const [lat, lon] = noShift ? [rawLat, rawLon] : shift(rawLat, rawLon); // već pomerena tačka se ne pomera ponovo
     show($('picked')); show($('pickedInfo'));
     show($('searchForm'), false); show($('results'), false); // mesto je izabrano: pretraga samo zauzima prostor („promeni“ je vraća)
@@ -123,6 +156,7 @@
   }
   // „Izaberi drugi kraj“: pretraga i mapa spremne za novi izbor
   function pickOther() {
+    openMap();
     show($('pick')); show($('searchForm')); show($('cacheInfo'), false);
     setTimeout(() => map.invalidateSize(), 50);
     $('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -131,6 +165,7 @@
 
   // ---------------- Pretraga ----------------
   $('searchForm').addEventListener('submit', async (e) => {
+    openMap();
     e.preventDefault();
     const q = $('q').value.trim();
     if (!q) return;
@@ -159,6 +194,7 @@
     $('q').focus();
   });
   $('locate').addEventListener('click', () => {
+    openMap();
     if (!navigator.geolocation) return alertBox(K.t('geo.unsupported'));
     $('locate').disabled = true;
     navigator.geolocation.getCurrentPosition(
