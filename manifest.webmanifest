@@ -1,0 +1,15 @@
+{
+  "name": "Aroundle",
+  "short_name": "Aroundle",
+  "description": "How well do you know your neighbourhood? A daily quiz about the area around you.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5E9D0",
+  "theme_color": "#D7262E",
+  "icons": [
+    { "src": "assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/brand/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

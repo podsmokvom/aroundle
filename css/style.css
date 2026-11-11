@@ -1,11 +1,14 @@
+/* Paleta brenda (README vizuala): crvena #D7262E, krem #F5E9D0, plava #1F3A93, crni obrisi */
 :root {
-  --bg: #f4f1ea;
-  --card: #ffffff;
-  --ink: #1f2a2e;
-  --muted: #66737a;
-  --line: #ddd6c8;
-  --accent: #1f6f5c;
+  --bg: #F5E9D0;
+  --card: #FFFAF0;
+  --ink: #1a1a1a;
+  --muted: #5e584c;
+  --line: #e2d2ae;
+  --accent: #D7262E;
   --accent-ink: #ffffff;
+  --blue: #1F3A93;
+  --dots: rgba(31, 58, 147, 0.13);
   --ok: #2e7d32;
   --ok-bg: #e5f3e6;
   --bad: #b3261e;
@@ -15,13 +18,15 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14191b;
-    --card: #1d2427;
-    --ink: #e7ecee;
-    --muted: #9aa7ad;
-    --line: #2f3a3e;
-    --accent: #4fb89c;
-    --accent-ink: #0e1a17;
+    --bg: #1b1814;
+    --card: #25211b;
+    --ink: #f3ece0;
+    --muted: #b3a891;
+    --line: #3d3528;
+    --accent: #ff4b52;
+    --accent-ink: #1b1814;
+    --blue: #9db0ff;
+    --dots: rgba(157, 176, 255, 0.08);
     --ok: #7dd282;
     --ok-bg: #1d3320;
     --bad: #ff8a80;
@@ -34,11 +39,12 @@
 [hidden] { display: none !important; }
 body {
   margin: 0;
-  background: var(--bg);
+  /* pop-art tačkice kao na logu */
+  background: radial-gradient(var(--dots) 1.2px, transparent 1.6px) 0 0 / 14px 14px, var(--bg);
   color: var(--ink);
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
-a { color: var(--accent); }
+a { color: var(--blue); }
 
 .top, main, .attr { max-width: 760px; margin: 0 auto; padding: 0 16px; }
 .top { padding-top: 28px; }
@@ -308,3 +314,26 @@ button.big { width: 100%; padding: 14px 16px; font-size: 1.05rem; margin-top: 8p
 .langsel { margin-left: auto; align-self: flex-start; }
 .langsel select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; font-size: .9rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Brend (vizuali 2026-11) ---------- */
+.logo { width: 104px; height: 104px; flex: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,.18)); }
+.brand h1 { font-family: "Bangers", Impact, "Arial Black", sans-serif; font-weight: 400; font-size: 2.6rem; letter-spacing: .04em; color: var(--accent); text-shadow: 2px 2px 0 #1a1a1a; }
+.brand h1 span { color: var(--blue); }
+.card { border: 2px solid #1a1a1a; box-shadow: 4px 4px 0 rgba(26,26,26,.85); }
+button { border-color: #1a1a1a; box-shadow: 2px 2px 0 #1a1a1a; }
+button:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #1a1a1a; }
+button.ghost { color: var(--accent); background: var(--card); }
+.opt { border: 2px solid #1a1a1a; }
+.machine { --machine: #D7262E; --machine-dark: #8f1219; }
+.plate { background: #F5E9D0; color: #1a1a1a; }
+.qcard { background: var(--blue); color: #fff; }
+.tabs button.on { background: var(--blue); border-color: #1a1a1a; color: #fff; }
+.tabs button { color: var(--blue); }
+@media (prefers-color-scheme: dark) {
+  .card, .opt { border-color: #000; }
+  .brand h1 { text-shadow: 2px 2px 0 #000; }
+}
+@media (max-width: 480px) {
+  .logo { width: 76px; height: 76px; }
+  .brand h1 { font-size: 2.1rem; }
+}

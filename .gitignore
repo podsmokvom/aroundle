@@ -2,3 +2,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Vizuali sa logom čekaju novu verziju (majica sa imenom benda) — ne objavljivati
+assets/brand/

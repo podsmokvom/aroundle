@@ -4,13 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aroundle</title>
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/brand/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="assets/brand/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#D7262E">
   <meta name="description" content="Aroundle — how well do you know your neighbourhood? 10 questions about any place: streets, schools, shops, transit lines. Challenge your neighbour!">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Aroundle — how well do you know your neighbourhood?">
   <meta property="og:site_name" content="Aroundle">
   <meta property="og:description" content="10 questions about your neighbourhood. Challenge your neighbour!">
-  <meta name="twitter:card" content="summary">
+  <!-- pri postavljanju na domen staviti apsolutne adrese (npr. https://aroundle.com/assets/brand/og-image-1200x630.png) -->
+  <meta property="og:image" content="assets/brand/og-image-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="assets/brand/og-image-1200x630.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
   <link rel="stylesheet" href="css/style.css">
@@ -18,7 +31,7 @@
 <body>
   <header class="top">
     <div class="brand">
-      <img src="assets/logo.svg" alt="" class="logo" width="72" height="72">
+      <img src="assets/brand/aroundle-logo-256.png" srcset="assets/brand/aroundle-logo-256.png 1x, assets/brand/aroundle-logo-512.png 2x" alt="Aroundle" class="logo" width="104" height="104">
       <div>
         <h1>Around<span>le</span></h1>
         <p class="tag" data-i18n="brand.tag"></p>
@@ -66,7 +79,7 @@
           <span class="gear g1">⚙️</span>
           <span class="gear g2">⚙️</span>
           <span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span>
-          <span class="plate">KHM?</span>
+          <span class="plate">Hmmm?</span>
         </div>
         <div class="belt belt-out">
           <span class="qcard" style="--d:0">?</span>
@@ -185,6 +198,7 @@
   <script src="js/lang/fr.js"></script>
   <script src="js/lang/es.js"></script>
   <script src="js/lang/ru.js"></script>
+  <script src="js/lang/extras.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/util.js"></script>
   <script src="js/sources.js"></script>

@@ -3,7 +3,7 @@
 (function (K) {
   'use strict';
   const TARGET = 10;
-  const CACHE_VER = 'kviz:v4:';
+  const CACHE_VER = 'kviz:v5:';
   const CACHE_DAYS = 30;
 
   // ---------------- Keš (localStorage) ----------------
@@ -90,7 +90,8 @@
     // Wikidata: detalji članaka + „nazvano po“
     if (shared.namedP) await shared.namedP;
     const wdNamed = (shared.wdNamed || []).filter((w) => w.dist <= Math.max(3000, stage.wikiR));
-    const ids = wiki.local.map((w) => w.qid).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean);
+    const ex = shared.extrasP ? await shared.extrasP : null;
+    const ids = (ex ? ex.etym.map((s) => s.qid) : []).concat(wiki.local.map((w) => w.qid)).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean); // ulice iz Overpass-a prve, da ne ispadnu iz limita
     let ents = {};
     if (ids.length) {
       try {
@@ -112,6 +113,7 @@
       ...K.serviceQuestions(stage, services),
       ...K.transitQuestions(stage, transit),
       ...K.mapQuestions(stage, osm.local, services),
+      ...K.extraQuestions(stage, ex, osm.local, ents),
       ...K.etymQuestions(stage, osm.local, osm.far, wiki.local, ents, wdNamed),
       ...K.wikiQuestions(stage, wiki.local, wiki.far, ents),
       ...birdQs,
@@ -157,6 +159,13 @@
 
     // Zajedničko za sve krugove: nadmorska visina kraja, „nazvano po“
     const shared = { questions: [], wdNamed: [] };
+    // dodatni podaci (Overpass) u pozadini, tvrd rok 8 s; ako ne stignu, ta pitanja se preskaču
+    log('OpenStreetMap: dodatni podaci o kraju (u pozadini)…');
+    // upit je obično već pokrenut pri izboru tačke (place.extrasP); kviz ga čeka najviše 8 s od početka pravljenja
+    const startedEarly = place.extrasP || K.hoodExtras(lat, lon, 1000, 45000);
+    shared.extrasP = Promise.race([startedEarly, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('8 s'), { name: 'AbortError' })), 8000))])
+      .then((r) => { log(`Overpass: ${r.oldNames.length} starih imena, ${Object.keys(r.brands).length} lanaca.`, 'ok'); return r; })
+      .catch((e) => { log(`Overpass preskočen: ${e.name === 'AbortError' ? 'više od 8 s' : e.message}`, 'warn'); return null; });
     log('Open-Meteo: nadmorska visina tačke…');
     const elevP = K.elevation(lat, lon).then((h) => { shared.elev = h; log(`Open-Meteo: ${Math.round(h)} m nadmorske visine.`, 'ok'); })
       .catch((e) => log(`Open-Meteo: ${e.message}`, 'warn'));

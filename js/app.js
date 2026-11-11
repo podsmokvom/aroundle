@@ -65,6 +65,8 @@
       else if (np && !p.kraj) p.kraj = np.name;
     } catch (e) { /* ostaje ime iz adrese */ }
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
+    // spori Overpass kreće odmah, dok igrač tek razmišlja; kviz ga kasnije čeka najviše 8 s
+    place.extrasP = K.hoodExtras(place.lat, place.lon, 1000, 45000).catch(() => null);
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
       marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip(K.t('pick.marker'));
@@ -479,57 +481,86 @@
     if (line) lines.push(line);
     return lines;
   }
-  function drawCard(w, h) {
+  // Kartica u bojama brenda: crvena #D7262E, krem #F5E9D0, plava #1F3A93, crni obrisi
+  const RED = '#D7262E', CREAM = '#F5E9D0', BLUE = '#1F3A93', INK = '#1a1a1a';
+  const imgCache = {};
+  const loadImg = (src) => imgCache[src] || (imgCache[src] = new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }));
+  function rrect(x, X, Y, W, H, R) { x.beginPath(); if (x.roundRect) x.roundRect(X, Y, W, H, R); else x.rect(X, Y, W, H); }
+  function dots(x, w, h) {
+    x.fillStyle = CREAM; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(31,58,147,0.35)';
+    for (let yy = 10; yy < h; yy += 22) for (let xx = (yy / 22) % 2 ? 21 : 10; xx < w; xx += 22) { x.beginPath(); x.arc(xx, yy, 2.4, 0, 7); x.fill(); }
+  }
+  // Naslov kraja u stilu logoa: crvena slova sa crnim obrisom (font Bangers)
+  function comicText(x, text, X, Y, size, align = 'left') {
+    x.font = `${size}px Bangers, Impact, "Arial Black", sans-serif`;
+    x.textAlign = align; x.lineJoin = 'round';
+    x.lineWidth = size * 0.14; x.strokeStyle = INK; x.strokeText(text, X, Y);
+    x.fillStyle = RED; x.fillText(text, X, Y);
+    x.textAlign = 'left';
+  }
+  // Panel sa rezultatom: kvadrati, X/10, poeni, „Znaš li?“
+  function resultPanel(x, X, Y, W, H, F) {
+    rrect(x, X, Y, W, H, 28); x.fillStyle = '#FFFAF0'; x.fill(); x.lineWidth = 6; x.strokeStyle = INK; x.stroke();
+    const pad = 36;
+    const n = result.oks.length, gap = 10, sz = Math.min(64, (W - 2 * pad - gap * (n - 1)) / n);
+    const gx = X + (W - (n * sz + (n - 1) * gap)) / 2;
+    let y = Y + pad;
+    result.oks.forEach((o, i) => { rrect(x, gx + i * (sz + gap), y, sz, sz, 10); x.fillStyle = o ? '#2e9e4f' : RED; x.fill(); x.lineWidth = 3; x.strokeStyle = INK; x.stroke(); });
+    y += sz + 112; // veliki rezultat ne sme da dodiruje kvadrate
+    x.fillStyle = INK; x.font = `120px Bangers, Impact, sans-serif`; x.textAlign = 'center';
+    x.fillText(`${result.score}/${result.n}`, X + W / 2, y);
+    x.font = `600 38px ${F}`; x.fillStyle = BLUE;
+    x.fillText(K.t('card.points', { points: K.fmtNum(result.points, 0), time: result.time }), X + W / 2, y + 54);
+    x.textAlign = 'left';
+    y += 100;
+    const fact = funFact();
+    if (fact && y + 120 < Y + H) {
+      x.fillStyle = RED; x.font = `34px Bangers, Impact, sans-serif`;
+      x.fillText(K.t('card.fact'), X + pad, y);
+      x.fillStyle = INK; x.font = `500 34px ${F}`;
+      const maxLines = Math.max(1, Math.floor((Y + H - y - 30) / 44));
+      wrap(x, fact, W - 2 * pad).slice(0, maxLines).forEach((l, i) => x.fillText(l, X + pad, y + 46 + i * 44));
+    }
+  }
+  async function drawCard(w, h) {
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const x = c.getContext('2d');
-    const g = x.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#1f6f5c'); g.addColorStop(1, '#0d3029');
-    x.fillStyle = g; x.fillRect(0, 0, w, h);
-    const pad = w * 0.08, F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-    let y = h * (h > w ? 0.24 : 0.12); // story: sadržaj bliže sredini
-    x.fillStyle = '#f7d77c'; x.font = `700 ${w * 0.045}px ${F}`;
-    x.fillText(K.t('card.top'), pad, y);
-    y += w * 0.11;
-    x.fillStyle = '#fff'; x.font = `800 ${w * 0.085}px ${F}`;
-    for (const l of wrap(x, quiz.place.kraj || K.t('share.myHood'), w - 2 * pad).slice(0, 2)) { x.fillText(l, pad, y); y += w * 0.095; }
-    y += w * 0.03;
-    // 10 kvadrata
-    const n = result.oks.length, gap = w * 0.012, sz = Math.min(w * 0.07, (w - 2 * pad - gap * (n - 1)) / n);
-    result.oks.forEach((o, i) => {
-      x.fillStyle = o ? '#4caf50' : '#e5534b';
-      x.beginPath();
-      if (x.roundRect) x.roundRect(pad + i * (sz + gap), y, sz, sz, sz * 0.18); else x.rect(pad + i * (sz + gap), y, sz, sz);
-      x.fill();
-    });
-    y += sz + w * 0.16; // dovoljno mesta da se veliki rezultat ne preklopi sa kvadratima
-    x.fillStyle = '#fff'; x.font = `800 ${w * 0.11}px ${F}`;
-    x.fillText(`${result.score}/${result.n}`, pad, y);
-    x.font = `600 ${w * 0.04}px ${F}`; x.fillStyle = '#cfe9e0';
-    x.fillText(K.t('card.points', { points: K.fmtNum(result.points, 0), time: result.time }), pad, y + w * 0.06);
-    y += w * (h > w ? 0.2 : 0.13);
-    const fact = funFact();
-    if (fact) {
-      x.font = `500 ${w * 0.038}px ${F}`;
-      const lines = wrap(x, fact, w - 2 * pad - w * 0.06).slice(0, h > w ? 6 : 3);
-      const boxH = lines.length * w * 0.05 + w * 0.09;
-      x.fillStyle = 'rgba(255,255,255,0.1)';
-      x.beginPath();
-      if (x.roundRect) x.roundRect(pad, y, w - 2 * pad, boxH, w * 0.03); else x.rect(pad, y, w - 2 * pad, boxH);
-      x.fill();
-      x.fillStyle = '#f7d77c'; x.font = `700 ${w * 0.03}px ${F}`;
-      x.fillText(K.t('card.fact'), pad + w * 0.03, y + w * 0.05);
-      x.fillStyle = '#fff'; x.font = `500 ${w * 0.038}px ${F}`;
-      lines.forEach((l, i) => x.fillText(l, pad + w * 0.03, y + w * 0.1 + i * w * 0.05));
+    const F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    try { await document.fonts.load('80px Bangers'); } catch (e) { /* bez fonta, rezervni */ }
+    const kraj = quiz.place.kraj || K.t('share.myHood');
+    if (h > w) {
+      // Story: zvanična story slika (logo u sredini), ime kraja gore, rezultat dole
+      try { x.drawImage(await loadImg('assets/brand/story-1080x1920.png'), 0, 0, w, h); } catch (e) { dots(x, w, h); }
+      const lines = wrap(x, kraj, w - 120);
+      comicText(x, kraj.length > 22 ? kraj.slice(0, 21) + '…' : kraj, w / 2, 190, kraj.length > 14 ? 96 : 130, 'center');
+      resultPanel(x, 70, 1290, w - 140, 520, F);
+      const foot = `${K.t('card.footer')} · ${location.host || 'aroundle'}`;
+      x.font = `600 32px ${F}`;
+      const fw = x.measureText(foot).width + 48;
+      rrect(x, (w - fw) / 2, h - 92, fw, 64, 32); x.fillStyle = CREAM; x.fill(); x.lineWidth = 3; x.strokeStyle = INK; x.stroke();
+      x.fillStyle = BLUE; x.textAlign = 'center';
+      x.fillText(foot, w / 2, h - 49);
+      x.textAlign = 'left';
+      void lines;
+    } else {
+      // Kvadrat: tačkice, logo gore levo, ime kraja desno, rezultat ispod
+      dots(x, w, h);
+      try { x.drawImage(await loadImg('assets/brand/aroundle-logo-512.png'), 40, 40, 330, 330); } catch (e) { /* bez logoa */ }
+      x.fillStyle = INK; x.font = `600 36px ${F}`;
+      x.fillText(K.t('card.top'), 400, 120);
+      const kl = (kraj.length > 18 ? kraj.slice(0, 17) + '…' : kraj);
+      comicText(x, kl, 400, 240, kl.length > 11 ? 84 : 110);
+      resultPanel(x, 50, 400, w - 100, 620, F);
+      x.fillStyle = BLUE; x.font = `600 28px ${F}`; x.textAlign = 'center';
+      x.fillText(location.host || 'aroundle', w / 2, h - 22);
+      x.textAlign = 'left';
     }
-    x.fillStyle = '#cfe9e0'; x.font = `600 ${w * 0.035}px ${F}`;
-    x.fillText(K.t('card.footer'), pad, h - pad - w * 0.05);
-    x.fillStyle = '#9fd3c3'; x.font = `500 ${w * 0.03}px ${F}`;
-    x.fillText(location.host || 'kviz', pad, h - pad);
     return c;
   }
   async function shareCard(w, h, name) {
-    const c = drawCard(w, h);
+    const c = await drawCard(w, h);
     const url = c.toDataURL('image/png');
     $('cardPreview').src = url;
     show($('cardPreview'));
