@@ -401,3 +401,5 @@ a.home:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; bord
 .homestats h3 { margin: 6px 0 2px; font-size: 1rem; }
 .hs-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
 @media (max-width: 600px) { .hs-cols { grid-template-columns: 1fr; } }
+/* tokom kviza logo nije link (kviz se ne prekida) */
+body.playing a.home { cursor: default; pointer-events: none; }

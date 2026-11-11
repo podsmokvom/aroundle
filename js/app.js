@@ -40,6 +40,12 @@
     show($('mapWrap')); show($('openMap'), false);
     setTimeout(() => map.invalidateSize(), 30);
   }
+  // Logo i naslov: početna samo kad kviz NIJE u toku (izbor kraja, završni ekran). Tokom pravljenja pitanja i kviza
+  // klik ne radi ništa — inače bi se kviz prekinuo, a dnevni pokušaj za taj kraj je već potrošen.
+  document.querySelectorAll('a.home').forEach((a) => a.addEventListener('click', (e) => {
+    if (!$('quiz').hidden || !$('progress').hidden) { e.preventDefault(); return; }
+    if (!$('result').hidden) { e.preventDefault(); $('newPlace').click(); scrollTo({ top: 0, behavior: 'smooth' }); } // sa rezultata: bez ponovnog učitavanja
+  }));
   $('openMap').addEventListener('click', openMap);
   $('q').addEventListener('input', () => { if ($('q').value.trim().length >= 2) openMap(); });
   const leadEl = document.querySelector('.lead');
