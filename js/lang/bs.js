@@ -1,7 +1,7 @@
 /* Aroundle — bosanski */
 (globalThis.Kviz = globalThis.Kviz || {}).I18N = Object.assign(globalThis.Kviz.I18N || {}, { bs: {
   'page.title': 'Aroundle — koliko poznaješ svoje naselje?',
-  'brand.tag': 'KHM… koliko poznaješ svoje naselje?',
+  'brand.tag': 'Hmmmm? Koliko poznaješ svoje naselje?',
   'brand.lead': 'Izaberi mjesto u svom naselju (ne svoju kućnu adresu) i dobit ćeš 10 pitanja o naselju oko te tačke.',
   'pick.title': '1. Izaberi mjesto',
   'pick.searchPh': 'Naselje, ulica, park ili škola (ne tvoja kućna adresa)',

@@ -1,7 +1,7 @@
 /* Aroundle — srpski (latinica). Izvorni rečnik: svi ostali jezici imaju iste ključeve. */
 (globalThis.Kviz = globalThis.Kviz || {}).I18N = Object.assign(globalThis.Kviz.I18N || {}, { sr: {
   'page.title': 'Aroundle — koliko poznaješ svoj kraj?',
-  'brand.tag': 'KHM… koliko poznaješ svoj kraj?',
+  'brand.tag': 'Hmmmm? Koliko poznaješ svoj kraj?',
   'brand.lead': 'Izaberi mesto u svom kraju (ne svoju kućnu adresu) i dobićeš 10 pitanja o kraju oko te tačke.',
   'pick.title': '1. Izaberi mesto',
   'pick.searchPh': 'Kraj, ulica, park ili škola (ne tvoja kućna adresa)',

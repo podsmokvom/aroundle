@@ -1,7 +1,7 @@
 /* Aroundle — Français */
 (globalThis.Kviz = globalThis.Kviz || {}).I18N = Object.assign(globalThis.Kviz.I18N || {}, { fr: {
   'page.title': 'Aroundle — connais-tu bien ton quartier ?',
-  'brand.tag': 'HUM HUM… connais-tu bien ton quartier ?',
+  'brand.tag': 'Hmmmm? Connais-tu bien ton quartier ?',
   'brand.lead': 'Choisis un endroit dans ton quartier (pas ton adresse) et reçois 10 questions sur les environs.',
   'pick.title': '1. Choisis un endroit',
   'pick.searchPh': 'Quartier, rue, parc ou école (pas ton adresse)',

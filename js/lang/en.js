@@ -1,7 +1,7 @@
 /* Aroundle — English */
 (globalThis.Kviz = globalThis.Kviz || {}).I18N = Object.assign(globalThis.Kviz.I18N || {}, { en: {
   'page.title': 'Aroundle — how well do you know your neighbourhood?',
-  'brand.tag': 'AHEM… how well do you know your neighbourhood?',
+  'brand.tag': 'Hmmmm? How well do you know your neighbourhood?',
   'brand.lead': 'Pick a spot in your neighbourhood (not your home address) and get 10 questions about the area around it.',
   'pick.title': '1. Pick a spot',
   'pick.searchPh': 'Neighbourhood, street, park or school (not your home address)',

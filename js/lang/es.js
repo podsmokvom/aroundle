@@ -1,7 +1,7 @@
 /* Aroundle — Español */
 (globalThis.Kviz = globalThis.Kviz || {}).I18N = Object.assign(globalThis.Kviz.I18N || {}, { es: {
   'page.title': 'Aroundle — ¿cuánto conoces tu barrio?',
-  'brand.tag': 'EJEM… ¿cuánto conoces tu barrio?',
+  'brand.tag': 'Hmmmm? ¿Cuánto conoces tu barrio?',
   'brand.lead': 'Elige un lugar de tu barrio (no tu dirección) y recibe 10 preguntas sobre los alrededores.',
   'pick.title': '1. Elige un lugar',
   'pick.searchPh': 'Barrio, calle, parque o escuela (no tu dirección)',
