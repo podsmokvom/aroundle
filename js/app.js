@@ -184,19 +184,21 @@
     log.innerHTML = '';
     const kraj = place.kraj || K.t('share.myHood');
     // Zabavne poruke dok se kviz pravi: ne otkrivaju odakle su podaci ni o čemu će biti pitanja
-    const FUN = K.tList('load.fun');
+    // nasumičan redosled (svaki put drugačije) + poneka poruka iz stvarnih podataka, samo kad je sigurno tačna
+    const FUN = K.tList('load.fun').slice();
+    for (let i = FUN.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [FUN[i], FUN[j]] = [FUN[j], FUN[i]]; }
     const said = [];
     const say = (m) => { $('status').textContent = m; };
     say(K.t('load.start', { kraj }));
-    let funI = Math.floor(Math.random() * FUN.length);
-    const funTimer = setInterval(() => { say(said.length ? said.shift() : FUN[funI++ % FUN.length]); }, 1700);
+    let funI = 0, tickN = 0;
+    const funTimer = setInterval(() => { say(said.length && tickN++ % 2 ? said.shift() : FUN[funI++ % FUN.length]); }, 1700);
     const react = (msg) => {
       let m;
-      if ((m = /: (\d+) objekata i (\d+) radnji/.exec(msg))) said.push(K.t(+m[1] > 70 ? 'load.streets' : 'load.calm'), K.t(+m[2] > 60 ? 'load.shops' : 'load.near'));
-      else if ((m = /: (\d+) stanica u kraju/.exec(msg)) && +m[1] > 2) said.push(K.t('load.transit'));
-      else if ((m = /: (\d+) nalaza ptica/.exec(msg))) said.push(K.t(+m[1] > 1000 ? 'load.birdsMany' : 'load.birdsFew'));
-      else if ((m = /: (\d+) članaka u kraju/.exec(msg)) && +m[1] > 3) said.push(K.t('load.history'));
-      else if ((m = /: (\d+) m nadmorske visine/.exec(msg))) said.push(K.t(+m[1] > 250 ? 'load.high' : 'load.flat'));
+      if ((m = /: (\d+) objekata i (\d+) radnji/.exec(msg))) { if (+m[1] > 120) said.push(K.t('load.streets')); if (+m[2] > 150) said.push(K.t('load.shops')); }
+      else if ((m = /: (\d+) stanica u kraju/.exec(msg)) && +m[1] > 4) said.push(K.t('load.transit'));
+      else if ((m = /: (\d+) nalaza ptica/.exec(msg)) && +m[1] > 5000) said.push(K.t('load.birdsMany'));
+      else if ((m = /: (\d+) članaka u kraju/.exec(msg)) && +m[1] > 15) said.push(K.t('load.history'));
+      else if ((m = /: (\d+) m nadmorske visine/.exec(msg)) && +m[1] > 700) said.push(K.t('load.high'));
     };
     const addLog = (msg, cls) => {
       const li = document.createElement('li');
