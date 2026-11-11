@@ -96,10 +96,24 @@
     $('pickedName').textContent = [place.kraj, place.grad].filter((x, i, a) => x && a.indexOf(x) === i).join(', ') || K.t('pick.unknown');
     const done = store.get(playedKey(place));
     $('build').disabled = !!done;
+    show($('build'), !done);
     show($('cacheInfo'), !!done);
-    if (done) $('cacheInfo').textContent = done.state === 'done'
-      ? K.t('pick.playedDone', { score: done.score, n: done.n, points: K.fmtNum(done.points, 0) })
-      : K.t('pick.playedStarted');
+    // već igran kraj: samo obaveštenje, ne zaključavanje — pretraga i mapa ostaju, plus dugme za drugi kraj
+    if (done) {
+      const msg = done.state === 'done'
+        ? K.t('pick.playedDone', { score: done.score, n: done.n, points: K.fmtNum(done.points, 0) })
+        : K.t('pick.playedStarted');
+      $('cacheInfo').innerHTML = `${K.esc(msg)} <button type="button" class="ghost small" id="pickOther">${K.esc(K.t('pick.other'))}</button>`;
+      $('pickOther').addEventListener('click', pickOther);
+      show($('searchForm'));
+    }
+  }
+  // „Izaberi drugi kraj“: pretraga i mapa spremne za novi izbor
+  function pickOther() {
+    show($('pick')); show($('searchForm')); show($('cacheInfo'), false);
+    setTimeout(() => map.invalidateSize(), 50);
+    $('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('q').focus({ preventScroll: true });
   }
 
   // ---------------- Pretraga ----------------
@@ -196,7 +210,7 @@
       let q = K.cacheGet(place);
       if (!q) {
         q = await K.buildQuiz(place, addLog);
-        if (!q.questions.length) { stopFun(); say(K.t('load.empty')); $('build').disabled = false; show($('pick')); return; }
+        if (!q.questions.length) { stopFun(); say(K.t('load.empty')); $('build').disabled = false; show($('pick')); setTimeout(() => map.invalidateSize(), 50); return; }
         K.cacheSet(place, q);
       }
       stopFun();
@@ -204,7 +218,7 @@
       play(q);
     } catch (err) {
       stopFun(); say(K.t('load.error', { err: err.message }));
-      $('build').disabled = false; show($('pick'));
+      $('build').disabled = false; show($('pick')); setTimeout(() => map.invalidateSize(), 50);
     }
   }
 
@@ -262,7 +276,8 @@
     $('qnum').textContent = K.t('quiz.num', { i: idx + 1, n: quiz.questions.length });
     $('qtext').textContent = q.text;
     const opts = $('opts');
-    opts.innerHTML = '';
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); // fokus sa prethodnog pitanja ne prelazi na novo
+    opts.innerHTML = ''; // nova dugmad, bez klasa sa prethodnog pitanja
     show($('feedback'), false);
     show($('next'), false);
     const isMap = q.type === 'map';
@@ -688,7 +703,12 @@
       const d = s ? await K.duelLoad(s[1]) : await K.duelDecode(m[1]);
       history.replaceState(null, '', location.pathname);
       const prev = store.get(playedKey(d.quiz.place, d.quiz.day));
-      if (prev) { alertBox(K.t('duel.played', { kraj: d.quiz.place.kraj, day: d.quiz.day, res: prev.score != null ? prev.score + '/' + prev.n : K.t('duel.started') })); return; }
+      if (prev) {
+        // izazov za već igran kraj: obaveštenje uz dugme za drugi kraj, izbor mesta ostaje otvoren
+        show($('quiz'), false); show($('result'), false); pickOther();
+        alertBox(K.t('duel.played', { kraj: d.quiz.place.kraj, day: d.quiz.day, res: prev.score != null ? prev.score + '/' + prev.n : K.t('duel.started') }));
+        return;
+      }
       play(d.quiz, d.from);
     } catch (e) {
       alertBox(K.t('duel.bad', { err: e.message }));
