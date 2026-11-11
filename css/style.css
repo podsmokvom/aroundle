@@ -391,3 +391,6 @@ button.ghost { color: var(--accent); background: var(--card); }
   body.playing .brand .tag, body.playing .playcount { display: none; }
   body.playing .logo { width: 48px; height: 48px; }
 }
+/* logo i naslov vode na početnu */
+a.home { display: inline-block; line-height: 0; text-decoration: none; flex: none; }
+a.home:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 8px; }

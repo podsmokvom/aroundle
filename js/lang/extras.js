@@ -102,6 +102,7 @@
       'Aroundle was created by Duca to help people get to know the part of town they live in.', 'Aroundle hat sich Duca ausgedacht, damit Menschen den Teil der Stadt, in dem sie leben, besser kennenlernen.',
       'Aroundle a été imaginé par Duca pour que chacun connaisse mieux le coin de la ville où il vit.', 'Aroundle lo ideó Duca para que la gente conozca mejor la parte de la ciudad en la que vive.',
       'Игру придумал Дуца, чтобы люди лучше узнали часть города, в которой живут.'),
+    'nav.home': C('Aroundle — početna', 'Aroundle — početna', 'Aroundle — početna', 'Aroundle — home', 'Aroundle — Startseite', 'Aroundle — accueil', 'Aroundle — inicio', 'Aroundle — главная'),
     'foot.contact': C('Kontakt:', 'Kontakt:', 'Kontakt:', 'Contact:', 'Kontakt:', 'Contact :', 'Contacto:', 'Контакт:'),
     // jedinice (ruski: км, м, оч.)
     'u.m': C('m', 'm', 'm', 'm', 'm', 'm', 'm', 'м'),
