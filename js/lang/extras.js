@@ -98,6 +98,8 @@
     'share.tapAgain': C('Slika je spremna. Dodirni dugme još jednom da je podeliš.', 'Slika je spremna. Dodirni gumb još jednom da je podijeliš.', 'Slika je spremna. Dodirni dugme još jednom da je podijeliš.',
       'The image is ready. Tap the button once more to share it.', 'Das Bild ist fertig. Tippe noch einmal auf den Knopf, um es zu teilen.', 'L’image est prête. Touche encore une fois le bouton pour la partager.',
       'La imagen está lista. Toca el botón una vez más para compartirla.', 'Картинка готова. Нажми кнопку ещё раз, чтобы поделиться.'),
+    // kratko, da ne bude odsečeno na telefonu (savet „ne kućna adresa“ je u tekstu ispod mape)
+    'pick.searchPh': C('Kraj, ulica, park, škola…', 'Kvart, ulica, park, škola…', 'Naselje, ulica, park, škola…', 'Hood, street, park, school…', 'Viertel, Straße, Park, Schule…', 'Quartier, rue, parc, école…', 'Barrio, calle, parque, escuela…', 'Район, улица, парк, школа…'),
     'pick.other': C('Izaberi drugi kraj', 'Odaberi drugi kvart', 'Izaberi drugo naselje', 'Pick another hood', 'Anderes Viertel wählen', 'Choisir un autre quartier', 'Elegir otro barrio', 'Выбрать другой район'),
     'pick.title': C('1. Izaberi kraj', '1. Odaberi kvart', '1. Izaberi naselje', '1. Pick your hood', '1. Wähle dein Viertel', '1. Choisis ton quartier', '1. Elige tu barrio', '1. Выбери свой район'),
     'brand.lead': C('Izaberi svoj kraj (neku tačku u njemu, ne kućnu adresu) i dobićeš 10 pitanja o njemu.', 'Odaberi svoj kvart (neku točku u njemu, ne kućnu adresu) i dobit ćeš 10 pitanja o njemu.', 'Izaberi svoje naselje (neku tačku u njemu, ne kućnu adresu) i dobićeš 10 pitanja o njemu.',

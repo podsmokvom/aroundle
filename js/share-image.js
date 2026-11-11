@@ -55,10 +55,10 @@
     let hood = String(opt.hood || '').trim();
     if (hood.length > 28) hood = hood.slice(0, 27) + '…';
 
-    const isStory = h / w > 1.4;
-    const safeTop = isStory ? 250 : 40, safeBot = isStory ? h - 250 : h - 48;
+    const isStory = h / w > 1.4, isSquare = h / w < 1.1; // 1:1: manji logo i zbijeniji panel da sve stane
+    const safeTop = isStory ? 250 : isSquare ? 28 : 40, safeBot = isStory ? h - 250 : isSquare ? h - 30 : h - 48;
     dots(ctx, w, h);
-    const logoSize = isStory ? 560 : 480;
+    const logoSize = isStory ? 560 : isSquare ? 250 : 480;
     const logoY = safeTop + (isStory ? 8 : 6);
     if (img) {
       ctx.save(); ctx.shadowColor = 'rgba(26, 26, 26, 0.28)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
@@ -66,13 +66,13 @@
     }
 
     const panelX = 70, panelW = w - 140, pad = 42, innerW = panelW - 2 * pad;
-    const hoodSize = fitComic(ctx, hood, innerW, isStory ? 92 : 86, 52);
-    const scoreSize = isStory ? 156 : 144;
+    const hoodSize = fitComic(ctx, hood, innerW, isStory ? 92 : isSquare ? 72 : 86, 48);
+    const scoreSize = isStory ? 156 : isSquare ? 112 : 144;
     const nSq = Math.max(1, oks.length), sqGap = nSq > 8 ? 12 : 14;
     const sq = Math.min(78, Math.floor((innerW - sqGap * (nSq - 1)) / nSq));
     const scoreH = Math.round(scoreSize * 0.82), dateH = 34, timeH = 46, ctaH = 92 + 44;
     const panelH = pad + hoodSize + 14 + dateH + 20 + scoreH + 16 + timeH + 26 + sq + 34 + ctaH + pad;
-    const minTop = logoY + logoSize + (isStory ? 52 : 28);
+    const minTop = logoY + logoSize + (isStory ? 52 : isSquare ? 18 : 28);
     let top = safeBot - 14 - panelH;
     if (top < minTop) top = minTop;
 

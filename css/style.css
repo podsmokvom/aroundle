@@ -386,3 +386,8 @@ button.ghost { color: var(--accent); background: var(--card); }
 }
 /* prazna rang-lista: poruka bez rednog broja */
 .lblist li.muted { list-style: none; margin-left: -22px; }
+/* tokom kviza na telefonu: bez slogana i brojača, manji logo — pitanje i odgovori staju na ekran */
+@media (max-width: 480px) {
+  body.playing .brand .tag, body.playing .playcount { display: none; }
+  body.playing .logo { width: 48px; height: 48px; }
+}

@@ -101,6 +101,8 @@
   K.fmtYear = (y) => (K.t ? (y < 0 ? K.t('fmt.yearBC', { y: -y }) : K.t('fmt.year', { y })) : String(y));
   // ćirilica -> latinica samo za igrače na latiničnim jezicima (ruski igrač vidi originalna imena)
   K.toLatin = (s) => (K.lang === 'ru' ? String(s || '') : K.translit(s));
+  // vreme svuda kao m:ss (102 → „1:42“)
+  K.mmss = (sec) => { if (sec == null || !isFinite(sec)) return '?'; const s = Math.max(0, Math.round(sec)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
   // Ime objekta iz OSM pločica na jeziku igrača: name:<jezik> → name:en → lokalno ime ako je čitljivo
   // → name:latin (transliteracija za sva pisma). Srpski: name:sr-Latn, pa ćirilica preslovljena.

@@ -36,6 +36,8 @@
   // uvodna rečenica („Izaberi svoj kraj…“) samo dok se bira kraj; tokom kviza i na rezultatu je višak (telefon)
   const leadEl = document.querySelector('.lead');
   if (leadEl) new MutationObserver(() => { leadEl.hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
+  // tokom kviza (telefon): niže zaglavlje, da pitanje i svi odgovori stanu na ekran (CSS body.playing)
+  new MutationObserver(() => document.body.classList.toggle('playing', !$('quiz').hidden)).observe($('quiz'), { attributes: true, attributeFilter: ['hidden'] });
 
   let place = null;      // {lat, lon (tačka igrača), kraj, grad, country}
   let quiz = null;
@@ -97,6 +99,11 @@
     }
     map.setView([place.lat, place.lon], 14);
     $('pickedName').textContent = [place.kraj, place.grad].filter((x, i, a) => x && a.indexOf(x) === i).join(', ') || K.t('pick.unknown');
+    showPlayed();
+  }
+  // stanje „već igrano“ za izabrani kraj (poziva se i kad se igrač vrati sa rezultata: „Drugi kraj“)
+  function showPlayed() {
+    if (!place) return;
     const done = store.get(playedKey(place));
     $('build').disabled = !!done;
     show($('build'), !done);
@@ -241,7 +248,7 @@
     notes.innerHTML = parts.join('');
     if (duelFrom) {
       notes.className = 'intro-duel';
-      notes.innerHTML = `<p>${K.t('quiz.duelIntro', { name: K.esc(duelFrom.name), kraj: K.esc(q.place.kraj || ''), score: duelFrom.score, n: q.questions.length, points: K.fmtNum(duelFrom.points || 0, 0), time: duelFrom.time || '?' })}</p>` + parts.join('');
+      notes.innerHTML = `<p>${K.t('quiz.duelIntro', { name: K.esc(duelFrom.name), kraj: K.esc(q.place.kraj || ''), score: duelFrom.score, n: q.questions.length, points: K.fmtNum(duelFrom.points || 0, 0), time: K.mmss(duelFrom.time) })}</p>` + parts.join('');
     }
     show(notes, notes.innerHTML !== '');
     show($('quiz'));
@@ -342,6 +349,8 @@
       b.addEventListener('click', () => answer(i));
       opts.appendChild(b);
     });
+    // ako poslednji odgovor ne staje na ekran (dugo pitanje, telefon): pomeri ekran na pitanje
+    requestAnimationFrame(() => { const last = opts.lastElementChild; if (last && last.getBoundingClientRect().bottom > innerHeight) $('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   }
 
   // Poeni: tačan odgovor 500 + do 500 za brzinu (do 3 s puno, posle 20 s ništa)
@@ -413,10 +422,10 @@
     store.set(playedKey(quiz.place, quiz.day), { state: 'done', ...result });
     const name = quiz.place.kraj || K.t('share.myHood');
     $('resTitle').textContent = `${score} / ${n}`;
-    $('resPoints').textContent = K.t('res.points', { points: K.fmtNum(points, 0), time });
+    $('resPoints').textContent = K.t('res.points', { points: K.fmtNum(points, 0), time: K.mmss(time) });
     $('resText').textContent = K.t(score / n >= 0.8 ? 'res.great' : score / n >= 0.5 ? 'res.ok' : 'res.low', { kraj: name });
     if (duelFrom) {
-      $('cmpLine').textContent = K.t('res.cmp', { score, n, time, name: duelFrom.name, hisScore: duelFrom.score, hisTime: duelFrom.time || '?' });
+      $('cmpLine').textContent = K.t('res.cmp', { score, n, time: K.mmss(time), name: duelFrom.name, hisScore: duelFrom.score, hisTime: K.mmss(duelFrom.time) });
       const mine = points, his = duelFrom.points || 0;
       $('cmpVerdict').textContent = K.t(mine > his ? 'res.win' : mine === his ? 'res.tie' : 'res.lose', { mine: K.fmtNum(mine, 0), his: K.fmtNum(his, 0), name: duelFrom.name });
       show($('duelResult'));
@@ -457,7 +466,7 @@
         const tg = [a.q.target.lon, a.q.target.lat], me = [a.pin.lon, a.pin.lat];
         const m = new maplibregl.Map({ container: box, style, center: tg, zoom: 15, interactive: false, attributionControl: false });
         rvMaps.push(m);
-        m.fitBounds([[Math.min(me[0], tg[0]), Math.min(me[1], tg[1])], [Math.max(me[0], tg[0]), Math.max(me[1], tg[1])]], { padding: { top: 52, bottom: 18, left: 30, right: 30 }, maxZoom: 16.5, animate: false }); // gore više mesta za vrh markera
+        m.fitBounds([[Math.min(me[0], tg[0]), Math.min(me[1], tg[1])], [Math.max(me[0], tg[0]), Math.max(me[1], tg[1])]], { padding: { top: 64, bottom: 24, left: 40, right: 40 }, maxZoom: 16.5, animate: false }); // gore više mesta za vrh markera, sa strana za njegovu širinu
         m.on('load', () => {
           m.addSource('answer', { type: 'geojson', data: { type: 'FeatureCollection', features: [
             ring(a.q.target.lat, a.q.target.lon, a.q.target.tol),
@@ -497,7 +506,7 @@
       }
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
       $('lbList').innerHTML = rows.length ? rows.map((r) =>
-        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${r.secs}s <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
+        `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${K.mmss(r.secs)} <span class="muted small">(${K.esc(r.hood_name)})</span></li>`
       ).join('') : `<li class="muted">${K.esc(K.t('lb.empty'))}</li>`;
       const label = lbScope === 'continent' ? (keys.continent ? K.t('cont.' + keys.continent) : K.t('lb.continent')) : lbScope === 'near' ? K.t('lb.nearLabel', { kraj: quiz.place.kraj || '' }) : lbScope === 'city' ? (quiz.place.grad || K.t('lb.city')) : lbScope === 'country' ? ((quiz.place.country || '').toUpperCase() || K.t('lb.country')) : K.t('lb.worldLabel');
       $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')}: ${label}.` + (lbMine && lbMine.rank ? K.t('lb.myRank', { rank: lbMine.rank[lbScope] }) : '');
@@ -527,13 +536,13 @@
 
   $('returnBtn').addEventListener('click', () => {
     show($('result'), false);
-    show($('pick'));
+    show($('pick')); showPlayed();
     alertBox(K.t('res.returnHint', { name: duelFrom ? duelFrom.name : K.t('share.defaultName') }));
     setTimeout(() => map.invalidateSize(), 50);
   });
   $('newPlace').addEventListener('click', () => {
     show($('result'), false);
-    show($('pick'));
+    show($('pick')); showPlayed(); // odmah „već igrano“ + „Izaberi drugi kraj“, bez novog klika na mapu
     setTimeout(() => map.invalidateSize(), 50);
   });
 
@@ -632,7 +641,7 @@
     x.fillStyle = INK; x.font = `120px Bangers, Impact, sans-serif`; x.textAlign = 'center';
     x.fillText(`${result.score}/${result.n}`, X + W / 2, y);
     x.font = `600 38px ${F}`; x.fillStyle = BLUE;
-    x.fillText(K.t('card.points', { points: K.fmtNum(result.points, 0), time: result.time }), X + W / 2, y + 54);
+    x.fillText(K.t('card.points', { points: K.fmtNum(result.points, 0), time: K.mmss(result.time) }), X + W / 2, y + 54);
     x.textAlign = 'left';
     y += 100;
     const fact = funFact();
@@ -651,8 +660,8 @@
     const F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     try { await document.fonts.load('80px Bangers'); } catch (e) { /* bez fonta, rezervni */ }
     const kraj = quiz.place.kraj || K.t('share.myHood');
-    if (h > w) {
-      // Story 9:16 i post 4:5: Grokov izgled (js/share-image.js) — logo gore, rezultat dole, bez adrese
+    if (h >= w) { // sva tri formata (9:16, 4:5, 1:1) u Grokovom izgledu
+      // Grokov izgled (js/share-image.js) — logo gore, rezultat dole, bez adrese
       const hood = [quiz.place.kraj, quiz.place.grad].filter((s, i, a) => s && a.indexOf(s) === i).join(', ') || kraj;
       return K.shareImage({ width: w, height: h, hood, date: new Date(), score: result.score, n: result.n, timeSec: result.time, oks: result.oks });
     } else {
@@ -738,6 +747,14 @@
         // izazov za već igran kraj: obaveštenje uz dugme za drugi kraj, izbor mesta ostaje otvoren
         show($('quiz'), false); show($('result'), false); pickOther();
         alertBox(K.t('duel.played', { kraj: d.quiz.place.kraj, day: d.quiz.day, res: prev.score != null ? prev.score + '/' + prev.n : K.t('duel.started') }));
+        const li = $('results').querySelector('li');
+        if (li) {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'ghost small'; b.textContent = K.t('pick.other');
+          b.style.marginLeft = '8px';
+          b.addEventListener('click', () => { show($('results'), false); pickOther(); });
+          li.appendChild(b);
+        }
         return;
       }
       play(d.quiz, d.from);
