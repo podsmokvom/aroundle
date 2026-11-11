@@ -353,7 +353,7 @@
     const got = Math.round(near * (700 + 300 * Math.max(0, Math.min(1, (40 - t) / 30))));
     if (ok) score++;
     points += got;
-    answers.push({ q, ok, dist: d, t, got });
+    answers.push({ q, ok, dist: d, t, got, pin: { lat: p.lat, lon: p.lng } });
     $('pinOk').hidden = true;
     if (sendBtn) { sendBtn.remove(); sendBtn = null; }
     $('pinHint').textContent = '';
@@ -395,7 +395,8 @@
       const mine = a.q.type === 'map' || a.ok ? '' : ` <span class="muted small">(${K.esc(K.t('res.yourAnswer', { a: a.q.options[a.chosen] }))})</span>`;
       const src = a.q.source && a.q.source.url ? ` <a class="small" href="${K.esc(a.q.source.url)}" target="_blank" rel="noopener">${K.esc(a.q.source.name)}</a>` : '';
       return `<li><span class="${a.ok ? 'r' : 'w'}">${a.ok ? '✓' : '✗'}</span> ${K.esc(a.q.text.split('\n')[0])} — <strong>${K.esc(answerText(a))}</strong>${mine} <span class="muted small">+${a.got} p</span>${his}` +
-        (a.q.explain ? `<div class="muted small rv-ex">${K.esc(a.q.explain)}${src}</div>` : '') + '</li>';
+        (a.q.explain ? `<div class="muted small rv-ex">${K.esc(a.q.explain)}${src}</div>` : '') +
+        (a.q.type === 'map' && a.pin && a.q.target ? `<div class="rv-map" data-i="${i}" style="height:190px;margin:4px 0 10px 22px;border:2px solid #1a1a1a;border-radius:10px;overflow:hidden"></div><div class="muted small" style="margin:-6px 0 8px 22px">${K.esc(K.t('res.mapLegend'))}</div>` : '') + '</li>';
     }).join('');
     show($('shareBox'), false);
     $('myName').value = store.get('kviz:name') || '';
@@ -404,7 +405,37 @@
     show($('lbForm')); $('lbSubmit').disabled = false;
     lbShow();
     show($('result'));
+    reviewMaps();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Pregled „pokaži na mapi“: mala mapa sa tačnim mestom (zeleno, sa krugom tolerancije) i tvojim pinom (crveno)
+  let rvMaps = [];
+  function reviewMaps() {
+    rvMaps.forEach((m) => m.remove());
+    rvMaps = [];
+    const boxes = [...document.querySelectorAll('#review .rv-map')];
+    if (!boxes.length) return;
+    nolabelStyle().then((style) => {
+      for (const box of boxes) {
+        const a = answers[+box.dataset.i];
+        if (!a || !a.pin) continue;
+        const tg = [a.q.target.lon, a.q.target.lat], me = [a.pin.lon, a.pin.lat];
+        const m = new maplibregl.Map({ container: box, style, center: tg, zoom: 15, interactive: false, attributionControl: false });
+        rvMaps.push(m);
+        m.fitBounds([[Math.min(me[0], tg[0]), Math.min(me[1], tg[1])], [Math.max(me[0], tg[0]), Math.max(me[1], tg[1])]], { padding: { top: 52, bottom: 18, left: 30, right: 30 }, maxZoom: 16.5, animate: false }); // gore više mesta za vrh markera
+        m.on('load', () => {
+          m.addSource('answer', { type: 'geojson', data: { type: 'FeatureCollection', features: [
+            ring(a.q.target.lat, a.q.target.lon, a.q.target.tol),
+            { type: 'Feature', geometry: { type: 'LineString', coordinates: [me, tg] } }
+          ] } });
+          m.addLayer({ id: 'tol', type: 'fill', source: 'answer', filter: ['==', '$type', 'Polygon'], paint: { 'fill-color': '#2e7d32', 'fill-opacity': 0.18 } });
+          m.addLayer({ id: 'miss', type: 'line', source: 'answer', filter: ['==', '$type', 'LineString'], paint: { 'line-color': a.ok ? '#2e7d32' : '#b3261e', 'line-width': 3, 'line-dasharray': [2, 2] } });
+        });
+        new maplibregl.Marker({ color: '#2e7d32' }).setLngLat(tg).addTo(m);
+        new maplibregl.Marker({ color: '#b3261e' }).setLngLat(me).addTo(m);
+      }
+    }).catch(() => boxes.forEach((b) => b.remove()));
   }
 
   // ---------------- Rang-lista ----------------

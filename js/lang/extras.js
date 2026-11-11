@@ -75,6 +75,8 @@
     'quiz.pinMove': C('Dodirni drugde da pomeriš, ili Pošalji.', 'Dodirni drugdje da pomakneš, ili Pošalji.', 'Dodirni drugdje da pomjeriš, ili Pošalji.',
       'Tap elsewhere to move it, or Send.', 'Tippe woanders, um ihn zu verschieben, oder Senden.', 'Touche ailleurs pour le déplacer, ou Envoyer.',
       'Toca en otro sitio para moverlo, o Enviar.', 'Нажми в другом месте, чтобы сдвинуть, или Отправить.'),
+    'res.mapLegend': C('🟢 tačno mesto · 🔴 tvoj odgovor', '🟢 točno mjesto · 🔴 tvoj odgovor', '🟢 tačno mjesto · 🔴 tvoj odgovor', '🟢 correct spot · 🔴 your answer', '🟢 richtiger Ort · 🔴 deine Antwort',
+      '🟢 bon endroit · 🔴 ta réponse', '🟢 lugar correcto · 🔴 tu respuesta', '🟢 правильное место · 🔴 твой ответ'),
     'res.yourAnswer': C('tvoj odgovor: {a}', 'tvoj odgovor: {a}', 'tvoj odgovor: {a}', 'your answer: {a}', 'deine Antwort: {a}', 'ta réponse : {a}', 'tu respuesta: {a}', 'твой ответ: {a}'),
     'pick.change': C('promeni', 'promijeni', 'promijeni', 'change', 'ändern', 'changer', 'cambiar', 'изменить'),
     'lb.hoods': C('Najbolji krajevi', 'Najbolje četvrti', 'Najbolja naselja', 'Best-known hoods', 'Bestbekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучшие районы'),
