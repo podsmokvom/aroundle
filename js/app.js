@@ -24,6 +24,16 @@
     if (place && !$('picked').hidden) setPoint(place.lat, place.lon, true);
   });
 
+  // Brojač odigranih kvizova ispod naslova (broj u stilu odbrojavanja); bez servera ili dok je 0 se ne prikazuje
+  function showCount(n) {
+    if (!(n > 0)) return;
+    const el = $('playNum');
+    el.textContent = K.fmtNum(n, 0);
+    el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; // „pop“ i kad se broj poveća
+    show($('playCount'));
+  }
+  K.countGet().then(showCount).catch(() => {});
+
   let place = null;      // {lat, lon (tačka igrača), kraj, grad, country}
   let quiz = null;
   let idx = 0, score = 0, points = 0, answers = [];
@@ -406,6 +416,7 @@
     lbShow();
     show($('result'));
     reviewMaps();
+    K.countAdd(quiz.place).then(showCount).catch(() => {});
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

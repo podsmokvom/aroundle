@@ -43,6 +43,20 @@
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
     return j.rows;
   };
+  // brojač odigranih kvizova (GET ukupno, POST +1 kad se kviz završi)
+  K.countGet = async function () {
+    const r = await fetch(`${K.API}count.php`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return j.total;
+  };
+  K.countAdd = async function (place) {
+    const r = await fetch(`${K.API}count.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hood: K.hoodKey(place) }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return j.total;
+  };
+
   // krajevi koje ljudi najbolje poznaju (prosek tačnih odgovora, samo krajevi sa dovoljno igrača)
   K.lbHoods = async function (period = 'all', scope = 'world', key = '') {
     const qs = new URLSearchParams(scope === 'world' ? { period } : { period, scope, key });

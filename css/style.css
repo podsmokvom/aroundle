@@ -363,3 +363,7 @@ button.ghost { color: var(--accent); background: var(--card); }
 .brand h1 { line-height: 0; text-shadow: none; }
 .brand h1 .wordmark { display: block; height: 64px; width: auto; max-width: 100%; }
 @media (max-width: 480px) { .brand h1 .wordmark { height: 50px; } }
+
+/* brojač odigranih kvizova (broj kao u odbrojavanju) */
+.playcount { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; color: var(--muted); font-weight: 600; font-size: .9rem; }
+.cdnum.cdwide { width: auto; min-width: 44px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 1.4rem; letter-spacing: .03em; }
