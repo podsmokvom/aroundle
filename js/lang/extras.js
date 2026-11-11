@@ -98,6 +98,11 @@
     'share.tapAgain': C('Slika je spremna. Dodirni dugme još jednom da je podeliš.', 'Slika je spremna. Dodirni gumb još jednom da je podijeliš.', 'Slika je spremna. Dodirni dugme još jednom da je podijeliš.',
       'The image is ready. Tap the button once more to share it.', 'Das Bild ist fertig. Tippe noch einmal auf den Knopf, um es zu teilen.', 'L’image est prête. Touche encore une fois le bouton pour la partager.',
       'La imagen está lista. Toca el botón una vez más para compartirla.', 'Картинка готова. Нажми кнопку ещё раз, чтобы поделиться.'),
+    'foot.author': C('Igru je osmislio Duca, da bi ljudi bolje upoznali deo grada u kojem žive.', 'Igru je osmislio Duca, da bi ljudi bolje upoznali dio grada u kojem žive.', 'Igru je osmislio Duca, da bi ljudi bolje upoznali dio grada u kojem žive.',
+      'Aroundle was created by Duca to help people get to know the part of town they live in.', 'Aroundle hat sich Duca ausgedacht, damit Menschen den Teil der Stadt, in dem sie leben, besser kennenlernen.',
+      'Aroundle a été imaginé par Duca pour que chacun connaisse mieux le coin de la ville où il vit.', 'Aroundle lo ideó Duca para que la gente conozca mejor la parte de la ciudad en la que vive.',
+      'Игру придумал Дуца, чтобы люди лучше узнали часть города, в которой живут.'),
+    'foot.contact': C('Kontakt:', 'Kontakt:', 'Kontakt:', 'Contact:', 'Kontakt:', 'Contact :', 'Contacto:', 'Контакт:'),
     // jedinice (ruski: км, м, оч.)
     'u.m': C('m', 'm', 'm', 'm', 'm', 'm', 'm', 'м'),
     'u.km': C('km', 'km', 'km', 'km', 'km', 'km', 'km', 'км'),
