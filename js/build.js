@@ -3,7 +3,7 @@
 (function (K) {
   'use strict';
   const TARGET = 10;
-  const CACHE_VER = 'kviz:v5:';
+  const CACHE_VER = 'kviz:v6:';
   const CACHE_DAYS = 30;
 
   // ---------------- Keš (localStorage) ----------------
@@ -184,7 +184,6 @@
 
     // kraj = najviše 1 km oko centra
     const stages = [
-      circleStage(lat, lon, 800, { wikiR: 800, wikiFar: 2500, gbifR: 1000, gbifLabel: K.t('scope.gbif') }),
       circleStage(lat, lon, 1000, { wikiR: 1000, wikiFar: 3000, gbifR: 1000, gbifLabel: K.t('scope.gbif') })
     ];
 

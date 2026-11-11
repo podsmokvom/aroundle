@@ -259,7 +259,8 @@
     // 1) Koliko ih ima (prednost zanatlijama i majstorima)
     const TRADES = new Set(['shoemaker', 'tailor', 'plumber', 'electrician', 'tyres', 'locksmith', 'hvac', 'carpenter',
       'watches', 'glazier', 'appliance', 'car_repair', 'florist', 'hairdresser', 'dry_cleaning',
-      'health_food', 'cafe', 'kids_play', 'playground', 'ice_cream']);
+      'health_food', 'cafe', 'kids_play', 'playground', 'ice_cream',
+      'kindergarten', 'bureau_de_change', 'pub', 'gym', 'beauty', 'pharmacy', 'bank', 'fast_food']);
     const countable = K.shuffle(kinds.filter((k) => (count[k] || 0) >= (TRADES.has(k) ? 1 : 2)))
       .sort((a, b) => (TRADES.has(b) ? 1 : 0) - (TRADES.has(a) ? 1 : 0));
     const full = stage.complete !== false;
@@ -457,7 +458,8 @@
   // ---------------- Lanac i kuhinja (Overture Places) ----------------
   // lanci: samo prodavnice, ugostiteljstvo, apoteke, banke i pumpe (ne paketomati, punjači i sl.)
   const RETAIL = /store|shop|market|grocery|pharmacy|drugstore|bakery|restaurant|cafe|coffee|bar$|fast_food|fuel|gas_station|bank|optician|hotel/;
-  const NOT_CHAIN = /locker|charg|ubitricity|box ?now|paket|parcel|automat|atm\b|bäder|dom zdravlja/i;
+  // + kladionice: namerno izuzete iz kviza („kladionice su zlo“)
+  const NOT_CHAIN = /locker|charg|ubitricity|box ?now|paket|parcel|automat|atm\b|bäder|dom zdravlja|kladionic|mozzart|meridian|maxbet|soccerbet|admiral|tipico|bwin|\bbet\b|casino|kazino/i;
   // kuhinje koje imaju prevod (Overture kategorija bez nastavka _restaurant)
   K.CUISINES = ['pizza', 'italian', 'burger', 'chinese', 'doner_kebab', 'sushi', 'japanese', 'greek', 'mexican', 'indian', 'thai',
     'turkish', 'french', 'german', 'vietnamese', 'barbecue', 'seafood', 'asian', 'american', 'spanish', 'korean', 'middle_eastern',
@@ -469,7 +471,7 @@
     const src = { name: 'Overture Maps', url: `https://www.openstreetmap.org/#map=16/${stage.lat.toFixed(5)}/${stage.lon.toFixed(5)}` };
     // 1) najzastupljeniji lanac
     const brands = {};
-    for (const p of inside) if (p.brand && RETAIL.test(p.cat) && !NOT_CHAIN.test(p.brand)) brands[p.brand] = (brands[p.brand] || 0) + 1;
+    for (const p of inside) if (p.brand && RETAIL.test(p.cat) && !NOT_CHAIN.test(p.brand) && !K.isBetting(p.name + ' ' + p.brand, p.cat)) brands[p.brand] = (brands[p.brand] || 0) + 1;
     const bl = Object.entries(brands).sort((a, b) => b[1] - a[1]);
     if (bl.length >= 4 && bl[0][1] >= 2 && bl[0][1] > bl[1][1]) {
       const q = makeQ({

@@ -61,6 +61,19 @@
     'svc.theatre': C('pozorište|pozorišta', 'kazalište|kazališta', 'pozorište|pozorišta', 'theatre|theatres', 'Theater|Theater', 'théâtre|théâtres', 'teatro|teatros', 'театр|театров'),
     'svc.museum': C('muzej|muzeja', 'muzej|muzeja', 'muzej|muzeja', 'museum|museums', 'Museum|Museen', 'musée|musées', 'museo|museos', 'музей|музеев'),
 
+    'svc.kindergarten': C('vrtić (obdanište)|vrtića', 'dječji vrtić|vrtića', 'vrtić (obdanište)|vrtića', 'kindergarten|kindergartens', 'Kita|Kitas', 'crèche / maternelle|crèches', 'guardería|guarderías', 'детский сад|детских садов'),
+    'svc.bureau_de_change': C('menjačnica|menjačnica', 'mjenjačnica|mjenjačnica', 'mjenjačnica|mjenjačnica', 'currency exchange|currency exchanges', 'Wechselstube|Wechselstuben', 'bureau de change|bureaux de change', 'casa de cambio|casas de cambio', 'обменник|обменников'),
+    'svc.pub': C('kafana / bar|kafana i barova', 'birtija / bar|birtija i barova', 'kafana / bar|kafana i barova', 'pub / bar|pubs and bars', 'Kneipe / Bar|Kneipen und Bars', 'bar / pub|bars et pubs', 'bar / taberna|bares y tabernas', 'бар / паб|баров и пабов'),
+    'svc.gym': C('teretana / fitnes|teretana i fitnes centara', 'teretana / fitness|teretana i fitness centara', 'teretana / fitnes|teretana i fitnes centara', 'gym|gyms', 'Fitnessstudio|Fitnessstudios', 'salle de sport|salles de sport', 'gimnasio|gimnasios', 'фитнес-клуб|фитнес-клубов'),
+    'svc.atm': C('bankomat|bankomata', 'bankomat|bankomata', 'bankomat|bankomata', 'ATM|ATMs', 'Geldautomat|Geldautomaten', 'distributeur de billets|distributeurs', 'cajero automático|cajeros automáticos', 'банкомат|банкоматов'),
+    'svc.fuel': C('benzinska pumpa|benzinskih pumpi', 'benzinska postaja|benzinskih postaja', 'benzinska pumpa|benzinskih pumpi', 'petrol station|petrol stations', 'Tankstelle|Tankstellen', 'station-service|stations-service', 'gasolinera|gasolineras', 'АЗС|АЗС'),
+    'svc.supermarket': C('supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarkets', 'Supermarkt|Supermärkte', 'supermarché|supermarchés', 'supermercado|supermercados', 'супермаркет|супермаркетов'),
+    'svc.hotel': C('hotel|hotela', 'hotel|hotela', 'hotel|hotela', 'hotel|hotels', 'Hotel|Hotels', 'hôtel|hôtels', 'hotel|hoteles', 'отель|отелей'),
+
+    'foot.nobet': C('Kladionice su namerno izuzete iz pitanja, jer su zlo.', 'Kladionice su namjerno izuzete iz pitanja, jer su zlo.', 'Kladionice su namjerno izuzete iz pitanja, jer su zlo.',
+      'Betting shops are deliberately left out of the questions, because they are evil.', 'Wettbüros sind absichtlich nicht dabei, denn sie sind böse.', 'Les paris sportifs sont volontairement exclus des questions, parce que c’est le mal.',
+      'Las casas de apuestas quedan fuera de las preguntas a propósito, porque son el mal.', 'Букмекерские конторы намеренно исключены из вопросов, потому что это зло.'),
+
     'cuisine.pizza': C('pica', 'pizza', 'pizza', 'pizza', 'Pizza', 'pizza', 'pizza', 'пицца'),
     'cuisine.italian': C('italijanska', 'talijanska', 'italijanska', 'Italian', 'italienisch', 'italienne', 'italiana', 'итальянская'),
     'cuisine.burger': C('burgeri', 'burgeri', 'burgeri', 'burgers', 'Burger', 'burgers', 'hamburguesas', 'бургеры'),

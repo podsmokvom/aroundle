@@ -125,3 +125,13 @@
     }
   };
 })(globalThis.Kviz = globalThis.Kviz || {});
+
+/* Klađenje je namerno izuzeto iz celog kviza („kladionice su zlo“): kladionice, kazina, automat-klubovi, lutrija,
+   i mesta poznatih kladioničarskih brendova (npr. „Caffe Mozzart“), bez obzira na to kako ih izvor svrstava
+   (Overture npr. vodi „Soccerbet“ kao igraonicu za decu). Bolje izbaciti koje mesto viška nego ubaciti kladionicu. */
+(function (K) {
+  'use strict';
+  const BET_NAME = /(kladionic|kladion|mozzart|meridian|maxbet|max bet|soccerbet|soccer bet|admiral|balkan ?bet|merkur ?x ?tip|merkurxtip|oktagon|volcano ?bet|bet ?shop|\bbet\b|\bbets\b|betting|wettb[uü]ro|spielhalle|spielothek|tipico|bwin|ladbrokes|paddy power|william hill|sportingbet|betfair|casino|kazino|kasino|lutrij|lottery|lotto|automat ?klub|automat club|slot)/i;
+  const BET_CAT = /(betting|bookmak|casino|gambl|lottery|lotto|slot)/i;
+  K.isBetting = (name, cat) => BET_NAME.test(K.translit(name || '')) || BET_CAT.test(cat || '');
+})(globalThis.Kviz = globalThis.Kviz || {});

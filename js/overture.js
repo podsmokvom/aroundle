@@ -115,12 +115,26 @@
     fast_food_restaurant: 'fast_food', bank_credit_union: 'bank', banks: 'bank', bank: 'bank', hospital: 'hospital', medical_center: 'clinic',
     doctor: 'clinic', health_center: 'clinic', police_department: 'police', town_hall: 'townhall', city_hall: 'townhall',
     movie_theater: 'cinema', cinema: 'cinema', theatre: 'theatre', performing_arts_theater: 'theatre', museum: 'museum',
-    art_museum: 'museum', history_museum: 'museum'
+    art_museum: 'museum', history_museum: 'museum',
+    kindergarten: 'kindergarten', preschool: 'kindergarten', day_care_preschool: 'kindergarten', child_care_and_day_care: 'kindergarten',
+    currency_exchange: 'bureau_de_change', pub: 'pub', bar: 'pub', sports_bar: 'pub',
+    gym: 'gym', fitness_center: 'gym', atms: 'atm', atm: 'atm', gas_station: 'fuel', supermarket: 'supermarket', hotel: 'hotel'
   };
   // ime lanca (brand) iz Overture-a: JSON sa names.primary
   const brandOf = (b) => {
     if (!b) return "";
     try { const j = typeof b === "string" ? JSON.parse(b) : b; return K.toLatin(String((j.names && (j.names.primary || j.names.common)) || j.primary || j.name || "").trim()); } catch (e) { return ""; }
+  };
+  // Overture ponekad pogrešno svrstava (npr. „Soccerbet“ kao igraonicu za decu, „Mozzart Bet“ kao kazino): ime ima prednost
+  // Kladionice su namerno izuzete iz kviza (odluka autora: „kladionice su zlo“); prepoznajemo ih po imenu,
+  // jer ih Overture svrstava i kao kazino ili igraonicu za decu (npr. „Soccerbet“), da ne bi upale u druga pitanja.
+  const BET_RE = /(kladionic|mozzart|meridian ?bet|maxbet|max bet|soccerbet|admiral ?bet|balkan ?bet|merkur ?x ?tip|oktagon ?bet|volcano ?bet|bet ?shop|wettb[uü]ro|tipico|bwin|ladbrokes|paddy power|william hill|sportingbet|betfair)/i;
+  const EXCH_RE = /(menja[cč]nic|mjenja[cč]nic|currency exchange|wechselstube|bureau de change|casa de cambio|обмен валют)/i;
+  const fixKind = (kind, p) => {
+    const n = String(p['@name'] || p.name || '');
+    if (BET_RE.test(n) || K.isBetting(n, primaryOf(p))) return null; // klađenje: ne ulazi ni u jedno pitanje
+    if (EXCH_RE.test(n)) return 'bureau_de_change';
+    return kind;
   };
   const primaryOf = (p) => {
     const t = p.taxonomy;
@@ -154,7 +168,7 @@
         if (p.confidence != null && +p.confidence < 0.4) continue;
         out.push({
           id: p.id || f.id, name: K.toLatin(p['@name'] || p.name || p['names.primary'] || ''), cat: String(cat),
-          conf: p.confidence != null ? +p.confidence : null, kind: K.OVERTURE_MAP[cat] || null, lat: f.lat, lon: f.lon,
+          conf: p.confidence != null ? +p.confidence : null, kind: fixKind(K.OVERTURE_MAP[cat] || null, p), lat: f.lat, lon: f.lon,
           brand: brandOf(p.brand)
         });
       }
