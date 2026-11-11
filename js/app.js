@@ -199,7 +199,7 @@
   }
 
   // ---------------- Igra ----------------
-  let qmap = null, pin = null;
+  let qmap = null, pin = null, sendBtn = null;
 
   function play(q, from) {
     quiz = q; idx = 0; score = 0; points = 0; answers = []; duelFrom = from || null;
@@ -257,7 +257,7 @@
     show($('next'), false);
     const isMap = q.type === 'map';
     show($('qmap'), isMap); show($('pinBar'), isMap); show(opts, !isMap);
-    if (qmap) { qmap.remove(); qmap = null; pin = null; }
+    if (qmap) { qmap.remove(); qmap = null; pin = null; sendBtn = null; }
     qStart = performance.now();
     clearInterval(tick);
     tick = setInterval(badge, 250);
@@ -288,9 +288,17 @@
         qmap.on('click', (e) => {
           if ($('pinOk').hidden) return;
           if (pin) pin.setLngLat(e.lngLat); else pin = new maplibregl.Marker({ color: '#b3261e' }).setLngLat(e.lngLat).addTo(qmap);
-          // bez potvrde: prvi klik (dodir) na mapu je odgovor
+          // dugme „Pošalji“ odmah pored markera (bez skrolovanja); novi dodir pomera i marker i dugme
+          // uz desnu ivicu mape dugme ide levo od markera, da ne ispadne van mape
+          const right = e.point.x > $('qmap').clientWidth - 140;
+          if (sendBtn) sendBtn.remove();
+          const el = document.createElement('button');
+          el.className = 'pin-send';
+          el.textContent = K.t('quiz.pinSend');
+          el.addEventListener('click', (ev) => { ev.stopPropagation(); $('pinOk').click(); });
+          sendBtn = new maplibregl.Marker({ element: el, anchor: right ? 'right' : 'left', offset: [right ? -16 : 16, -20] }).setLngLat(e.lngLat).addTo(qmap);
           $('pinOk').disabled = false;
-          $('pinOk').click();
+          $('pinHint').textContent = K.t('quiz.pinMove');
         });
       }).catch((e) => { $('pinHint').textContent = K.t('quiz.mapFail', { err: e.message }); });
       return;
@@ -307,51 +315,16 @@
   // Poeni: tačan odgovor 500 + do 500 za brzinu (do 3 s puno, posle 20 s ništa)
   const speedPts = (t) => Math.round(500 * Math.max(0, Math.min(1, (20 - t) / 17)));
 
-  function feedback(ok, q, extra, got) {
+  // Posle odgovora odmah sledeće pitanje: tačni odgovori, objašnjenja i izvori su tek na kraju (pregled odgovora),
+  // da kviz teče brzo i da se odgovori ne otkrivaju usput.
+  let advT = null;
+  function stopCountdown() { clearTimeout(advT); advT = null; }
+  function advance() {
     clearInterval(tick);
-    const fb = $('feedback');
-    fb.innerHTML = `<strong class="${ok ? 'ok' : 'bad'}">${K.t(ok ? 'quiz.right' : 'quiz.wrong')}</strong> <span class="pts">+${K.fmtNum(got, 0)} p</span> ` + extra +
-      `${K.esc(q.explain)}` +
-      (q.source && q.source.url ? `<span class="src">${K.t('quiz.source')} <a href="${K.esc(q.source.url)}" target="_blank" rel="noopener">${K.esc(q.source.name)}</a></span>` : '');
-    show(fb);
     badge();
-    $('next').textContent = K.t(idx + 1 < quiz.questions.length ? 'quiz.next' : 'quiz.result');
-    show($('next'));
-    $('next').focus();
-    startCountdown(q);
-  }
-
-  // Posle odgovora: vreme za čitanje komentara, pa odbrojavanje 3, 2, 1 i sledeće pitanje.
-  // Dodir na komentar pauzira (za one koji čitaju sporije); „Dalje“ preskače odmah.
-  let readT = null, cdT = null;
-  function stopCountdown() { clearTimeout(readT); clearInterval(cdT); readT = cdT = null; show($('countdown'), false); }
-  function startCountdown(q) {
     stopCountdown();
-    const read = 2000; // komentar 2 s, pa odbrojavanje 3-2-1
-    readT = setTimeout(() => {
-      let n = 3;
-      const cd = $('countdown');
-      const tickCd = () => {
-        cd.innerHTML = `<span class="cdnum">${n}</span> ${K.esc(K.t(idx + 1 < quiz.questions.length ? 'quiz.nextIn' : 'quiz.resultIn'))}`;
-        show(cd);
-      };
-      tickCd();
-      cdT = setInterval(() => {
-        n--;
-        if (n <= 0) { stopCountdown(); $('next').click(); return; }
-        tickCd();
-      }, 1000);
-    }, read);
+    advT = setTimeout(() => $('next').click(), 350); // kratko da se vidi izbor
   }
-  $('feedback').addEventListener('click', (e) => {
-    if (e.target.closest('a')) return; // klik na izvor ne pauzira
-    if (readT || cdT) {
-      stopCountdown();
-      const cd = $('countdown');
-      cd.textContent = K.t('quiz.paused');
-      show(cd);
-    }
-  });
 
   function answer(i) {
     const q = quiz.questions[idx];
@@ -363,10 +336,9 @@
     answers.push({ q, chosen: i, ok, t, got });
     [...$('opts').children].forEach((b, j) => {
       b.disabled = true;
-      if (j === q.answer) b.classList.add('right');
-      else if (j === i) b.classList.add('wrong');
+      if (j === i) b.classList.add('chosen');
     });
-    feedback(ok, q, ok ? '' : K.t('quiz.correctWas', { a: K.esc(q.options[q.answer]) }), got);
+    advance();
   }
 
   $('pinOk').addEventListener('click', () => {
@@ -383,17 +355,9 @@
     points += got;
     answers.push({ q, ok, dist: d, t, got });
     $('pinOk').hidden = true;
-    const tg = [q.target.lon, q.target.lat];
-    qmap.addSource('answer', { type: 'geojson', data: { type: 'FeatureCollection', features: [
-      ring(q.target.lat, q.target.lon, q.target.tol),
-      { type: 'Feature', geometry: { type: 'LineString', coordinates: [[p.lng, p.lat], tg] } }
-    ] } });
-    qmap.addLayer({ id: 'tol', type: 'fill', source: 'answer', filter: ['==', '$type', 'Polygon'], paint: { 'fill-color': '#2e7d32', 'fill-opacity': 0.15 } });
-    qmap.addLayer({ id: 'miss', type: 'line', source: 'answer', filter: ['==', '$type', 'LineString'], paint: { 'line-color': ok ? '#2e7d32' : '#b3261e', 'line-width': 3, 'line-dasharray': [2, 2] } });
-    new maplibregl.Marker({ color: '#2e7d32' }).setLngLat(tg).addTo(qmap);
-    qmap.fitBounds([[Math.min(p.lng, tg[0]), Math.min(p.lat, tg[1])], [Math.max(p.lng, tg[0]), Math.max(p.lat, tg[1])]], { padding: 60, maxZoom: 17 });
+    if (sendBtn) { sendBtn.remove(); sendBtn = null; }
     $('pinHint').textContent = '';
-    feedback(ok, q, K.t('quiz.miss', { d: `${K.fmtNum(Math.round(d), 0)} m` }), got);
+    advance();
   });
 
   $('next').addEventListener('click', () => {
@@ -427,7 +391,11 @@
     } else show($('duelResult'), false);
     $('review').innerHTML = answers.map((a, i) => {
       const his = duelFrom && duelFrom.oks[i] != null ? ` <span class="muted small">(${K.esc(duelFrom.name)}: ${duelFrom.oks[i] ? '✓' : '✗'})</span>` : '';
-      return `<li><span class="${a.ok ? 'r' : 'w'}">${a.ok ? '✓' : '✗'}</span> ${K.esc(a.q.text.split('\n')[0])} — <strong>${K.esc(answerText(a))}</strong> <span class="muted small">+${a.got} p</span>${his}</li>`;
+      // objašnjenje i izvor su ovde, na kraju (tokom kviza se ne prikazuju)
+      const mine = a.q.type === 'map' || a.ok ? '' : ` <span class="muted small">(${K.esc(K.t('res.yourAnswer', { a: a.q.options[a.chosen] }))})</span>`;
+      const src = a.q.source && a.q.source.url ? ` <a class="small" href="${K.esc(a.q.source.url)}" target="_blank" rel="noopener">${K.esc(a.q.source.name)}</a>` : '';
+      return `<li><span class="${a.ok ? 'r' : 'w'}">${a.ok ? '✓' : '✗'}</span> ${K.esc(a.q.text.split('\n')[0])} — <strong>${K.esc(answerText(a))}</strong>${mine} <span class="muted small">+${a.got} p</span>${his}` +
+        (a.q.explain ? `<div class="muted small rv-ex">${K.esc(a.q.explain)}${src}</div>` : '') + '</li>';
     }).join('');
     show($('shareBox'), false);
     $('myName').value = store.get('kviz:name') || '';

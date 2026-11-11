@@ -353,3 +353,8 @@ button.ghost { color: var(--accent); background: var(--card); }
 .feedback { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .cdnum { animation: none; } }
 .linkish { background: none; border: 0; padding: 0 0 0 6px; color: var(--blue); text-decoration: underline; cursor: pointer; box-shadow: none; font-weight: 400; }
+/* izabrani odgovor (bez otkrivanja tačnog tokom kviza) */
+.opt.chosen { background: var(--blue); border-color: #1a1a1a; color: #fff; opacity: 1; }
+/* dugme „Pošalji“ uz marker na mapi */
+.pin-send { padding: 8px 14px; border-radius: 999px; background: var(--red, #D7262E); color: #fff; border: 2px solid #1a1a1a; font-weight: 700; font-size: 1rem; box-shadow: 2px 2px 0 #1a1a1a; cursor: pointer; white-space: nowrap; }
+.rv-ex { margin: 2px 0 6px 22px; }
