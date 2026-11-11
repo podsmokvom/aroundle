@@ -24,3 +24,12 @@ CREATE TABLE IF NOT EXISTS aroundle_scores (
   KEY k_world (day, points),
   KEY k_hood (hood, day)                  -- za „najbolje poznate krajeve“ (api/hoods.php)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Kratki linkovi za izazov (api/duel.php): kviz + rezultat izazivača pod nasumičnim id-om (#d=<id>)
+CREATE TABLE IF NOT EXISTS aroundle_duels (
+  id      CHAR(8)     NOT NULL PRIMARY KEY,    -- nasumičan base62
+  payload MEDIUMTEXT  NOT NULL,                -- JSON kao K.duelPayload (najviše ~30 KB)
+  iphash  CHAR(64)    NOT NULL,                -- heš IP adrese + so (samo za ograničenje upisa)
+  created DATETIME    NOT NULL,
+  KEY k_ip (iphash, created)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

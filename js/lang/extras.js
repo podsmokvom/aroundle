@@ -75,6 +75,7 @@
     'quiz.pinMove': C('Dodirni drugde da pomeriš, ili Pošalji.', 'Dodirni drugdje da pomakneš, ili Pošalji.', 'Dodirni drugdje da pomjeriš, ili Pošalji.',
       'Tap elsewhere to move it, or Send.', 'Tippe woanders, um ihn zu verschieben, oder Senden.', 'Touche ailleurs pour le déplacer, ou Envoyer.',
       'Toca en otro sitio para moverlo, o Enviar.', 'Нажми в другом месте, чтобы сдвинуть, или Отправить.'),
+    'share.dare': C('Izazivam te:', 'Izazivam te:', 'Izazivam te:', 'I dare you:', 'Ich fordere dich heraus:', 'Je te défie :', 'Te reto:', 'Бросаю тебе вызов:'),
     'count.label': C('Odigrano kvizova:', 'Odigrano kvizova:', 'Odigrano kvizova:', 'Quizzes played:', 'Gespielte Quizze:', 'Quiz joués :', 'Quizzes jugados:', 'Сыграно квизов:'),
     'res.mapLegend': C('🟢 tačno mesto · 🔴 tvoj odgovor', '🟢 točno mjesto · 🔴 tvoj odgovor', '🟢 tačno mjesto · 🔴 tvoj odgovor', '🟢 correct spot · 🔴 your answer', '🟢 richtiger Ort · 🔴 deine Antwort',
       '🟢 bon endroit · 🔴 ta réponse', '🟢 lugar correcto · 🔴 tu respuesta', '🟢 правильное место · 🔴 твой ответ'),

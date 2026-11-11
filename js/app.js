@@ -521,12 +521,16 @@
     store.set('kviz:name', me);
     $('makeDuel').disabled = true;
     try {
-      const code = await K.duelEncode(quiz, me || K.t('share.defaultName'), result);
-      const url = K.duelLink(code);
+      const payload = K.duelPayload(quiz, me || K.t('share.defaultName'), result);
+      // kratak link (#d=<id>, kviz na serveru); ako server ne odgovori, stari dugi link (#duel=…)
+      let url;
+      try { url = K.duelShortLink(await K.duelSave(payload)); }
+      catch (e) { url = K.duelLink(await K.duelEncode(payload)); }
       const kraj = quiz.place.kraj || K.t('share.myHood');
-      const text = K.t('share.text', { kraj, grid: grid(result.oks), score: result.score, n: result.n, time: result.time });
+      const mmss = `${Math.floor(result.time / 60)}:${String(result.time % 60).padStart(2, '0')}`;
+      const text = `Aroundle 🔥 ${kraj}: ${result.score}/${result.n} ⏱ ${mmss} ${grid(result.oks)}\n${K.t('share.dare')}`;
       share = { text, url };
-      $('shareText').textContent = `${text} ${url.slice(0, 48)}…`;
+      $('shareText').textContent = `${text} ${url.length > 60 ? url.slice(0, 56) + '…' : url}`;
       const enc = encodeURIComponent;
       $('shareWa').href = `https://wa.me/?text=${enc(text + ' ' + url)}`;
       $('shareViber').href = `viber://forward?text=${enc(text + ' ' + url)}`;
@@ -677,10 +681,11 @@
 
   // ---------------- Otvoren link izazova (#duel=…) ----------------
   async function openDuelFromHash() {
-    const m = /#duel=([A-Za-z0-9_-]+)/.exec(location.hash);
-    if (!m) return;
+    const s = /#d=([0-9A-Za-z]{8})\b/.exec(location.hash);   // kratki link (server)
+    const m = /#duel=([A-Za-z0-9_-]+)/.exec(location.hash);  // stari dugi link
+    if (!s && !m) return;
     try {
-      const d = await K.duelDecode(m[1]);
+      const d = s ? await K.duelLoad(s[1]) : await K.duelDecode(m[1]);
       history.replaceState(null, '', location.pathname);
       const prev = store.get(playedKey(d.quiz.place, d.quiz.day));
       if (prev) { alertBox(K.t('duel.played', { kraj: d.quiz.place.kraj, day: d.quiz.day, res: prev.score != null ? prev.score + '/' + prev.n : K.t('duel.started') })); return; }

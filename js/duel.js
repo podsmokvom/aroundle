@@ -24,8 +24,8 @@
   const shortUrl = (u) => { try { const x = new URL(u); return x.search.length > 80 ? x.origin + x.pathname : u; } catch (e) { return ''; } };
 
   // tačka igrača zaokružena na 3 decimale (~100 m), ne tačna adresa
-  K.duelEncode = async function (quiz, name, res) {
-    const payload = {
+  K.duelPayload = function (quiz, name, res) {
+    return {
       v: 2, d: quiz.day,
       p: { k: quiz.place.kraj, g: quiz.place.grad, kk: quiz.place.krajKey || undefined, gk: quiz.place.gradKey || undefined, c: quiz.place.country, la: +quiz.place.lat.toFixed(3), lo: +quiz.place.lon.toFixed(3) }, // ~100 m, ne tačna adresa
       s: quiz.scope, n: (name || "").slice(0, 24), r: res.score, pt: res.points, t: res.time, ok: res.oks.map((x) => (x ? 1 : 0)),
@@ -35,13 +35,34 @@
         tg: q.target ? [+q.target.lat.toFixed(6), +q.target.lon.toFixed(6), q.target.tol] : undefined
       }))
     };
+  };
+  // stari (dugi) link: ceo kviz sažet u #duel=… — rezerva kad server za kratke linkove ne odgovori
+  K.duelEncode = async function (payload) {
     const bytes = new TextEncoder().encode(JSON.stringify(payload));
     return b64u.enc(await pipe(bytes, new CompressionStream('deflate-raw')));
   };
-
   K.duelDecode = async function (str) {
     const json = new TextDecoder().decode(await pipe(b64u.dec(str), new DecompressionStream('deflate-raw')));
-    const d = JSON.parse(json);
+    return K.duelFromPayload(JSON.parse(json));
+  };
+
+  // kratki link #d=<id>: kviz se čuva na serveru (api/duel.php)
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('timeout')), ms))]);
+  K.duelSave = async function (payload) {
+    const r = await withTimeout(fetch(`${K.API}duel.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }), 6000);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok || !/^[0-9A-Za-z]{8}$/.test(j.id || '')) throw new Error(j.error || `HTTP ${r.status}`);
+    return j.id;
+  };
+  K.duelLoad = async function (id) {
+    const r = await withTimeout(fetch(`${K.API}duel.php?id=${encodeURIComponent(id)}`), 10000);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return K.duelFromPayload(j.payload);
+  };
+  K.duelShortLink = (id) => `${location.origin}${location.pathname}#d=${id}`;
+
+  K.duelFromPayload = function (d) {
     if (![1, 2].includes(d.v) || !Array.isArray(d.q)) throw new Error("neispravan izazov");
     return {
       quiz: {
