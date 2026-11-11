@@ -297,3 +297,18 @@
     return h;
   };
 })(globalThis.Kviz = globalThis.Kviz || {});
+
+/* ================= Wikidata SPARQL: objekti sa godinom nastanka (P571) u okolini — brzo, ~0,3 s ================= */
+(function (K) {
+  'use strict';
+  K.wdOldest = async function (lat, lon, radiusKm = 1) {
+    const q = `SELECT ?item (MIN(YEAR(?inc)) AS ?y) (MIN(?d) AS ?dist) WHERE {
+      SERVICE wikibase:around { ?item wdt:P625 ?c . bd:serviceParam wikibase:center "Point(${lon} ${lat})"^^geo:wktLiteral .
+        bd:serviceParam wikibase:radius "${radiusKm}" . bd:serviceParam wikibase:distance ?d . }
+      ?item wdt:P571 ?inc .
+    } GROUP BY ?item ORDER BY ?y LIMIT 40`;
+    const j = await K.fetchJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), { headers: { Accept: 'application/sparql-results+json' } }, 8000);
+    return j.results.bindings.filter((b) => b.y && b.item).map((b) => ({ qid: b.item.value.split('/').pop(), year: parseInt(b.y.value, 10), dist: parseFloat(b.dist.value) * 1000 }))
+      .filter((o) => Number.isFinite(o.year));
+  };
+})(globalThis.Kviz = globalThis.Kviz || {});

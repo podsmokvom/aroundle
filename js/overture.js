@@ -113,6 +113,11 @@
     health_food_store: 'health_food', organic_grocery_store: 'health_food', cafe: 'cafe', coffee_shop: 'cafe',
     indoor_playground: 'kids_play', kids_recreation_and_party: 'kids_play', playground: 'playground', ice_cream_shop: 'ice_cream'
   };
+  // ime lanca (brand) iz Overture-a: JSON sa names.primary
+  const brandOf = (b) => {
+    if (!b) return "";
+    try { const j = typeof b === "string" ? JSON.parse(b) : b; return K.toLatin(String((j.names && (j.names.primary || j.names.common)) || j.primary || j.name || "").trim()); } catch (e) { return ""; }
+  };
   const primaryOf = (p) => {
     const t = p.taxonomy;
     if (t) { try { const j = typeof t === 'string' ? JSON.parse(t) : t; if (j.primary) return j.primary; } catch (e) { /* */ } }
@@ -145,7 +150,8 @@
         if (p.confidence != null && +p.confidence < 0.4) continue;
         out.push({
           id: p.id || f.id, name: K.toLatin(p['@name'] || p.name || p['names.primary'] || ''), cat: String(cat),
-          conf: p.confidence != null ? +p.confidence : null, kind: K.OVERTURE_MAP[cat] || null, lat: f.lat, lon: f.lon
+          conf: p.confidence != null ? +p.confidence : null, kind: K.OVERTURE_MAP[cat] || null, lat: f.lat, lon: f.lon,
+          brand: brandOf(p.brand)
         });
       }
     }));

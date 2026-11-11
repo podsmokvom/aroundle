@@ -90,7 +90,8 @@
     // Wikidata: detalji članaka + „nazvano po“
     if (shared.namedP) await shared.namedP;
     const wdNamed = (shared.wdNamed || []).filter((w) => w.dist <= Math.max(3000, stage.wikiR));
-    const ids = wiki.local.map((w) => w.qid).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean);
+    if (shared.oldestP) await shared.oldestP;
+    const ids = wiki.local.map((w) => w.qid).concat((shared.oldest || []).slice(0, 25).map((o) => o.qid)).concat(wdNamed.flatMap((w) => [w.qid, w.named])).filter(Boolean);
     let ents = {};
     if (ids.length) {
       try {
@@ -113,6 +114,8 @@
       ...K.transitQuestions(stage, transit),
       ...K.mapQuestions(stage, osm.local, services),
       ...K.dirQuestions(stage, osm.local),
+      ...K.overtureQuestions(stage, ov),
+      ...K.oldestQuestions(stage, shared.oldest, ents),
       ...K.etymQuestions(stage, osm.local, osm.far, wiki.local, ents, wdNamed),
       ...K.wikiQuestions(stage, wiki.local, wiki.far, ents),
       ...birdQs,
@@ -165,6 +168,8 @@
     const namedP = K.wdNamedAfter(lat, lon, 3).then((r) => { shared.wdNamed = r; })
       .catch((e) => log(`Wikidata (nazvano po): ${e.message}`, 'warn'));
     shared.namedP = namedP;
+    // najstariji objekti u blizini (Wikidata, brzo); ako ne uspe, pitanje se preskače
+    shared.oldestP = K.wdOldest(lat, lon, 1).then((r) => { shared.oldest = r; }).catch(() => { shared.oldest = []; });
     await elevP;
     if (shared.elev != null) shared.questions.push(...K.elevationQuestions(shared.elev, place.kraj));
 

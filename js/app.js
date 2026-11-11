@@ -42,7 +42,7 @@
 
   // Privatnost: izabrana tačka se odmah pomera za 200 m u nasumičnom pravcu, PRE bilo kakvog slanja spoljnim servisima.
   // Pravac je zaista slučajan (crypto) i nigde se ne čuva, pa se prava tačka ne može izračunati ni uz javni kod.
-  const SHIFT_M = 200;
+  const SHIFT_M = 50; // privatnost uz savet da se ne bira kućna adresa; tolerancije pitanja su podešene na ovih 50 m
   function shift(lat, lon) {
     const r = new Uint32Array(1);
     crypto.getRandomValues(r);

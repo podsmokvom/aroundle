@@ -1,4 +1,4 @@
-/* Aroundle — prevodi za pitanje „strana sveta“ (pravac od tvoje tačke) */
+/* Aroundle — prevodi za dodatna pitanja: strana sveta, lanac, kuhinja, najstariji objekat */
 (function (K) {
   'use strict';
   const C = (sr, hr, bs, en, de, fr, es, ru) => ({ sr, hr, bs, en, de, fr, es, ru });
@@ -17,6 +17,55 @@
     'dir.SW': C('jugozapad', 'jugozapad', 'jugozapad', 'southwest', 'Südwesten', 'sud-ouest', 'suroeste', 'юго-запад'),
     'dir.W': C('zapad', 'zapad', 'zapad', 'west', 'Westen', 'ouest', 'oeste', 'запад'),
     'dir.NW': C('severozapad', 'sjeverozapad', 'sjeverozapad', 'northwest', 'Nordwesten', 'nord-ouest', 'noroeste', 'северо-запад'),
+
+    'q.chain': C('Koji lanac ima najviše radnji {scope}, prema otvorenim mapama?', 'Koji lanac ima najviše trgovina {scope}, prema otvorenim kartama?', 'Koji lanac ima najviše radnji {scope}, prema otvorenim mapama?',
+      'Which chain has the most outlets {scope}, according to open maps?', 'Welche Kette hat laut offenen Karten {scope} die meisten Filialen?', 'Quelle enseigne compte le plus de points de vente {scope}, selon les cartes ouvertes ?',
+      '¿Qué cadena tiene más locales {scope}, según los mapas abiertos?', 'У какой сети больше всего точек {scope}, по данным открытых карт?'),
+    'q.chain.explain': C('Lanci na mapi: {list}.', 'Lanci na karti: {list}.', 'Lanci na mapi: {list}.', 'Chains on the map: {list}.', 'Ketten auf der Karte: {list}.',
+      'Enseignes sur la carte : {list}.', 'Cadenas en el mapa: {list}.', 'Сети на карте: {list}.'),
+    'q.cuisine': C('Koja kuhinja je najzastupljenija među restoranima {scope}, prema otvorenim mapama?', 'Koja je kuhinja najzastupljenija među restoranima {scope}, prema otvorenim kartama?', 'Koja je kuhinja najzastupljenija među restoranima {scope}, prema otvorenim mapama?',
+      'Which cuisine is most common among restaurants {scope}, according to open maps?', 'Welche Küche ist laut offenen Karten {scope} unter den Restaurants am häufigsten?', 'Quelle cuisine est la plus fréquente parmi les restaurants {scope}, selon les cartes ouvertes ?',
+      '¿Qué cocina es la más común entre los restaurantes {scope}, según los mapas abiertos?', 'Какая кухня чаще всего встречается среди ресторанов {scope}, по данным открытых карт?'),
+    'q.cuisine.explain': C('Restorani na mapi: {list}.', 'Restorani na karti: {list}.', 'Restorani na mapi: {list}.', 'Restaurants on the map: {list}.', 'Restaurants auf der Karte: {list}.',
+      'Restaurants sur la carte : {list}.', 'Restaurantes en el mapa: {list}.', 'Рестораны на карте: {list}.'),
+    'q.oldest': C('Koji od ovih objekata u tvom kraju je, prema Vikipodacima, najstariji?', 'Koji je od ovih objekata u tvom kvartu, prema Wikidati, najstariji?', 'Koji je od ovih objekata u tvom naselju, prema Wikidati, najstariji?',
+      'According to Wikidata, which of these places in your area is the oldest?', 'Welcher dieser Orte in deinem Viertel ist laut Wikidata der älteste?', 'Selon Wikidata, lequel de ces lieux de ton quartier est le plus ancien ?',
+      'Según Wikidata, ¿cuál de estos lugares de tu barrio es el más antiguo?', 'Какой из этих объектов в твоём районе, по данным Викиданных, самый старый?'),
+    'q.oldest.explain': C('Godine nastanka (Wikidata): {list}.', 'Godine nastanka (Wikidata): {list}.', 'Godine nastanka (Wikidata): {list}.', 'Year of origin (Wikidata): {list}.', 'Entstehungsjahr (Wikidata): {list}.',
+      'Année d’origine (Wikidata) : {list}.', 'Año de origen (Wikidata): {list}.', 'Год появления (Викиданные): {list}.'),
+    'q.oldest.fact': C('Najstariji objekat u mom kraju je „{name}“ ({year}).', 'Najstariji objekt u mom kvartu je „{name}“ ({year}).', 'Najstariji objekat u mom naselju je „{name}“ ({year}).',
+      'The oldest place in my neighbourhood is “{name}” ({year}).', 'Der älteste Ort in meinem Kiez ist „{name}“ ({year}).', 'Le lieu le plus ancien de mon quartier est « {name} » ({year}).',
+      'El lugar más antiguo de mi barrio es «{name}» ({year}).', 'Самый старый объект в моём районе — «{name}» ({year}).'),
+
+    'cuisine.pizza': C('pica', 'pizza', 'pizza', 'pizza', 'Pizza', 'pizza', 'pizza', 'пицца'),
+    'cuisine.italian': C('italijanska', 'talijanska', 'italijanska', 'Italian', 'italienisch', 'italienne', 'italiana', 'итальянская'),
+    'cuisine.burger': C('burgeri', 'burgeri', 'burgeri', 'burgers', 'Burger', 'burgers', 'hamburguesas', 'бургеры'),
+    'cuisine.chinese': C('kineska', 'kineska', 'kineska', 'Chinese', 'chinesisch', 'chinoise', 'china', 'китайская'),
+    'cuisine.doner_kebab': C('kebab', 'kebab', 'kebab', 'kebab', 'Döner', 'kebab', 'kebab', 'шаурма / кебаб'),
+    'cuisine.sushi': C('suši', 'sushi', 'suši', 'sushi', 'Sushi', 'sushi', 'sushi', 'суши'),
+    'cuisine.japanese': C('japanska', 'japanska', 'japanska', 'Japanese', 'japanisch', 'japonaise', 'japonesa', 'японская'),
+    'cuisine.greek': C('grčka', 'grčka', 'grčka', 'Greek', 'griechisch', 'grecque', 'griega', 'греческая'),
+    'cuisine.mexican': C('meksička', 'meksička', 'meksička', 'Mexican', 'mexikanisch', 'mexicaine', 'mexicana', 'мексиканская'),
+    'cuisine.indian': C('indijska', 'indijska', 'indijska', 'Indian', 'indisch', 'indienne', 'india', 'индийская'),
+    'cuisine.thai': C('tajlandska', 'tajlandska', 'tajlandska', 'Thai', 'thailändisch', 'thaïe', 'tailandesa', 'тайская'),
+    'cuisine.turkish': C('turska', 'turska', 'turska', 'Turkish', 'türkisch', 'turque', 'turca', 'турецкая'),
+    'cuisine.french': C('francuska', 'francuska', 'francuska', 'French', 'französisch', 'française', 'francesa', 'французская'),
+    'cuisine.german': C('nemačka', 'njemačka', 'njemačka', 'German', 'deutsch', 'allemande', 'alemana', 'немецкая'),
+    'cuisine.vietnamese': C('vijetnamska', 'vijetnamska', 'vijetnamska', 'Vietnamese', 'vietnamesisch', 'vietnamienne', 'vietnamita', 'вьетнамская'),
+    'cuisine.barbecue': C('roštilj', 'roštilj', 'roštilj', 'barbecue', 'Grill', 'grillades', 'parrilla', 'гриль'),
+    'cuisine.seafood': C('morski plodovi', 'plodovi mora', 'morski plodovi', 'seafood', 'Meeresfrüchte', 'fruits de mer', 'marisco', 'морепродукты'),
+    'cuisine.asian': C('azijska', 'azijska', 'azijska', 'Asian', 'asiatisch', 'asiatique', 'asiática', 'азиатская'),
+    'cuisine.american': C('američka', 'američka', 'američka', 'American', 'amerikanisch', 'américaine', 'americana', 'американская'),
+    'cuisine.spanish': C('španska', 'španjolska', 'španska', 'Spanish', 'spanisch', 'espagnole', 'española', 'испанская'),
+    'cuisine.korean': C('korejska', 'korejska', 'korejska', 'Korean', 'koreanisch', 'coréenne', 'coreana', 'корейская'),
+    'cuisine.middle_eastern': C('bliskoistočna', 'bliskoistočna', 'bliskoistočna', 'Middle Eastern', 'nahöstlich', 'moyen-orientale', 'de Oriente Medio', 'ближневосточная'),
+    'cuisine.mediterranean': C('mediteranska', 'mediteranska', 'mediteranska', 'Mediterranean', 'mediterran', 'méditerranéenne', 'mediterránea', 'средиземноморская'),
+    'cuisine.vegan': C('veganska', 'veganska', 'veganska', 'vegan', 'vegan', 'végane', 'vegana', 'веганская'),
+    'cuisine.vegetarian': C('vegetarijanska', 'vegetarijanska', 'vegetarijanska', 'vegetarian', 'vegetarisch', 'végétarienne', 'vegetariana', 'вегетарианская'),
+    'cuisine.eastern_european': C('istočnoevropska', 'istočnoeuropska', 'istočnoevropska', 'Eastern European', 'osteuropäisch', 'd’Europe de l’Est', 'de Europa del Este', 'восточноевропейская'),
+    'cuisine.balkan': C('balkanska', 'balkanska', 'balkanska', 'Balkan', 'balkanisch', 'balkanique', 'balcánica', 'балканская'),
+    'cuisine.steakhouse': C('stekovi', 'odresci', 'odresci', 'steakhouse', 'Steakhaus', 'grill / steaks', 'carnes a la brasa', 'стейк-хаус'),
+    'cuisine.chicken': C('piletina', 'piletina', 'piletina', 'chicken', 'Hähnchen', 'poulet', 'pollo', 'курица'),
 
   };
   for (const key in T) for (const lang in T[key]) {

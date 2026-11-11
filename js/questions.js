@@ -8,7 +8,7 @@
     street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, stop: 1,
     etym: 2, wikiNear: 2, wikiText: 2, wikiYear: 2, birds: 1,
     svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 1, elev: 1,
-    dir: 1
+    dir: 1, chain: 1, cuisine: 1, oldest: 1
   };
 
   // naziv radnje na jeziku igrača: „jedna|množina“
@@ -291,7 +291,7 @@
 
     // 3) Šta je najbliže
     const near = kinds.filter((k) => nearest[k] && nearest[k].d < 1500).sort((a, b) => nearest[a].d - nearest[b].d);
-    if (near.length >= 4 && nearest[near[1]].d - nearest[near[0]].d >= 80) {
+    if (near.length >= 4 && nearest[near[1]].d - nearest[near[0]].d >= 120) { // oba mesta mogu biti „pomerena“ do 50 m
       const opts = [near[0], ...K.shuffle(near.slice(1, 8)).slice(0, 3)];
       const q = makeQ({
         cat: 'svcNear', text: K.t('q.svcNear'),
@@ -306,7 +306,7 @@
     for (const k of K.shuffle(kinds.filter((k) => nearest[k] && nearest[k].d < 2000))) {
       const d = nearest[k].d;
       const bin = BINS.find((b) => d >= b[0] && d < b[1]);
-      if (BINS.some((b) => Math.abs(d - b[0]) < 30 && b[0] > 0)) continue; // preblizu granice
+      if (BINS.some((b) => Math.abs(d - b[0]) < 60 && b[0] > 0)) continue; // preblizu granice (tačka je pomerena do 50 m)
       const labels = BINS.map((b) => K.t(b[2]));
       const q = makeQ({
         cat: 'svcDist', text: K.t('q.svcDist', { one: one(k) }),
@@ -436,10 +436,10 @@
     };
     for (const it of K.shuffle(local.items.filter((i) => i.cat !== 'street' && i.lat != null && stage.inside(i.lat, i.lon)))) {
       const d = K.dist(stage.lat, stage.lon, it.lat, it.lon);
-      if (d < 200) continue; // preblizu, pravac je nejasan
+      if (d < 350) continue; // dovoljno daleko da pomak tačke od 50 m menja ugao najviše ~8°
       const b = bearing(stage.lat, stage.lon, it.lat, it.lon);
       const off = (b + 22.5) % 45;
-      if (off < 8 || off > 37) continue; // preblizu granice između dva pravca
+      if (off < 10 || off > 35) continue; // bar 10° od granice dva pravca
       const i = Math.floor(((b + 22.5) % 360) / 45);
       // netačni: suprotan i dva bočna pravca (nikad susedni, da odgovor ne bude sporan)
       const opts = [i, (i + 4) % 8, (i + 2) % 8, (i + 6) % 8].map((k) => K.t('dir.' + DIRS[k]));
@@ -452,6 +452,77 @@
       if (q) { qs.push(q); break; }
     }
     return qs;
+  };
+
+  // ---------------- Lanac i kuhinja (Overture Places) ----------------
+  // lanci: samo prodavnice, ugostiteljstvo, apoteke, banke i pumpe (ne paketomati, punjači i sl.)
+  const RETAIL = /store|shop|market|grocery|pharmacy|drugstore|bakery|restaurant|cafe|coffee|bar$|fast_food|fuel|gas_station|bank|optician|hotel/;
+  const NOT_CHAIN = /locker|charg|ubitricity|box ?now|paket|parcel|automat|atm\b|bäder|dom zdravlja/i;
+  // kuhinje koje imaju prevod (Overture kategorija bez nastavka _restaurant)
+  K.CUISINES = ['pizza', 'italian', 'burger', 'chinese', 'doner_kebab', 'sushi', 'japanese', 'greek', 'mexican', 'indian', 'thai',
+    'turkish', 'french', 'german', 'vietnamese', 'barbecue', 'seafood', 'asian', 'american', 'spanish', 'korean', 'middle_eastern',
+    'mediterranean', 'vegan', 'vegetarian', 'eastern_european', 'balkan', 'steakhouse', 'chicken'];
+
+  K.overtureQuestions = function (stage, places) {
+    const qs = [];
+    const inside = (places || []).filter((p) => stage.inside(p.lat, p.lon));
+    const src = { name: 'Overture Maps', url: `https://www.openstreetmap.org/#map=16/${stage.lat.toFixed(5)}/${stage.lon.toFixed(5)}` };
+    // 1) najzastupljeniji lanac
+    const brands = {};
+    for (const p of inside) if (p.brand && RETAIL.test(p.cat) && !NOT_CHAIN.test(p.brand)) brands[p.brand] = (brands[p.brand] || 0) + 1;
+    const bl = Object.entries(brands).sort((a, b) => b[1] - a[1]);
+    if (bl.length >= 4 && bl[0][1] >= 2 && bl[0][1] > bl[1][1]) {
+      const q = makeQ({
+        cat: 'chain', names: true, text: K.t('q.chain', { scope: stage.label }),
+        correct: bl[0][0], wrongs: K.shuffle(bl.slice(1, 12).map((b) => b[0])),
+        explain: K.t('q.chain.explain', { list: bl.slice(0, 4).map((b) => `${b[0]}: ${b[1]}`).join(', ') }), source: src,
+        fact: K.t('q.chain.explain', { list: bl.slice(0, 3).map((b) => `${b[0]}: ${b[1]}`).join(', ') })
+      });
+      if (q) qs.push(q);
+    }
+    // 2) najčešća kuhinja u restoranima
+    const cz = {};
+    for (const p of inside) {
+      if (!/_restaurant$/.test(p.cat)) continue;
+      const k = p.cat.replace(/_restaurant$/, '');
+      if (K.CUISINES.includes(k)) cz[k] = (cz[k] || 0) + 1;
+    }
+    const cl = Object.entries(cz).sort((a, b) => b[1] - a[1]);
+    if (cl.length >= 2 && cl[0][1] >= 2 && cl[0][1] > cl[1][1]) {
+      const others = cl.slice(1).map((c) => c[0]).concat(K.shuffle(K.CUISINES.filter((c) => !cz[c])));
+      const q = makeQ({
+        cat: 'cuisine', text: K.t('q.cuisine', { scope: stage.label }),
+        correct: cap(K.t('cuisine.' + cl[0][0])), wrongs: others.map((c) => cap(K.t('cuisine.' + c))),
+        explain: K.t('q.cuisine.explain', { list: cl.slice(0, 4).map(([k, n]) => `${K.t('cuisine.' + k)}: ${n}`).join(', ') }), source: src
+      });
+      if (q) qs.push(q);
+    }
+    return qs;
+  };
+
+  // ---------------- Najstariji objekat u blizini (Wikidata P571) ----------------
+  const NOT_OBJECT = new Set(['Q56061', 'Q1620908', 'Q3024240', 'Q6256', 'Q515', 'Q486972', 'Q123705', 'Q82794', 'Q2983893', 'Q1549591', 'Q5119']);
+  K.oldestQuestions = function (stage, oldest, ents) {
+    const now = new Date().getFullYear();
+    const items = K.uniqBy((oldest || []).filter((o) => o.dist <= (stage.radius || 1000) && o.year <= now && ents[o.qid] &&
+      !K.wd.items(ents[o.qid], 'P31').some((c) => NOT_OBJECT.has(c)) &&
+      // teritorije (imaju stanovništvo ili površinu) nisu „objekti u kraju“
+      !K.wd.claims(ents[o.qid], 'P1082').length && !K.wd.claims(ents[o.qid], 'P2046').length)
+      .map((o) => ({ ...o, label: K.wd.label(ents[o.qid]) })).filter((o) => o.label && !K.isBanned(o.label)), (o) => K.norm(o.label))
+      .sort((a, b) => a.year - b.year);
+    if (items.length < 4) return [];
+    const first = items[0];
+    const later = items.filter((o) => o.year >= first.year + 5);
+    if (later.length < 3) return [];
+    const opts = [first, ...K.shuffle(later).slice(0, 3)];
+    const q = makeQ({
+      cat: 'oldest', names: true, text: K.t('q.oldest'),
+      correct: first.label, wrongs: opts.slice(1).map((o) => o.label),
+      explain: K.t('q.oldest.explain', { list: opts.slice().sort((a, b) => a.year - b.year).map((o) => `${o.label} (${K.fmtYear(o.year)})`).join(', ') }),
+      source: { name: 'Wikidata', url: `https://www.wikidata.org/wiki/${first.qid}` },
+      fact: K.t('q.oldest.fact', { name: first.label, year: K.fmtYear(first.year) })
+    });
+    return q ? [q] : [];
   };
 
   K.osmQuestions = osmQuestions;
