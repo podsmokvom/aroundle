@@ -14,6 +14,9 @@
   }
   K.geocode = (q) => nominatim('search', { q, limit: 6, addressdetails: 1 });
   K.reverse = (lat, lon) => nominatim('reverse', { lat, lon, zoom: 16, addressdetails: 1 });
+  // Lokalna imena (jezik mesta, ne igrača): nepostojeći jezik „zz“ vraća osnovno OSM ime, npr. „Београд“ i za
+  // engleskog i za srpskog igrača. Iz toga se pravi ključ kraja i grad za rang-liste, da Belgrade = Beograd.
+  K.reverseNative = (lat, lon) => nominatim('reverse', { lat, lon, zoom: 16, addressdetails: 1, 'accept-language': 'zz' });
 
   K.placeFromAddress = function (addr, lat, lon) {
     addr = addr || {};
@@ -24,7 +27,7 @@
     // „Grad Beograd“ je u polju county; inače city/town
     const county = /^(grad|град)\s/i.test(addr.county || '') ? addr.county : '';
     const grad = county || addr.town || addr.city || addr.village || addr.municipality || '';
-    const strip = (s) => K.toLatin(s).replace(/^(grad|gradska opština|opština|city of|municipality of)\s+/i, '');
+    const strip = (s) => K.toLatin(s).replace(/^(grad|gradska opština|opština|city of|municipality of|град|градска општина|општина)\s+/i, '');
     return {
       lat, lon,
       kraj: strip(kraj), grad: strip(grad),

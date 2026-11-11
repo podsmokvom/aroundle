@@ -19,7 +19,7 @@
 
   // „near“ = svi igrači današnjeg dana na najviše 1,5 km (tačke su već nasumično pomerene 200 m)
   K.lbKeys = (place) => ({
-    near: { lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3) }, city: place.grad || '', country: (place.country || '').toLowerCase(),
+    near: { lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3) }, city: K.cityKey(place), country: (place.country || '').toLowerCase(),
     continent: K.continentOf(place.country), world: '*'
   });
 
@@ -27,7 +27,7 @@
     const r = await fetch(K.API + 'score.php', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        hood: K.hoodKey(place), hood_name: place.kraj || "", lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3), city: place.grad || '', country: place.country || '',
+        hood: K.hoodKey(place), hood_name: place.kraj || "", lat: +place.lat.toFixed(3), lon: +place.lon.toFixed(3), city: K.cityKey(place), country: place.country || '',
         continent: K.continentOf(place.country), name, points: res.points, correct: res.score, total: res.n, secs: res.time
       })
     });

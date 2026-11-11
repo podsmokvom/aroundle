@@ -70,6 +70,9 @@
     'svc.supermarket': C('supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarketa', 'supermarket|supermarkets', 'Supermarkt|Supermärkte', 'supermarché|supermarchés', 'supermercado|supermercados', 'супермаркет|супермаркетов'),
     'svc.hotel': C('hotel|hotela', 'hotel|hotela', 'hotel|hotela', 'hotel|hotels', 'Hotel|Hotels', 'hôtel|hôtels', 'hotel|hoteles', 'отель|отелей'),
 
+    'quiz.pinHint': C('Dodirni mapu gde misliš da je. Prvi dodir je odgovor (mapu možeš da uvećaš prstima).', 'Dodirni kartu gdje misliš da je. Prvi dodir je odgovor (kartu možeš povećati prstima).', 'Dodirni mapu gdje misliš da je. Prvi dodir je odgovor (mapu možeš uvećati prstima).',
+      'Tap the map where you think it is. Your first tap is your answer (pinch to zoom).', 'Tippe auf die Karte, wo du es vermutest. Der erste Tipp zählt (mit zwei Fingern zoomen).', 'Touche la carte là où tu penses que c’est. Ta première touche est ta réponse (zoom avec deux doigts).',
+      'Toca el mapa donde crees que está. Tu primer toque es tu respuesta (pellizca para hacer zoom).', 'Нажми на карту там, где, по-твоему, это находится. Первое нажатие — твой ответ (масштаб — двумя пальцами).'),
     'pick.change': C('promeni', 'promijeni', 'promijeni', 'change', 'ändern', 'changer', 'cambiar', 'изменить'),
     'lb.hoods': C('Najbolji krajevi', 'Najbolje četvrti', 'Najbolja naselja', 'Best-known hoods', 'Bestbekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучшие районы'),
     'lb.hoodsLabel': C('krajevi koje igrači najbolje poznaju (prosek tačnih odgovora, bar {n} igrača po kraju).', 'četvrti koje igrači najbolje poznaju (prosjek točnih odgovora, barem {n} igrača po četvrti).', 'naselja koja igrači najbolje poznaju (prosjek tačnih odgovora, najmanje {n} igrača po naselju).',

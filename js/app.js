@@ -58,14 +58,23 @@
     if (pb.top < 0 || pb.bottom > innerHeight) $('picked').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     $('pickedName').textContent = K.t('pick.finding');
     $('build').disabled = true;
-    let addr = null;
-    try { addr = (await K.reverse(lat, lon)).address; } catch (e) { /* bez adrese */ }
-    const p = K.placeFromAddress(addr, lat, lon);
+    // grad po lokalnom imenu (isti za sve jezike: Belgrade = Beograd) → ključ kraja, seed i rang-liste
+    let nat = null;
+    try { nat = (await K.reverseNative(lat, lon)).address; } catch (e) { /* bez adrese */ }
+    let p = K.placeFromAddress(nat, lat, lon);
+    const gradKey = p.grad, krajKey = p.kraj;
+    // lokalno ime u pismu koje igrač ne čita (npr. 東京, Αθήνα): za prikaz ime na jeziku igrača
+    const readable = (s) => !s || /^[\p{Script=Latin}\p{Script=Cyrillic}\p{N}\p{P}\p{Zs}]*$/u.test(s);
+    if (!readable(p.grad) || !readable(p.kraj)) {
+      try { p = K.placeFromAddress((await K.reverse(lat, lon)).address, lat, lon); } catch (e) { /* ostaje lokalno */ }
+    }
+    p.gradKey = gradKey; p.krajKey = krajKey;
     // kviz polazi od tačke koju je igrač izabrao; ime kraja dolazi od najbližeg kvarta/naselja na mapi
     try {
       const np = await K.nearestPlace(lat, lon);
-      if (np && HOOD.has(np.cls) && np.d <= 1500) p.kraj = np.name;
-      else if (np && !p.kraj) p.kraj = np.name;
+      // imena iz pločica su lokalna (ista za sve jezike), pa važe i za ključ
+      if (np && HOOD.has(np.cls) && np.d <= 1500) p.kraj = p.krajKey = np.name;
+      else if (np && !p.kraj) p.kraj = p.krajKey = np.name;
     } catch (e) { /* ostaje ime iz adrese */ }
     place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
@@ -143,7 +152,10 @@
     if (!place || store.get(playedKey(place))) return;
     $('build').disabled = true;
     show($('result'), false); show($('quiz'), false);
+    // mapa više ne treba: odmah samo pravljenje pitanja, na vrhu ekrana (ako ne uspe, izbor mesta se vraća)
+    show($('pick'), false);
     show($('progress'));
+    scrollTo({ top: 0, behavior: 'smooth' });
     const log = $('log');
     log.innerHTML = '';
     const kraj = place.kraj || K.t('share.myHood');
@@ -174,7 +186,7 @@
       let q = K.cacheGet(place);
       if (!q) {
         q = await K.buildQuiz(place, addLog);
-        if (!q.questions.length) { stopFun(); say(K.t('load.empty')); $('build').disabled = false; return; }
+        if (!q.questions.length) { stopFun(); say(K.t('load.empty')); $('build').disabled = false; show($('pick')); return; }
         K.cacheSet(place, q);
       }
       stopFun();
@@ -182,7 +194,7 @@
       play(q);
     } catch (err) {
       stopFun(); say(K.t('load.error', { err: err.message }));
-      $('build').disabled = false;
+      $('build').disabled = false; show($('pick'));
     }
   }
 
@@ -276,8 +288,9 @@
         qmap.on('click', (e) => {
           if ($('pinOk').hidden) return;
           if (pin) pin.setLngLat(e.lngLat); else pin = new maplibregl.Marker({ color: '#b3261e' }).setLngLat(e.lngLat).addTo(qmap);
+          // bez potvrde: prvi klik (dodir) na mapu je odgovor
           $('pinOk').disabled = false;
-          $('pinHint').textContent = K.t('quiz.pinMove');
+          $('pinOk').click();
         });
       }).catch((e) => { $('pinHint').textContent = K.t('quiz.mapFail', { err: e.message }); });
       return;

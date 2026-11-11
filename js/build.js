@@ -8,7 +8,9 @@
 
   // ---------------- Keš (localStorage) ----------------
   // kraj (za „jedan pokušaj dnevno“ i rang-liste) i tačka igrača zaokružena na ~100 m (za keš i seed)
-  K.hoodKey = (place) => K.norm(`${place.kraj || ""}|${place.grad || ""}`) || `${place.lat.toFixed(2)},${place.lon.toFixed(2)}`;
+  // ključ po lokalnim imenima (krajKey/gradKey), isti za sve jezike igrača; stari duel linkovi imaju samo kraj/grad
+  K.hoodKey = (place) => K.norm(`${place.krajKey || place.kraj || ""}|${place.gradKey || place.grad || ""}`) || `${place.lat.toFixed(2)},${place.lon.toFixed(2)}`;
+  K.cityKey = (place) => K.translit(place.gradKey || place.grad || '');
   K.seedKey = (place) => `${K.hoodKey(place)}@${place.lat.toFixed(3)},${place.lon.toFixed(3)}`; // isti za sve jezike
   K.cacheKey = (place) => `${CACHE_VER}${K.lang}:${K.seedKey(place)}`;    // tekstovi zavise od jezika
   K.cacheGet = function (place) {
@@ -206,7 +208,7 @@
 
     return {
       created: Date.now(), day,
-      place: { kraj: place.kraj, grad: place.grad, country: place.country || '', lat, lon },
+      place: { kraj: place.kraj, grad: place.grad, krajKey: place.krajKey || '', gradKey: place.gradKey || '', country: place.country || '', lat, lon },
       scope: used.stage.title, scopeKey: used.stage.key,
       notes, questions
     };

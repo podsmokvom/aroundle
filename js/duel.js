@@ -27,7 +27,7 @@
   K.duelEncode = async function (quiz, name, res) {
     const payload = {
       v: 2, d: quiz.day,
-      p: { k: quiz.place.kraj, g: quiz.place.grad, c: quiz.place.country, la: +quiz.place.lat.toFixed(3), lo: +quiz.place.lon.toFixed(3) }, // ~100 m, ne tačna adresa
+      p: { k: quiz.place.kraj, g: quiz.place.grad, kk: quiz.place.krajKey || undefined, gk: quiz.place.gradKey || undefined, c: quiz.place.country, la: +quiz.place.lat.toFixed(3), lo: +quiz.place.lon.toFixed(3) }, // ~100 m, ne tačna adresa
       s: quiz.scope, n: (name || "").slice(0, 24), r: res.score, pt: res.points, t: res.time, ok: res.oks.map((x) => (x ? 1 : 0)),
       q: quiz.questions.map((q) => ({
         c: q.cat, t: q.text, o: q.options, a: q.answer, e: q.explain, x: q.outsider ? 1 : 0,
@@ -46,7 +46,7 @@
     return {
       quiz: {
         created: Date.now(), duel: true, day: d.d || K.today(),
-        place: { kraj: d.p.k, grad: d.p.g, country: d.p.c || "", lat: d.p.la, lon: d.p.lo },
+        place: { kraj: d.p.k, grad: d.p.g, krajKey: d.p.kk || '', gradKey: d.p.gk || '', country: d.p.c || "", lat: d.p.la, lon: d.p.lo },
         scope: d.s, notes: [],
         questions: d.q.map((q) => ({
           cat: q.c, text: q.t, options: q.o || [], answer: q.a, explain: q.e || '', outsider: !!q.x,
