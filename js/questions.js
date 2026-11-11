@@ -353,7 +353,7 @@
         cat: 'svcName', names: true, text: K.t('q.svcName', { one: one(s.kind), scope }),
         correct: s.name, wrongs: similar(s.name, pool),
         explain: K.t('q.svcName.explain', { name: s.name, src: s.src, scope, d: meters(s.d) }),
-        source: { name: 'OpenStreetMap', url: K.osmUrl(s.id, s.lat, s.lon) }
+        source: { name: s.src === 'Overture' ? 'Overture Maps' : 'OpenStreetMap', url: K.osmUrl(s.id, s.lat, s.lon) }
       });
       if (q) qs.push(q);
     }

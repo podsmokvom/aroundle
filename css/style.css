@@ -371,3 +371,18 @@ button.ghost { color: var(--accent); background: var(--card); }
 .opt, .pin-send, button { -webkit-tap-highlight-color: transparent; }
 .opt:focus { outline: none; }
 .opt:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* telefon: zbijenije zaglavlje (veličina slike naslova se ne menja), dugmad za deljenje u jednom redu */
+@media (max-width: 480px) {
+  .brand { gap: 8px; align-items: flex-start; }
+  .logo { width: 64px; height: 64px; }
+  .brand .tag { font-size: .85rem; margin: 2px 0 0; }
+  .playcount { font-size: .8rem; white-space: nowrap; gap: 6px; }
+  .cdnum.cdwide { height: 30px; min-width: 38px; font-size: 1.2rem; padding: 0 10px; }
+  .langsel select { padding: 4px 4px; font-size: .8rem; }
+  .soc { width: 42px; height: 42px; }
+  .soc i { width: 21px; height: 21px; }
+  .social { gap: 8px; }
+}
+/* prazna rang-lista: poruka bez rednog broja */
+.lblist li.muted { list-style: none; margin-left: -22px; }

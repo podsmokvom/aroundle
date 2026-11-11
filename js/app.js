@@ -33,6 +33,9 @@
     show($('playCount'));
   }
   K.countGet().then(showCount).catch(() => {});
+  // uvodna rečenica („Izaberi svoj kraj…“) samo dok se bira kraj; tokom kviza i na rezultatu je višak (telefon)
+  const leadEl = document.querySelector('.lead');
+  if (leadEl) new MutationObserver(() => { leadEl.hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
 
   let place = null;      // {lat, lon (tačka igrača), kraj, grad, country}
   let quiz = null;
@@ -297,6 +300,8 @@
       nolabelStyle().then((style) => {
         if (idx !== myIdx || !quiz) return;
         qmap = new maplibregl.Map({ container: 'qmap', style, center: [quiz.place.lon, quiz.place.lat], zoom: 15.3, attributionControl: { compact: true } });
+        // na telefonu je otvoren natpis o izvorima prekrivao donji deo mape: skupljen je, otvara se na „i“
+        qmap.once('load', () => { const a = $('qmap').querySelector('.maplibregl-ctrl-attrib'); if (a) { a.classList.remove('maplibregl-compact-show'); a.removeAttribute('open'); } });
         qmap.addControl(new maplibregl.NavigationControl({ showCompass: false }));
         qmap.touchZoomRotate.disableRotation();
         // ceo krug kviza (1 km, ili dalje ako je cilj dalje) u vidnom polju: tačka je uvek vidljiva bez pomeranja mape.
