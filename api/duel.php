@@ -15,8 +15,11 @@ function duel_table() {
     created DATETIME NOT NULL, KEY k_ip (iphash, created)
   ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
   // heš sadržaja: isti izazov (isti kviz, ime i rezultat) dobija isti link, bez novog reda i bez trošenja ograničenja
-  try { db()->exec("ALTER TABLE aroundle_duels ADD COLUMN IF NOT EXISTS phash CHAR(64) NULL, ADD INDEX IF NOT EXISTS k_ph (phash)"); }
-  catch (Throwable $e) { /* starija baza: radi i bez ovoga, samo bez spajanja istih izazova */ }
+  // (proveri pa dodaj: „ADD COLUMN IF NOT EXISTS“ ne razume svaka verzija MySQL-a)
+  try {
+    $has = db()->query("SHOW COLUMNS FROM aroundle_duels LIKE 'phash'")->fetch();
+    if (!$has) db()->exec("ALTER TABLE aroundle_duels ADD COLUMN phash CHAR(64) NULL, ADD INDEX k_ph (phash)");
+  } catch (Throwable $e) { /* radi i bez ovoga, samo bez spajanja istih izazova */ }
 }
 
 function duel_id() {
