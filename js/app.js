@@ -423,6 +423,15 @@
     document.querySelector('.tabs [data-period]').classList.toggle('on', lbPeriod === 'all');
     $('lbList').innerHTML = `<li class="muted">${K.esc(K.t('lb.loading'))}</li>`;
     try {
+      if (lbScope === 'hoods') {
+        const j = await K.lbHoods(lbPeriod);
+        const mine = K.hoodKey(quiz.place);
+        $('lbList').innerHTML = j.rows.length ? j.rows.map((r) =>
+          `<li class="${r.hood === mine ? 'me' : ''}"><strong>${K.esc(r.hood_name || r.city)}</strong>${r.city && r.city !== r.hood_name ? ', ' + K.esc(r.city) : ''}${r.country ? ' (' + K.esc(r.country.toUpperCase()) + ')' : ''} · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`
+        ).join('') : `<li class="muted">${K.esc(K.t('lb.hoodsEmpty', { n: j.min }))}</li>`;
+        $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')}: ${K.t('lb.hoodsLabel', { n: j.min })}`;
+        return;
+      }
       const rows = await K.lbTop(lbScope, keys[lbScope], lbPeriod);
       $('lbList').innerHTML = rows.length ? rows.map((r) =>
         `<li class="${lbMine && r.name === lbMine.name && r.points === lbMine.points ? 'me' : ''}">${K.esc(r.name)} · <strong>${K.fmtNum(r.points, 0)}</strong> p · ${r.correct}/${r.total} · ${r.secs}s <span class="muted small">(${K.esc(r.hood_name)})</span></li>`

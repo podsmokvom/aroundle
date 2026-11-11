@@ -43,4 +43,11 @@
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
     return j.rows;
   };
+  // krajevi koje ljudi najbolje poznaju (prosek tačnih odgovora, samo krajevi sa dovoljno igrača)
+  K.lbHoods = async function (period = 'all') {
+    const r = await fetch(`${K.API}hoods.php?${new URLSearchParams({ period })}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return j;
+  };
 })(globalThis.Kviz = globalThis.Kviz || {});

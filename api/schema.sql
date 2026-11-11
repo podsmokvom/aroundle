@@ -21,5 +21,6 @@ CREATE TABLE IF NOT EXISTS aroundle_scores (
   KEY k_city (day, city, points),
   KEY k_country (day, country, points),
   KEY k_cont (day, continent, points),
-  KEY k_world (day, points)
+  KEY k_world (day, points),
+  KEY k_hood (hood, day)                  -- za „najbolje poznate krajeve“ (api/hoods.php)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
