@@ -18,6 +18,15 @@
     'dir.W': C('zapad', 'zapad', 'zapad', 'west', 'Westen', 'ouest', 'oeste', 'запад'),
     'dir.NW': C('severozapad', 'sjeverozapad', 'sjeverozapad', 'northwest', 'Nordwesten', 'nord-ouest', 'noroeste', 'северо-запад'),
 
+    // udaljenost od mesta koje je igrač obeležio na mapi (tolerancija nepromenjena: granice ±60 m, pomak 50 m)
+    'q.svcDist': C('Koliko vazdušnom linijom ima od mesta koje si obeležio na mapi do najbližeg mesta: {one}?',
+      'Koliko zračnom linijom ima od mjesta koje si označio na karti do najbližeg mjesta: {one}?',
+      'Koliko zračnom linijom ima od mjesta koje si obilježio na mapi do najbližeg mjesta: {one}?',
+      'How far is it from the place you marked on the map to the nearest {one}, as the crow flies?',
+      'Wie weit ist es von dem Ort, den du auf der Karte markiert hast, bis zum nächsten Ort dieser Art: {one} (Luftlinie)?',
+      'À quelle distance à vol d’oiseau, depuis l’endroit que tu as indiqué sur la carte, se trouve le lieu le plus proche de ce type : {one} ?',
+      '¿A qué distancia en línea recta, desde el lugar que marcaste en el mapa, está el lugar más cercano de este tipo: {one}?',
+      'Как далеко по прямой от места, которое ты отметил на карте, ближайшее место такого типа: {one}?'),
     // pitanja bez navođenja izvora (izvor ostaje u objašnjenju posle odgovora)
     'q.wikiNear': C('Koje od ovih mesta se nalazi {scope}?', 'Koje se od ovih mjesta nalazi {scope}?', 'Koje se od ovih mjesta nalazi {scope}?', 'Which of these places is {scope}?',
       'Welcher dieser Orte liegt {scope}?', 'Lequel de ces lieux se trouve {scope} ?', '¿Cuál de estos lugares está {scope}?', 'Какое из этих мест находится {scope}?'),
@@ -176,7 +185,7 @@
     'pop.nice': C('Dobar ti je rezultat!', 'Dobar ti je rezultat!', 'Dobar ti je rezultat!', 'Nice result!', 'Gutes Ergebnis!', 'Beau score !', '¡Buen resultado!', 'Хороший результат!'),
     'pop.join': C('Upiši se na rang-listu.', 'Upiši se na ljestvicu.', 'Upiši se na rang-listu.', 'Add yourself to the leaderboard.', 'Trag dich in die Rangliste ein.', 'Inscris-toi au classement.', 'Apúntate en la clasificación.', 'Запишись в рейтинг.'),
     'pop.no': C('Neću', 'Neću', 'Neću', 'No thanks', 'Nein, danke', 'Non merci', 'No, gracias', 'Не хочу'),
-    'pop.rateTitle': C('Oceni ovu lokaciju', 'Ocijeni ovu lokaciju', 'Ocijeni ovu lokaciju', 'Rate this location', 'Bewerte diesen Ort', 'Note ce lieu', 'Puntúa este lugar', 'Оцени это место'),
+    'pop.rateTitle': C('Oceni {kraj}', 'Ocijeni {kraj}', 'Ocijeni {kraj}', 'Rate {kraj}', 'Bewerte {kraj}', 'Note {kraj}', 'Puntúa {kraj}', 'Оцени {kraj}'),
     'pop.bubble': C('Ocena mesta, ne kviza.', 'Ocjena mjesta, ne kviza.', 'Ocjena mjesta, ne kviza.', 'The place, not the quiz.', 'Der Ort, nicht das Quiz.', 'Le lieu, pas le quiz.', 'El lugar, no el quiz.', 'Место, а не викторина.'),
     'pop.skip': C('Preskoči', 'Preskoči', 'Preskoči', 'Skip', 'Überspringen', 'Passer', 'Omitir', 'Пропустить'),
     // ocena kraja posle rezultata

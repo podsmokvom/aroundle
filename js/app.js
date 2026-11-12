@@ -533,6 +533,9 @@
     setTimeout(() => $('popName').focus({ preventScroll: true }), 50);
   }
   function popRateStep() {
+    // naslov sa imenom kraja kao u igri, bez menjanja padeža („Oceni Medijana“)
+    const title = K.t('pop.rateTitle', { kraj: (popQuiz && popQuiz.place.kraj) || K.t('share.myHood') });
+    $('popRateTitle').textContent = title;
     show($('popLb'), false); show($('popRate'));
     show($('popRateMsg'), false);
     const box = $('popRateBtns');
@@ -540,7 +543,7 @@
     for (let i = 1; i <= 10; i++) {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'rate-b'; b.textContent = i;
-      b.setAttribute('aria-label', `${K.t('pop.rateTitle')} ${i}/10`);
+      b.setAttribute('aria-label', `${title} ${i}/10`);
       b.addEventListener('click', () => {
         [...box.children].forEach((x, j) => { x.disabled = true; x.classList.toggle('on', j + 1 <= i); });
         K.rateSend(popQuiz, i, !popDuel && popQuiz.place.via === 'gps');
