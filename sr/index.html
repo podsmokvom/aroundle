@@ -45,7 +45,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css?v=202611120834">
+  <link rel="stylesheet" href="css/style.css?v=202611120838">
   <!-- strukturirani podaci za pretraživače -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebApplication","name":"Aroundle","url":"https://aroundle.com/",
@@ -185,6 +185,12 @@
       <h2 id="resTitle"></h2>
       <p id="resPoints" class="respoints"></p>
       <p id="resText"></p>
+      <!-- ocena kraja 1–10 (može da se preskoči; ne blokira deljenje) -->
+      <div id="rateBox" class="ratebox">
+        <div class="rate-q"><strong data-i18n="rate.q">Rate this hood.</strong> <span class="muted small" data-i18n="rate.hint"></span></div>
+        <div id="rateBtns" class="rate-btns"></div>
+        <p id="rateMsg" class="muted small" hidden></p>
+      </div>
       <div id="duelResult" class="duel" hidden>
         <p id="cmpLine" class="cmp"></p>
         <p id="cmpVerdict"></p>
@@ -268,26 +274,26 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="js/lang/sr.js?v=202611120834"></script>
-  <script src="js/lang/hr.js?v=202611120834"></script>
-  <script src="js/lang/bs.js?v=202611120834"></script>
-  <script src="js/lang/en.js?v=202611120834"></script>
-  <script src="js/lang/de.js?v=202611120834"></script>
-  <script src="js/lang/fr.js?v=202611120834"></script>
-  <script src="js/lang/es.js?v=202611120834"></script>
-  <script src="js/lang/ru.js?v=202611120834"></script>
-  <script src="js/lang/extras.js?v=202611120834"></script>
-  <script src="js/i18n.js?v=202611120834"></script>
-  <script src="js/util.js?v=202611120834"></script>
-  <script src="js/sources.js?v=202611120834"></script>
-  <script src="js/tiles.js?v=202611120834"></script>
-  <script src="js/overture.js?v=202611120834"></script>
-  <script src="js/taxonomy.js?v=202611120834"></script>
-  <script src="js/questions.js?v=202611120834"></script>
-  <script src="js/build.js?v=202611120834"></script>
-  <script src="js/duel.js?v=202611120834"></script>
-  <script src="js/leaderboard.js?v=202611120834"></script>
-  <script src="js/share-image.js?v=202611120834"></script>
-  <script src="js/app.js?v=202611120834"></script>
+  <script src="js/lang/sr.js?v=202611120838"></script>
+  <script src="js/lang/hr.js?v=202611120838"></script>
+  <script src="js/lang/bs.js?v=202611120838"></script>
+  <script src="js/lang/en.js?v=202611120838"></script>
+  <script src="js/lang/de.js?v=202611120838"></script>
+  <script src="js/lang/fr.js?v=202611120838"></script>
+  <script src="js/lang/es.js?v=202611120838"></script>
+  <script src="js/lang/ru.js?v=202611120838"></script>
+  <script src="js/lang/extras.js?v=202611120838"></script>
+  <script src="js/i18n.js?v=202611120838"></script>
+  <script src="js/util.js?v=202611120838"></script>
+  <script src="js/sources.js?v=202611120838"></script>
+  <script src="js/tiles.js?v=202611120838"></script>
+  <script src="js/overture.js?v=202611120838"></script>
+  <script src="js/taxonomy.js?v=202611120838"></script>
+  <script src="js/questions.js?v=202611120838"></script>
+  <script src="js/build.js?v=202611120838"></script>
+  <script src="js/duel.js?v=202611120838"></script>
+  <script src="js/leaderboard.js?v=202611120838"></script>
+  <script src="js/share-image.js?v=202611120838"></script>
+  <script src="js/app.js?v=202611120838"></script>
 </body>
 </html>

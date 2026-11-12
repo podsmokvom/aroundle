@@ -151,6 +151,10 @@
       'One quiz per neighbourhood per day — a new one comes tomorrow. You can play as many different neighbourhoods as you like.', 'Ein Quiz pro Viertel und Tag — morgen gibt es ein neues. Du kannst beliebig viele Viertel spielen.',
       'Un quiz par quartier et par jour — un nouveau arrive demain. Tu peux jouer autant de quartiers que tu veux.', 'Un quiz por barrio al día; mañana llega uno nuevo. Puedes jugar todos los barrios que quieras.',
       'Один квиз на район в день — новый будет завтра. Районов можно играть сколько угодно.'),
+    // ocena kraja posle rezultata
+    'rate.q': C('Oceni ovaj kraj.', 'Ocijeni ovaj kvart.', 'Ocijeni ovo naselje.', 'Rate this hood.', 'Bewerte dieses Viertel.', 'Note ce quartier.', 'Puntúa este barrio.', 'Оцени этот район.'),
+    'rate.hint': C('1–10, možeš i da preskočiš', '1–10, možeš i preskočiti', '1–10, možeš i preskočiti', '1–10, optional', '1–10, freiwillig', '1–10, facultatif', '1–10, opcional', '1–10, по желанию'),
+    'rate.thanks': C('Hvala! Tvoja ocena: {n}/10', 'Hvala! Tvoja ocjena: {n}/10', 'Hvala! Tvoja ocjena: {n}/10', 'Thanks! Your rating: {n}/10', 'Danke! Deine Bewertung: {n}/10', 'Merci ! Ta note : {n}/10', '¡Gracias! Tu nota: {n}/10', 'Спасибо! Твоя оценка: {n}/10'),
     'home.correct': C('tačnih', 'točnih', 'tačnih', 'correct', 'richtig', 'justes', 'aciertos', 'верных'),
     'home.nPlayers': C('igrača: {n}', 'igrača: {n}', 'igrača: {n}', 'players: {n}', 'Spieler: {n}', 'joueurs : {n}', 'jugadores: {n}', 'игроков: {n}'),
     'home.empty': C('Danas još niko — budi prvi! 🚀', 'Danas još nitko — budi prvi! 🚀', 'Danas još niko — budi prvi! 🚀', 'Nobody yet today — be the first! 🚀', 'Heute noch niemand — sei der Erste! 🚀',

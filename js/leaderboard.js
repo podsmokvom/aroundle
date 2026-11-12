@@ -61,6 +61,17 @@
     } catch (e) { /* analitika nikad ne sme da pokvari igru */ }
   };
 
+  // ocena kraja 1–10 (api/rate.php): kraj, grad, zemlja, jezik, „moja lokacija“ da/ne — bez koordinata i imena
+  K.rateSend = function (quiz, rating, mine) {
+    try {
+      fetch(`${K.API}rate.php`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+        body: JSON.stringify({ hood: K.hoodKey(quiz.place), hood_name: quiz.place.kraj || '', city: K.cityKey(quiz.place),
+          country: quiz.place.country || '', lang: K.lang, rating, mine: !!mine })
+      }).catch(() => {});
+    } catch (e) { /* ocena nikad ne sme da pokvari igru */ }
+  };
+
   // brojač odigranih kvizova (GET ukupno, POST +1 kad se kviz završi)
   K.countGet = async function () {
     const r = await fetch(`${K.API}count.php`);

@@ -117,7 +117,9 @@
     return [lat + (SHIFT_M * Math.cos(a)) / 111320, lon + (SHIFT_M * Math.sin(a)) / (111320 * Math.cos(lat * Math.PI / 180))];
   }
 
-  async function setPoint(rawLat, rawLon, noShift) {
+  // via: 'gps' = „Moja lokacija“ (igrač je tu), 'other' = pretraga / klik na mapu; ponovni poziv (noShift) zadržava prethodno
+  async function setPoint(rawLat, rawLon, noShift, via) {
+    via = via || (noShift && place && place.via) || 'other';
     openMap();
     const [lat, lon] = noShift ? [rawLat, rawLon] : shift(rawLat, rawLon); // već pomerena tačka se ne pomera ponovo
     show($('picked')); show($('pickedInfo'));
@@ -147,7 +149,7 @@
     // ime koje igrač ne može da pročita (npr. persijsko „بهار“ u engleskom kvizu): grad, ili bez imena kraja
     if (!K.readable(p.kraj)) p.kraj = K.readable(p.grad) ? p.grad : '';
     if (!K.readable(p.grad)) p.grad = '';
-    place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5) };
+    place = { ...p, lat: +lat.toFixed(5), lon: +lon.toFixed(5), via };
     if (marker) { marker.setLatLng([place.lat, place.lon]); circle.setLatLng([place.lat, place.lon]); }
     else {
       marker = L.marker([place.lat, place.lon]).addTo(map).bindTooltip(K.t('pick.marker'));
@@ -220,7 +222,7 @@
     navigator.geolocation.getCurrentPosition(
       (p) => {
         $('locate').disabled = false;
-        setPoint(p.coords.latitude, p.coords.longitude).then(() => {
+        setPoint(p.coords.latitude, p.coords.longitude, false, 'gps').then(() => {
           // „Moja lokacija“: jezik države u kojoj je igrač (engleski ako je nemamo), osim ako je jezik sam izabrao
           if (!K.langManual && place && place.country && K.useLang(K.langForCountry(place.country))) {
             sel.value = K.lang;
@@ -286,6 +288,7 @@
       }
       stopFun();
       show($('progress'), false);
+      q.place.via = place.via || 'other'; // keš ne zna kako je kraj izabran ovog puta
       play(q);
     } catch (err) {
       stopFun(); say(K.t('load.error', { err: err.message }));
@@ -509,7 +512,28 @@
     makeShare(); // ikonice za deljenje odmah, bez dodatnog klika
     K.countAdd(quiz.place).then(showCount).catch(() => {});
     K.answersSend(quiz, answers, !!duelFrom); // anonimna analitika po temama (bez imena i tačne lokacije)
+    setupRating(quiz, !!duelFrom);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Ocena kraja 1–10 posle rezultata (može da se preskoči). Uz ocenu ide samo: da li je igrano na „Mojoj lokaciji“
+  // (igrač je tu — živi ili prolazi) ili za drugi kraj; plus kraj, jezik i datum. Bez koordinata i ličnih podataka.
+  function setupRating(q, isDuel) {
+    const box = $('rateBtns');
+    box.innerHTML = '';
+    show($('rateMsg'), false);
+    for (let i = 1; i <= 10; i++) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'rate-b'; b.textContent = i;
+      b.setAttribute('aria-label', `${K.t('rate.q')} ${i}/10`);
+      b.addEventListener('click', () => {
+        [...box.children].forEach((x, j) => { x.disabled = true; x.classList.toggle('on', j + 1 <= i); });
+        K.rateSend(q, i, !isDuel && q.place.via === 'gps');
+        $('rateMsg').textContent = K.t('rate.thanks', { n: i });
+        show($('rateMsg'));
+      });
+      box.appendChild(b);
+    }
   }
 
   // Pregled „pokaži na mapi“: mala mapa sa tačnim mestom (zeleno, sa krugom tolerancije) i tvojim pinom (crveno)

@@ -248,7 +248,7 @@
 
     return {
       created: Date.now(), day,
-      place: { kraj: place.kraj, grad: place.grad, krajKey: place.krajKey || '', gradKey: place.gradKey || '', country: place.country || '', lat, lon },
+      place: { via: place.via || 'other', kraj: place.kraj, grad: place.grad, krajKey: place.krajKey || '', gradKey: place.gradKey || '', country: place.country || '', lat, lon },
       scope: first ? first.title : '', scopeKey: first ? first.key : '',
       notes, questions
     };

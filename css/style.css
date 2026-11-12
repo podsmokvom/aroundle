@@ -429,3 +429,11 @@ body.playing a.home { cursor: default; pointer-events: none; }
 .about details { border-top: 1px dashed var(--line); padding: 8px 0; }
 .about summary { cursor: pointer; font-weight: 700; color: var(--blue); }
 .about details p { margin: 6px 0 0; color: var(--muted); }
+/* ocena kraja 1–10 */
+.ratebox { margin: 8px 0 14px; padding: 10px 12px; border: 2px dashed var(--line); border-radius: 12px; }
+.rate-q { margin-bottom: 8px; }
+.rate-btns { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.rate-b { padding: 8px 0; min-width: 0; border-radius: 8px; font-family: "Bangers", Impact, sans-serif; font-size: 1.1rem; background: var(--card); color: #1a1a1a; }
+.rate-b.on { background: var(--accent); color: #fff; }
+.rate-b:disabled { opacity: 1; cursor: default; }
+#rateMsg { margin: 8px 0 0; }
