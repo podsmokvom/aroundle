@@ -13,6 +13,7 @@ page() { # lang  html-lang  og-locale  title  description
       -e "s|<meta property=\"og:title\" content=\"[^\"]*\">|<meta property=\"og:title\" content=\"$4\">|" \
       -e "s|<meta property=\"og:description\" content=\"[^\"]*\">|<meta property=\"og:description\" content=\"$5\">|" \
       -e "s|<meta property=\"og:locale\" content=\"[^\"]*\">|<meta property=\"og:locale\" content=\"$3\">|" \
+      -e "/data-root-only/d" \
       -e "s|<!--LANG-PAGE-->|<link rel=\"canonical\" href=\"https://aroundle.com/$L/\">\n  <meta property=\"og:url\" content=\"https://aroundle.com/$L/\">|" \
       index.html > "$L/index.html"
   echo "$L/index.html"
