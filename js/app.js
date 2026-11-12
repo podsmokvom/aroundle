@@ -64,12 +64,21 @@
       if (hsAuto && hsPeriod === '24h' && !players.length) { hsPeriod = 'all'; hsAuto = false; return homeStats(true); }
       document.querySelectorAll('#hsTabs [data-hp]').forEach((b) => b.classList.toggle('on', b.dataset.hp === hsPeriod));
       const where = (r) => [r.hood_name, r.city].filter((s, i, a) => s && a.indexOf(s) === i).join(', ');
-      $('hsPlayers').innerHTML = players.length ? players.slice(0, 5).map((r) =>
-        `<li><span title="${K.esc((r.country || '').toUpperCase())}">${flag(r.country)}</span> <strong>${K.esc(r.name)}</strong> · ${K.unitP(r.points)} · ${r.correct}/${r.total} <span class="muted small">(${K.esc(where(r))})</span></li>`).join('')
-        : `<li class="muted">${K.esc(K.t('home.empty'))}</li>`;
-      $('hsHoods').innerHTML = hoods.rows.length ? hoods.rows.slice(0, 5).map((r) =>
-        `<li><span title="${K.esc((r.country || '').toUpperCase())}">${flag(r.country)}</span> <strong>${K.esc(where(r))}</strong> · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`).join('')
-        : `<li class="muted">${K.esc(K.t('lb.hoodsEmpty', { n: hoods.min }))}</li>`;
+      // ujednačeni redovi: mesto (1–3 zlato/srebro/bronza) · zastava + ime · ispod kraj i grad · desno rezultat
+      const rank = (i) => `<span class="hs-rank r${i + 1}">${i + 1}</span>`;
+      const flg = (cc) => (cc ? `<span class="hs-flag" title="${K.esc(cc.toUpperCase())}">${flag(cc)}</span>` : '');
+      const empty = (msg) => `<li class="hs-empty">${K.esc(msg)}</li>`;
+      $('hsPlayers').innerHTML = players.length ? players.slice(0, 5).map((r, i) =>
+        `<li class="hs-row">${rank(i)}<div class="hs-main"><div class="hs-name">${flg(r.country)}${K.esc(r.name)}</div>` +
+        `<div class="hs-sub">${K.esc(where(r))}</div></div>` +
+        `<div class="hs-val"><b>${K.fmtNum(r.points, 0)}</b><span>${K.esc(K.t('u.p'))} · ${r.correct}/${r.total}</span></div></li>`).join('')
+        : empty(K.t('home.empty'));
+      $('hsHoods').innerHTML = hoods.rows.length ? hoods.rows.slice(0, 5).map((r, i) =>
+        `<li class="hs-row">${rank(i)}<div class="hs-main"><div class="hs-name">${flg(r.country)}${K.esc(r.hood_name || r.city)}</div>` +
+        `<div class="hs-sub">${K.esc([r.city !== r.hood_name ? r.city : '', K.t('home.nPlayers', { n: r.players })].filter(Boolean).join(' · '))}</div>` +
+        `<div class="hs-bar"><i style="width:${Math.max(0, Math.min(100, +r.pct || 0))}%"></i></div></div>` +
+        `<div class="hs-val"><b>${r.pct}%</b><span>${K.esc(K.t('home.correct'))}</span></div></li>`).join('')
+        : empty(K.t('lb.hoodsEmpty', { n: hoods.min }));
       show($('homeStats'), !$('pick').hidden);
     } catch (e) { show($('homeStats'), false); hsAt = 0; }
   }

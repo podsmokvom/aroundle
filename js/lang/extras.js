@@ -109,6 +109,8 @@
     'home.p24': C('Poslednja 24 h', 'Zadnja 24 h', 'Zadnja 24 h', 'Last 24 h', 'Letzte 24 Std.', 'Dernières 24 h', 'Últimas 24 h', 'За 24 часа'),
     'home.pall': C('Svih vremena', 'Svih vremena', 'Svih vremena', 'All time', 'Insgesamt', 'De tous les temps', 'De siempre', 'За всё время'),
     'home.hoods': C('Najbolje poznati krajevi', 'Najbolje poznati kvartovi', 'Najbolje poznata naselja', 'Best-known hoods', 'Am besten gekannte Viertel', 'Quartiers les mieux connus', 'Barrios mejor conocidos', 'Лучше всего известные районы'),
+    'home.correct': C('tačnih', 'točnih', 'tačnih', 'correct', 'richtig', 'justes', 'aciertos', 'верных'),
+    'home.nPlayers': C('igrača: {n}', 'igrača: {n}', 'igrača: {n}', 'players: {n}', 'Spieler: {n}', 'joueurs : {n}', 'jugadores: {n}', 'игроков: {n}'),
     'home.empty': C('Danas još niko — budi prvi! 🚀', 'Danas još nitko — budi prvi! 🚀', 'Danas još niko — budi prvi! 🚀', 'Nobody yet today — be the first! 🚀', 'Heute noch niemand — sei der Erste! 🚀',
       'Personne encore aujourd’hui — sois le premier ! 🚀', 'Hoy todavía nadie — ¡sé el primero! 🚀', 'Сегодня ещё никого — будь первым! 🚀'),
     'nav.home': C('Aroundle — početna', 'Aroundle — početna', 'Aroundle — početna', 'Aroundle — home', 'Aroundle — Startseite', 'Aroundle — accueil', 'Aroundle — inicio', 'Aroundle — главная'),

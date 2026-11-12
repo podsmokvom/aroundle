@@ -403,3 +403,22 @@ a.home:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; bord
 @media (max-width: 600px) { .hs-cols { grid-template-columns: 1fr; } }
 /* tokom kviza logo nije link (kviz se ne prekida) */
 body.playing a.home { cursor: default; pointer-events: none; }
+
+/* ---------- Rang-liste na početnoj: ujednačeni redovi ---------- */
+.hs-list { list-style: none; padding: 0; margin: 6px 0 0; }
+.hs-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px dashed var(--line); }
+.hs-row:last-child { border-bottom: 0; }
+.hs-rank { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #1a1a1a;
+  background: var(--card); color: #1a1a1a; font-family: "Bangers", Impact, sans-serif; font-size: 1.05rem; line-height: 1; }
+.hs-rank.r1 { background: #f2c230; } .hs-rank.r2 { background: #cfd4da; } .hs-rank.r3 { background: #d99a5b; }
+.hs-main { min-width: 0; }
+.hs-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-flag { margin-right: 6px; }
+.hs-sub { color: var(--muted); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-val { text-align: right; line-height: 1.1; }
+.hs-val b { display: block; font-family: "Bangers", Impact, sans-serif; font-weight: 400; font-size: 1.35rem; letter-spacing: .02em; color: var(--accent); }
+.hs-val span { color: var(--muted); font-size: .75rem; white-space: nowrap; }
+.hs-bar { height: 6px; margin-top: 4px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.hs-bar i { display: block; height: 100%; background: var(--blue); }
+.hs-empty { color: var(--muted); font-size: .9rem; padding: 8px 4px; }
+.homestats h3 { color: var(--blue); text-transform: none; }
