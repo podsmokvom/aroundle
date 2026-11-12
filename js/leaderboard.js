@@ -43,6 +43,24 @@
     if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
     return j.rows;
   };
+  // Anonimna analitika (api/answers.php): po pitanju samo tema / KD / vrsta znanja, tačno-netačno, vreme;
+  // uz to kraj, ćelija ~1 km, zemlja i jezik igre. Bez imena i tačne lokacije. Ne blokira igru ako ne uspe.
+  K.answersSend = function (quiz, answers, isDuel) {
+    try {
+      const id = Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+      const body = JSON.stringify({
+        quiz: id, hood: K.hoodKey(quiz.place), city: K.cityKey(quiz.place), country: quiz.place.country || '', lang: K.lang,
+        lat: +(+quiz.place.lat).toFixed(2), lon: +(+quiz.place.lon).toFixed(2), duel: !!isDuel,
+        answers: answers.map((a) => {
+          const c = K.classify(a.q);
+          return { cat: a.q.cat, kind: a.q.kind || '', theme: c.theme, theme2: c.theme2 || '', kd: c.kd || '', skills: c.skills,
+            level: a.q.level || '', ok: !!a.ok, secs: Math.round(a.t || 0), dist: a.dist != null ? Math.round(a.dist) : null };
+        })
+      });
+      fetch(`${K.API}answers.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    } catch (e) { /* analitika nikad ne sme da pokvari igru */ }
+  };
+
   // brojač odigranih kvizova (GET ukupno, POST +1 kad se kviz završi)
   K.countGet = async function () {
     const r = await fetch(`${K.API}count.php`);

@@ -30,7 +30,7 @@
       p: { k: quiz.place.kraj, g: quiz.place.grad, kk: quiz.place.krajKey || undefined, gk: quiz.place.gradKey || undefined, c: quiz.place.country, la: +quiz.place.lat.toFixed(3), lo: +quiz.place.lon.toFixed(3) }, // ~100 m, ne tačna adresa
       s: quiz.scope, n: (name || "").slice(0, 24), r: res.score, pt: res.points, t: res.time, ok: res.oks.map((x) => (x ? 1 : 0)),
       q: quiz.questions.map((q) => ({
-        c: q.cat, t: q.text, o: q.options, a: q.answer, e: q.explain, x: q.outsider ? 1 : 0,
+        c: q.cat, k: q.kind || undefined, t: q.text, o: q.options, a: q.answer, e: q.explain, x: q.outsider ? 1 : 0,
         sn: q.source && q.source.name, su: q.source && shortUrl(q.source.url),
         tg: q.target ? [+q.target.lat.toFixed(6), +q.target.lon.toFixed(6), q.target.tol] : undefined
       }))
@@ -71,7 +71,7 @@
         place: { kraj: d.p.k, grad: d.p.g, krajKey: d.p.kk || '', gradKey: d.p.gk || '', country: d.p.c || "", lat: d.p.la, lon: d.p.lo },
         scope: d.s, notes: [],
         questions: d.q.map((q) => ({
-          cat: q.c, text: q.t, options: q.o || [], answer: q.a, explain: q.e || '', outsider: !!q.x,
+          cat: q.c, kind: q.k || null, text: q.t, options: q.o || [], answer: q.a, explain: q.e || '', outsider: !!q.x,
           source: { name: q.sn || '', url: q.su || '' },
           ...(q.tg ? { type: 'map', target: { lat: q.tg[0], lon: q.tg[1], tol: q.tg[2] } } : {})
         }))

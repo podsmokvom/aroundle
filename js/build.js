@@ -3,7 +3,7 @@
 (function (K) {
   'use strict';
   const TARGET = 10;
-  const CACHE_VER = 'kviz:v7:';
+  const CACHE_VER = 'kviz:v8:';
   const CACHE_DAYS = 30;
 
   // ---------------- Keš (localStorage) ----------------

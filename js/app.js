@@ -498,6 +498,7 @@
     reviewMaps();
     makeShare(); // ikonice za deljenje odmah, bez dodatnog klika
     K.countAdd(quiz.place).then(showCount).catch(() => {});
+    K.answersSend(quiz, answers, !!duelFrom); // anonimna analitika po temama (bez imena i tačne lokacije)
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

@@ -33,7 +33,7 @@
     if (![o.correct, ...wrongs, o.text].every(K.readable)) return null;
     const options = K.shuffle([o.correct, ...wrongs]);
     return {
-      cat: o.cat, text: o.text, options, answer: options.indexOf(o.correct),
+      cat: o.cat, kind: o.kind || null, text: o.text, options, answer: options.indexOf(o.correct),
       explain: o.explain || '', source: o.source, outsider: !!o.outsider, fact: o.fact || ''
     };
   }
@@ -283,7 +283,7 @@
       const pats = [[-3, -2, -1], [-2, -1, 1], [-1, 1, 2], [1, 2, 3]].filter((p) => c + p[0] * step >= 0);
       const p = K.pick(pats);
       const q = makeQ({
-        cat: 'svcCount', text: K.t('q.svcCount', { many: many(k), one: one(k), scope }),
+        cat: 'svcCount', kind: k, text: K.t('q.svcCount', { many: many(k), one: one(k), scope }),
         correct: String(c), wrongs: p.map((x) => String(c + x * step)),
         explain: K.t('q.svcCount.explain', { n: c, one: one(k), scope }), source: src,
         fact: K.t('q.svcCount.fact', { n: c, many: many(k), one: one(k) })
@@ -296,7 +296,7 @@
     if (full && ranked.length >= 4 && count[ranked[0]] - count[ranked[1]] >= 2) {
       const opts = [ranked[0], ...K.shuffle(ranked.slice(1)).slice(0, 3)];
       const q = makeQ({
-        cat: 'svcMost', text: K.t('q.svcMost', { scope }),
+        cat: 'svcMost', kind: opts[0], text: K.t('q.svcMost', { scope }),
         correct: cap(one(opts[0])), wrongs: opts.slice(1).map((k) => cap(one(k))),
         explain: opts.map((k) => `${one(k)}: ${count[k]}`).join(', ') + '.', source: src
       });
@@ -308,7 +308,7 @@
     if (near.length >= 4 && nearest[near[1]].d - nearest[near[0]].d >= 120) { // oba mesta mogu biti „pomerena“ do 50 m
       const opts = [near[0], ...K.shuffle(near.slice(1, 8)).slice(0, 3)];
       const q = makeQ({
-        cat: 'svcNear', text: K.t('q.svcNear'),
+        cat: 'svcNear', kind: opts[0], text: K.t('q.svcNear'),
         correct: cap(one(opts[0])), wrongs: opts.slice(1).map((k) => cap(one(k))),
         explain: K.t('q.svcNear.explain', { list: opts.map((k) => `${one(k)}: ${meters(nearest[k].d)}`).join(', ') }), source: src
       });
@@ -323,7 +323,7 @@
       if (BINS.some((b) => Math.abs(d - b[0]) < 60 && b[0] > 0)) continue; // preblizu granice (tačka je pomerena do 50 m)
       const labels = BINS.map((b) => K.t(b[2]));
       const q = makeQ({
-        cat: 'svcDist', text: K.t('q.svcDist', { one: one(k) }),
+        cat: 'svcDist', kind: k, text: K.t('q.svcDist', { one: one(k) }),
         correct: K.t(bin[2]), wrongs: labels.filter((l) => l !== K.t(bin[2])),
         explain: K.t('q.svcDist.explain', { one: one(k), name: nearest[k].name ? ` („${nearest[k].name}“)` : '', d: meters(d) }), source: src
       });
@@ -337,7 +337,7 @@
     if (full && have.length && lack.length >= 3) {
       const k = K.pick(have);
       const q = makeQ({
-        cat: 'svcHave', text: K.t('q.svcHave', { scope }),
+        cat: 'svcHave', kind: k, text: K.t('q.svcHave', { scope }),
         correct: cap(one(k)), wrongs: K.shuffle(lack).map((x) => cap(one(x))),
         explain: K.t('q.svcHave.explain', { scope, one: one(k) }), source: src
       });
@@ -352,7 +352,7 @@
       const pool = K.uniqBy(services.filter((x) => !x.inside && x.kind === s.kind && x.name && !localNames.has(K.norm(x.name)) &&
         x.d > (stage.far || 1500)), (x) => K.norm(x.name)).map((x) => x.name);
       const q = makeQ({
-        cat: 'svcName', names: true, text: K.t('q.svcName', { one: one(s.kind), scope }),
+        cat: 'svcName', kind: s.kind, names: true, text: K.t('q.svcName', { one: one(s.kind), scope }),
         correct: s.name, wrongs: similar(s.name, pool),
         explain: K.t('q.svcName.explain', { name: s.name, src: s.src, scope, d: meters(s.d) }),
         source: { name: s.src === 'Overture' ? 'Overture Maps' : 'OpenStreetMap', url: K.osmUrl(s.id, s.lat, s.lon) }
@@ -411,12 +411,12 @@
     const qs = [];
     const WHAT = { school: 1, kindergarten: 1, park: 1, monument: 1 };
     const cands = K.shuffle(local.items.filter((i) => WHAT[i.cat] && i.lat != null && stage.inside(i.lat, i.lon)))
-      .map((i) => ({ name: i.name, what: K.t('what.' + i.cat), lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: K.osmUrl(i.osmId, i.lat, i.lon) }))
+      .map((i) => ({ kind: i.cat, name: i.name, what: K.t('what.' + i.cat), lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: K.osmUrl(i.osmId, i.lat, i.lon) }))
       .concat(K.shuffle((services || []).filter((s) => s.inside && s.name && ['bakery', 'pharmacy', 'florist', 'shoemaker', 'tailor', 'tyres', 'locksmith'].includes(s.kind)))
-        .map((s) => ({ name: s.name, what: K.svcOne(s.kind), lat: s.lat, lon: s.lon, tol: 150, url: K.osmUrl(s.id, s.lat, s.lon) })));
+        .map((s) => ({ kind: s.kind, name: s.name, what: K.svcOne(s.kind), lat: s.lat, lon: s.lon, tol: 150, url: K.osmUrl(s.id, s.lat, s.lon) })));
     for (const c of K.uniqBy(cands, (c) => K.norm(c.name)).slice(0, 1)) { // jedno pitanje sa mapom po kvizu
       qs.push({
-        cat: 'mapPin', type: 'map', text: K.t('q.map', { what: c.what, name: c.name }),
+        cat: 'mapPin', kind: c.kind, type: 'map', text: K.t('q.map', { what: c.what, name: c.name }),
         options: [], answer: -1, target: { lat: c.lat, lon: c.lon, tol: c.tol },
         explain: K.t('q.map.explain', { what: cap(c.what), name: c.name, tol: c.tol }),
         source: { name: 'OpenStreetMap / Overture', url: c.url }, outsider: false
@@ -459,7 +459,7 @@
       // netačni: suprotan i dva bočna pravca (nikad susedni, da odgovor ne bude sporan)
       const opts = [i, (i + 4) % 8, (i + 2) % 8, (i + 6) % 8].map((k) => K.t('dir.' + DIRS[k]));
       const q = makeQ({
-        cat: 'dir', text: K.t('q.dir', { name: it.name }),
+        cat: 'dir', kind: it.cat, text: K.t('q.dir', { name: it.name }),
         correct: opts[0], wrongs: opts.slice(1),
         explain: K.t('q.dir.explain', { name: it.name, dir: opts[0], d: meters(d) }),
         source: { name: 'OpenStreetMap', url: K.osmUrl(it.osmId, it.lat, it.lon) }
