@@ -87,6 +87,15 @@
   };
 
   // krajevi koje ljudi najbolje poznaju (prosek tačnih odgovora, samo krajevi sa dovoljno igrača)
+  // najbolje ocenjeni krajevi (prosek ocena lokacije 1–10); key = {lat, lon} za „near“
+  K.lbRated = async function (period = 'day', scope = 'near', key = '') {
+    const p = { period, scope };
+    if (scope === 'near') { p.lat = key.lat; p.lon = key.lon; } else if (scope !== 'world') p.key = key || '';
+    const r = await fetch(`${K.API}rated.php?${new URLSearchParams(p)}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return j;
+  };
   K.lbHoods = async function (period = 'all', scope = 'world', key = '') {
     const qs = new URLSearchParams(scope === 'world' ? { period } : { period, scope, key });
     const r = await fetch(`${K.API}hoods.php?${qs}`);

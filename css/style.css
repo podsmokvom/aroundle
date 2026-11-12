@@ -430,10 +430,38 @@ body.playing a.home { cursor: default; pointer-events: none; }
 .about summary { cursor: pointer; font-weight: 700; color: var(--blue); }
 .about details p { margin: 6px 0 0; color: var(--muted); }
 /* ocena kraja 1–10 */
-.ratebox { margin: 8px 0 14px; padding: 10px 12px; border: 2px dashed var(--line); border-radius: 12px; }
-.rate-q { margin-bottom: 8px; }
-.rate-btns { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
 .rate-b { padding: 8px 0; min-width: 0; border-radius: 8px; font-family: "Bangers", Impact, sans-serif; font-size: 1.1rem; background: var(--card); color: #1a1a1a; }
 .rate-b.on { background: var(--accent); color: #fff; }
 .rate-b:disabled { opacity: 1; cursor: default; }
-#rateMsg { margin: 8px 0 0; }
+
+/* ---------- Prozori posle kviza (stil logoa) ---------- */
+.pop { position: fixed; inset: 0; z-index: 1000; background: rgba(26, 26, 26, .42); display: flex; align-items: center; justify-content: center;
+  padding: 70px 30px 30px; overflow-y: auto; }
+body.pop-open { overflow: hidden; }
+.pop-card { position: relative; width: 100%; max-width: 440px; margin: auto; text-align: center; padding: 58px 22px 22px; border-radius: 28px;
+  background: radial-gradient(rgba(31, 58, 147, .16) 1.2px, transparent 1.6px) 0 0 / 14px 14px, #FFFAF0;
+  border: 3px solid #1a1a1a;                                      /* unutrašnja crna ivica */
+  box-shadow: 0 0 0 9px #FFFAF0, 0 0 0 21px #D7262E, 0 0 0 24px #1a1a1a, 7px 9px 0 24px #1a1a1a; /* krem, crveni prsten, crna, comic senka */
+  color: #1a1a1a; }
+.pop-logo { position: absolute; left: 50%; top: -52px; width: 96px; height: 96px; transform: translateX(-50%); border-radius: 50%;
+  background: #FFFAF0; box-shadow: 0 0 0 7px #FFFAF0; }
+.pop-title { margin: 0 0 4px; font-family: "Bangers", Impact, "Arial Black", sans-serif; font-weight: 400; font-size: 2rem; line-height: 1.05;
+  letter-spacing: .02em; color: #D7262E; text-shadow: 2px 2px 0 #1a1a1a; }
+.pop-score { font-family: "Bangers", Impact, sans-serif; font-size: 2.3rem; line-height: 1.1; color: #D7262E; text-shadow: 2px 2px 0 #1a1a1a; }
+.pop-pts { margin: 4px 0 10px; color: #D7262E; font-weight: 700; }
+.pop-cta { margin: 0 0 12px; font-weight: 700; font-size: 1.1rem; }
+.pop-input { box-sizing: border-box; width: 100%; padding: 12px 14px; font: inherit; font-size: 1.05rem; background: #fff; color: #1a1a1a;
+  border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 3px 4px 0 #1a1a1a; margin-bottom: 12px; }
+.pop-btn { display: block; width: 100%; margin: 0 0 10px; padding: 12px 14px; font-size: 1.1rem; font-weight: 700; border-radius: 12px;
+  border: 3px solid #1a1a1a; box-shadow: 3px 4px 0 #1a1a1a; background: #D7262E; color: #fff; }
+.pop-btn.ghost { background: #FFFAF0; color: #D7262E; }
+.pop-btn:last-child { margin-bottom: 0; }
+.pop-bubble { position: relative; display: inline-block; margin: 10px auto 16px; padding: 8px 18px; background: #fff; border: 3px solid #1a1a1a;
+  border-radius: 16px; box-shadow: 3px 4px 0 #1a1a1a; font-weight: 700; font-size: 1.05rem; }
+.pop-bubble::before { content: ""; position: absolute; left: 24%; top: -13px; width: 18px; height: 18px; background: #fff;
+  border-left: 3px solid #1a1a1a; border-top: 3px solid #1a1a1a; transform: rotate(45deg); }
+.pop-rate { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 14px; }
+.pop-rate .rate-b { padding: 12px 0; font-size: 1.45rem; border: 3px solid #1a1a1a; border-radius: 12px; box-shadow: 3px 4px 0 #1a1a1a; background: #FFFAF0; }
+.pop-rate .rate-b.on { background: #D7262E; color: #fff; }
+.pop-msg { margin: 0 0 12px; font-weight: 700; color: #1F3A93; }
+@media (max-width: 400px) { .pop { padding: 66px 28px 28px; } .pop-title { font-size: 1.7rem; } .pop-rate { gap: 7px; } }

@@ -512,29 +512,64 @@
     makeShare(); // ikonice za deljenje odmah, bez dodatnog klika
     K.countAdd(quiz.place).then(showCount).catch(() => {});
     K.answersSend(quiz, answers, !!duelFrom); // anonimna analitika po temama (bez imena i tačne lokacije)
-    setupRating(quiz, !!duelFrom);
+    openPop(quiz, !!duelFrom); // prozori: rezultat + upis, pa ocena lokacije
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Ocena kraja 1–10 posle rezultata (može da se preskoči). Uz ocenu ide samo: da li je igrano na „Mojoj lokaciji“
-  // (igrač je tu — živi ili prolazi) ili za drugi kraj; plus kraj, jezik i datum. Bez koordinata i ličnih podataka.
-  function setupRating(q, isDuel) {
-    const box = $('rateBtns');
+  // Prozori posle kviza (stil logoa): 1) rezultat + upis na rang-listu ili „Neću“, 2) ocena lokacije ili „Preskoči“.
+  // Ocena ide sa: da li je igrano na „Mojoj lokaciji“ (igrač je tu) ili za drugi kraj; plus kraj, jezik, datum — bez koordinata.
+  let popQuiz = null, popDuel = false, popTimer = null;
+  function openPop(q, isDuel) {
+    popQuiz = q; popDuel = isDuel;
+    clearTimeout(popTimer);
+    $('popScore').textContent = `${result.score} / ${result.n}`;
+    $('popPts').textContent = K.t('res.points', { points: K.fmtNum(result.points, 0), time: K.mmss(result.time) });
+    $('popName').value = store.get('kviz:name') || '';
+    $('popSubmit').disabled = false;
+    show($('popLbMsg'), false);
+    show($('popLb')); show($('popRate'), false);
+    show($('pop'));
+    document.body.classList.add('pop-open');
+    setTimeout(() => $('popName').focus({ preventScroll: true }), 50);
+  }
+  function popRateStep() {
+    show($('popLb'), false); show($('popRate'));
+    show($('popRateMsg'), false);
+    const box = $('popRateBtns');
     box.innerHTML = '';
-    show($('rateMsg'), false);
     for (let i = 1; i <= 10; i++) {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'rate-b'; b.textContent = i;
-      b.setAttribute('aria-label', `${K.t('rate.q')} ${i}/10`);
+      b.setAttribute('aria-label', `${K.t('pop.rateTitle')} ${i}/10`);
       b.addEventListener('click', () => {
         [...box.children].forEach((x, j) => { x.disabled = true; x.classList.toggle('on', j + 1 <= i); });
-        K.rateSend(q, i, !isDuel && q.place.via === 'gps');
-        $('rateMsg').textContent = K.t('rate.thanks', { n: i });
-        show($('rateMsg'));
+        K.rateSend(popQuiz, i, !popDuel && popQuiz.place.via === 'gps');
+        $('popRateMsg').textContent = K.t('rate.thanks', { n: i });
+        show($('popRateMsg'));
+        popTimer = setTimeout(closePop, 1400);
       });
       box.appendChild(b);
     }
   }
+  function closePop() {
+    clearTimeout(popTimer);
+    show($('pop'), false);
+    document.body.classList.remove('pop-open');
+  }
+  $('popSubmit').addEventListener('click', async () => {
+    $('popSubmit').disabled = true;
+    const ok = await submitScore($('popName').value);
+    if (ok) popRateStep();
+    else { $('popLbMsg').textContent = $('lbMsg').textContent; show($('popLbMsg')); $('popSubmit').disabled = false; }
+  });
+  $('popName').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('popSubmit').click(); });
+  // „Neću“: ponuda za upis se ne prikazuje ponovo ni na stranici rezultata
+  $('popNo').addEventListener('click', () => { show($('lbForm'), false); popRateStep(); });
+  $('popSkip').addEventListener('click', closePop);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || $('pop').hidden) return;
+    if (!$('popLb').hidden) $('popNo').click(); else closePop();
+  });
 
   // Pregled „pokaži na mapi“: mala mapa sa tačnim mestom (zeleno, sa krugom tolerancije) i tvojim pinom (crveno)
   let rvMaps = [];
@@ -566,7 +601,7 @@
   }
 
   // ---------------- Rang-lista ----------------
-  let lbScope = 'near', lbPeriod = 'day', lbMine = null, hoodScope = 'world';
+  let lbScope = 'near', lbPeriod = 'day', lbMine = null, hoodScope = 'world', ratedScope = 'near';
   async function lbShow() {
     if (!quiz) return;
     const keys = K.lbKeys(quiz.place);
@@ -575,6 +610,22 @@
     $('lbList').innerHTML = `<li class="muted">${K.esc(K.t('lb.loading'))}</li>`;
     try {
       show($('hoodScope'), lbScope === 'hoods');
+      show($('ratedScope'), lbScope === 'rated');
+      if (lbScope === 'rated') {
+        // najbolje ocenjeni krajevi (prosek ocena lokacije); „meštani“ = ocene sa „Moje lokacije“
+        document.querySelectorAll('#ratedScope [data-rscope]').forEach((b) => b.classList.toggle('on', b.dataset.rscope === ratedScope));
+        const j = await K.lbRated(lbPeriod, ratedScope, keys[ratedScope]);
+        const where = ratedScope === 'near' ? K.t('lb.nearLabel', { kraj: quiz.place.kraj || '' })
+          : ratedScope === 'continent' ? (keys.continent ? K.t('cont.' + keys.continent) : K.t('lb.continent'))
+          : ratedScope === 'country' ? ((quiz.place.country || '').toUpperCase() || K.t('lb.country'))
+          : ratedScope === 'city' ? (quiz.place.grad || K.t('lb.city')) : K.t('lb.worldLabel');
+        const mine = K.hoodKey(quiz.place);
+        $('lbList').innerHTML = j.rows.length ? j.rows.map((r) =>
+          `<li class="${r.hood === mine ? 'me' : ''}"><strong>${K.esc(r.hood_name || r.city)}</strong>${r.city && r.city !== r.hood_name ? ', ' + K.esc(r.city) : ''}${r.country ? ' (' + K.esc(r.country.toUpperCase()) + ')' : ''} · <strong>★ ${K.fmtNum(+r.avg, 1)}</strong> <span class="muted small">${K.esc(K.t('lb.ratedN', { n: r.n }))}${+r.mine_n > 0 && r.avg_mine != null ? ' · ' + K.esc(K.t('lb.ratedLocals', { avg: K.fmtNum(+r.avg_mine, 1), n: r.mine_n })) : ''}</span></li>`
+        ).join('') : `<li class="muted">${K.esc(K.t('lb.ratedEmpty', { n: j.min }))}</li>`;
+        $('lbMsg').textContent = `${K.t(lbPeriod === 'all' ? 'lb.ever' : 'lb.today')} · ${where}: ${K.t('lb.ratedLabel', { n: j.min })}`;
+        return;
+      }
       if (lbScope === 'hoods') {
         document.querySelectorAll('#hoodScope [data-hscope]').forEach((b) => b.classList.toggle('on', b.dataset.hscope === hoodScope));
         const j = await K.lbHoods(lbPeriod, hoodScope, keys[hoodScope]);
@@ -601,10 +652,13 @@
   }
   document.querySelectorAll('.tabs [data-scope]').forEach((b) => b.addEventListener('click', () => { lbScope = b.dataset.scope; lbShow(); }));
   document.querySelectorAll('#hoodScope [data-hscope]').forEach((b) => b.addEventListener('click', () => { hoodScope = b.dataset.hscope; lbShow(); }));
+  document.querySelectorAll('#ratedScope [data-rscope]').forEach((b) => b.addEventListener('click', () => { ratedScope = b.dataset.rscope; lbShow(); }));
   document.querySelector('.tabs [data-period]').addEventListener('click', () => { lbPeriod = lbPeriod === 'all' ? 'day' : 'all'; lbShow(); });
-  $('lbSubmit').addEventListener('click', async () => {
-    const name = $('lbName').value.trim() || K.t('share.defaultName');
+  // upis na rang-listu (iz prozora posle kviza ili sa stranice rezultata); posle upisa ponuda se više ne prikazuje
+  async function submitScore(rawName) {
+    const name = String(rawName || '').trim() || K.t('share.defaultName');
     store.set('kviz:name', name);
+    $('lbName').value = name;
     $('lbSubmit').disabled = true;
     try {
       const r = await K.lbSubmit(quiz.place, name, result);
@@ -613,10 +667,12 @@
     } catch (e) {
       $('lbMsg').textContent = K.t('lb.fail', { err: e.message });
       $('lbSubmit').disabled = false;
-      return;
+      return false;
     }
     lbShow();
-  });
+    return true;
+  }
+  $('lbSubmit').addEventListener('click', () => submitScore($('lbName').value));
 
   $('returnBtn').addEventListener('click', () => {
     show($('result'), false);
