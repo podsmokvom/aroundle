@@ -422,3 +422,10 @@ body.playing a.home { cursor: default; pointer-events: none; }
 .hs-bar i { display: block; height: 100%; background: var(--blue); }
 .hs-empty { color: var(--muted); font-size: .9rem; padding: 8px 4px; }
 .homestats h3 { color: var(--blue); text-transform: none; }
+/* „Kako radi Aroundle“ na početnoj */
+.about h2 { margin-top: 0; }
+.about-steps { margin: 6px 0 10px; padding-left: 22px; }
+.about-steps li { margin: 4px 0; }
+.about details { border-top: 1px dashed var(--line); padding: 8px 0; }
+.about summary { cursor: pointer; font-weight: 700; color: var(--blue); }
+.about details p { margin: 6px 0 0; color: var(--muted); }

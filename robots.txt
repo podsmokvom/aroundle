@@ -1,0 +1,7 @@
+# Aroundle — dnevni kviz o kraju (https://aroundle.com)
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /tools/
+
+Sitemap: https://aroundle.com/sitemap.xml

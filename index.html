@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="sr-Latn">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aroundle</title>
+  <title>Aroundle — How well do you know your neighbourhood? Daily local quiz</title>
   <link rel="icon" href="assets/brand/favicon.ico" sizes="any">
   <link rel="icon" href="assets/brand/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="icon" href="assets/brand/favicon-16.png" type="image/png" sizes="16x16">
@@ -13,8 +13,13 @@
   <meta name="description" content="Aroundle — koliko poznaješ svoj kraj? 10 pitanja o bilo kom kraju: ulice, škole, radnje, gradski prevoz. Izazovi komšiju! · How well do you know your hood? 10 questions, dare your neighbour!">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Aroundle — Koliko poznaješ svoj kraj? · How well do you know your hood?">
-  <meta property="og:locale" content="sr_RS">
-  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="sr_RS">
+  <meta property="og:locale:alternate" content="hr_HR">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:locale:alternate" content="fr_FR">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta property="og:locale:alternate" content="ru_RU">
   <meta property="og:site_name" content="Aroundle">
   <meta property="og:description" content="10 pitanja o tvom kraju. Izazovi komšiju! · 10 questions about your hood. Dare your neighbour!">
   <meta property="og:image" content="https://aroundle.com/assets/brand/og-image-1200x630.png">
@@ -27,7 +32,15 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css?v=202611120653">
+  <link rel="stylesheet" href="css/style.css?v=202611120748">
+  <!-- strukturirani podaci za pretraživače -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"Aroundle","url":"https://aroundle.com/",
+   "description":"A free daily quiz about any neighbourhood: 10 questions from open data about the streets, shops, schools, transit, history and nature within 1 km of your spot.",
+   "applicationCategory":"GameApplication","operatingSystem":"Any (web browser)","isAccessibleForFree":true,
+   "inLanguage":["en","sr","hr","bs","de","fr","es","ru"],"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},
+   "author":{"@type":"Person","name":"Duca","url":"https://x.com/podsmokvom"},"license":"https://opensource.org/licenses/MIT"}
+  </script>
 </head>
 <body>
   <header class="top">
@@ -40,7 +53,7 @@
       </div>
       <label class="langsel"><span class="sr-only" data-i18n="lang.label"></span><select id="langSel" data-i18n-aria="lang.label"></select></label>
     </div>
-    <p class="lead" data-i18n="brand.lead"></p>
+    <p class="lead" data-i18n="brand.lead">Pick your hood (any spot in it, not your home address) and get 10 questions about it.</p>
   </header>
 
   <main>
@@ -89,6 +102,21 @@
         </div>
       </div>
     </section>
+
+    <!-- O igri: vidljivo i bez JavaScript-a (pretraživači, pregled linkova); JS prevodi na jezik igrača -->
+    <section id="about" class="card about">
+      <h2 data-i18n="about.title">How Aroundle works</h2>
+      <ol class="about-steps">
+        <li data-i18n="about.s1">Pick your hood: search for a street, park or school, or use your location (never your home address).</li>
+        <li data-i18n="about.s2">Get 10 questions about the 1 km around it, built from open data: streets, schools, shops, public transport, history and nature.</li>
+        <li data-i18n="about.s3">Answer fast for more points, then dare a friend with the same questions and climb the leaderboards.</li>
+      </ol>
+      <details><summary data-i18n="about.q1">Is Aroundle free?</summary><p data-i18n="about.a1">Yes. It is a free, non-commercial, open-source game (MIT licence), without accounts or ads.</p></details>
+      <details><summary data-i18n="about.q2">Where do the questions come from?</summary><p data-i18n="about.a2">From templates over open data — OpenStreetMap, Overture Maps, Wikipedia and Wikidata, GBIF, Transitous and Open-Meteo. No AI writes the questions, and only facts found in the sources are asked.</p></details>
+      <details><summary data-i18n="about.q3">Does it track my location?</summary><p data-i18n="about.a3">No. Your spot is moved 50 m in a random direction before anything is sent to the data sources. There are no accounts; answers are recorded anonymously, without names or exact location.</p></details>
+      <details><summary data-i18n="about.q4">How often can I play?</summary><p data-i18n="about.a4">One quiz per neighbourhood per day — a new one comes tomorrow. You can play as many different neighbourhoods as you like.</p></details>
+    </section>
+<noscript><p class="card">Aroundle needs JavaScript to build your quiz. Please enable it in your browser.</p></noscript>
 
     <!-- 2. Pravljenje -->
     <section id="progress" class="card" hidden>
@@ -227,26 +255,26 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="js/lang/sr.js?v=202611120653"></script>
-  <script src="js/lang/hr.js?v=202611120653"></script>
-  <script src="js/lang/bs.js?v=202611120653"></script>
-  <script src="js/lang/en.js?v=202611120653"></script>
-  <script src="js/lang/de.js?v=202611120653"></script>
-  <script src="js/lang/fr.js?v=202611120653"></script>
-  <script src="js/lang/es.js?v=202611120653"></script>
-  <script src="js/lang/ru.js?v=202611120653"></script>
-  <script src="js/lang/extras.js?v=202611120653"></script>
-  <script src="js/i18n.js?v=202611120653"></script>
-  <script src="js/util.js?v=202611120653"></script>
-  <script src="js/sources.js?v=202611120653"></script>
-  <script src="js/tiles.js?v=202611120653"></script>
-  <script src="js/overture.js?v=202611120653"></script>
-  <script src="js/taxonomy.js?v=202611120653"></script>
-  <script src="js/questions.js?v=202611120653"></script>
-  <script src="js/build.js?v=202611120653"></script>
-  <script src="js/duel.js?v=202611120653"></script>
-  <script src="js/leaderboard.js?v=202611120653"></script>
-  <script src="js/share-image.js?v=202611120653"></script>
-  <script src="js/app.js?v=202611120653"></script>
+  <script src="js/lang/sr.js?v=202611120748"></script>
+  <script src="js/lang/hr.js?v=202611120748"></script>
+  <script src="js/lang/bs.js?v=202611120748"></script>
+  <script src="js/lang/en.js?v=202611120748"></script>
+  <script src="js/lang/de.js?v=202611120748"></script>
+  <script src="js/lang/fr.js?v=202611120748"></script>
+  <script src="js/lang/es.js?v=202611120748"></script>
+  <script src="js/lang/ru.js?v=202611120748"></script>
+  <script src="js/lang/extras.js?v=202611120748"></script>
+  <script src="js/i18n.js?v=202611120748"></script>
+  <script src="js/util.js?v=202611120748"></script>
+  <script src="js/sources.js?v=202611120748"></script>
+  <script src="js/tiles.js?v=202611120748"></script>
+  <script src="js/overture.js?v=202611120748"></script>
+  <script src="js/taxonomy.js?v=202611120748"></script>
+  <script src="js/questions.js?v=202611120748"></script>
+  <script src="js/build.js?v=202611120748"></script>
+  <script src="js/duel.js?v=202611120748"></script>
+  <script src="js/leaderboard.js?v=202611120748"></script>
+  <script src="js/share-image.js?v=202611120748"></script>
+  <script src="js/app.js?v=202611120748"></script>
 </body>
 </html>

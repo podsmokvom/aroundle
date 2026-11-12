@@ -1,0 +1,8 @@
+# Aroundle — koren sajta
+# www.aroundle.com → aroundle.com (jedna adresa za pretraživače). http → https već radi Loopia (nginx, 301).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^www\.aroundle\.com$ [NC]
+  RewriteRule ^ https://aroundle.com%{REQUEST_URI} [R=301,L]
+</IfModule>
+Options -Indexes

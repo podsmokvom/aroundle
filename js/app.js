@@ -49,7 +49,8 @@
   $('openMap').addEventListener('click', openMap);
   $('q').addEventListener('input', () => { if ($('q').value.trim().length >= 2) openMap(); });
   const leadEl = document.querySelector('.lead');
-  if (leadEl) new MutationObserver(() => { leadEl.hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
+  // uvodna rečenica i „Kako radi Aroundle“ samo na početnoj
+  new MutationObserver(() => { if (leadEl) leadEl.hidden = $('pick').hidden; if ($('about')) $('about').hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
   // Rang-liste na početnoj (motivacija): najbolji igrači i najbolje poznati krajevi, poslednja 24 sata ili svih vremena.
   // Vidljive samo dok se bira kraj; bez servera (lokalno) se sakriju.
   let hsAt = 0, hsPeriod = '24h', hsAuto = true;
