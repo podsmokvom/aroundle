@@ -50,26 +50,30 @@
   $('q').addEventListener('input', () => { if ($('q').value.trim().length >= 2) openMap(); });
   const leadEl = document.querySelector('.lead');
   if (leadEl) new MutationObserver(() => { leadEl.hidden = $('pick').hidden; }).observe($('pick'), { attributes: true, attributeFilter: ['hidden'] });
-  // Rang-liste na početnoj (motivacija): najbolji igrači danas u svetu + najbolje poznati krajevi (svih vremena).
+  // Rang-liste na početnoj (motivacija): najbolji igrači i najbolje poznati krajevi, poslednja 24 sata ili svih vremena.
   // Vidljive samo dok se bira kraj; bez servera (lokalno) se sakriju.
-  let hsAt = 0;
-  async function homeStats() {
-    if (Date.now() - hsAt < 60000) return; // najviše jednom u minuti
+  let hsAt = 0, hsPeriod = '24h', hsAuto = true;
+  // zastava iz koda države (rs → 🇷🇸); na Windows računarima se vide slova, na telefonima zastava
+  const flag = (cc) => (/^[a-z]{2}$/i.test(cc || '') ? String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1F1A5 + c.charCodeAt(0))) : '');
+  async function homeStats(force) {
+    if (!force && Date.now() - hsAt < 60000) return; // najviše jednom u minuti
     hsAt = Date.now();
     try {
-      // krajevi: danas (bar 3 igrača), pa nedelja (5), pa svih vremena (10) — prvo što ima nekoga
-      const [players, hd, hw] = await Promise.all([K.lbTop('world', '*', 'day'), K.lbHoods('day'), K.lbHoods('week').catch(() => null)]);
-      let hoods = hd.rows.length ? hd : hw && hw.rows.length ? hw : await K.lbHoods('all').catch(() => hd);
-      if (!hoods.rows.length) hoods = hd; // niko nigde: poruka sa najmanjim pragom („bar 3 igrača“), lakše za motivaciju
+      const [players, hoods] = await Promise.all([K.lbTop('world', '*', hsPeriod), K.lbHoods(hsPeriod)]);
+      // poslednja 24 sata prazna → automatski „svih vremena“ (početna ne sme da bude prazna)
+      if (hsAuto && hsPeriod === '24h' && !players.length) { hsPeriod = 'all'; hsAuto = false; return homeStats(true); }
+      document.querySelectorAll('#hsTabs [data-hp]').forEach((b) => b.classList.toggle('on', b.dataset.hp === hsPeriod));
+      const where = (r) => [r.hood_name, r.city].filter((s, i, a) => s && a.indexOf(s) === i).join(', ');
       $('hsPlayers').innerHTML = players.length ? players.slice(0, 5).map((r) =>
-        `<li><strong>${K.esc(r.name)}</strong> · ${K.unitP(r.points)} · ${r.correct}/${r.total} <span class="muted small">(${K.esc(r.hood_name || r.city || '')})</span></li>`).join('')
+        `<li><span title="${K.esc((r.country || '').toUpperCase())}">${flag(r.country)}</span> <strong>${K.esc(r.name)}</strong> · ${K.unitP(r.points)} · ${r.correct}/${r.total} <span class="muted small">(${K.esc(where(r))})</span></li>`).join('')
         : `<li class="muted">${K.esc(K.t('home.empty'))}</li>`;
       $('hsHoods').innerHTML = hoods.rows.length ? hoods.rows.slice(0, 5).map((r) =>
-        `<li><strong>${K.esc(r.hood_name || r.city)}</strong>${r.city && r.city !== r.hood_name ? ', ' + K.esc(r.city) : ''} · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`).join('')
+        `<li><span title="${K.esc((r.country || '').toUpperCase())}">${flag(r.country)}</span> <strong>${K.esc(where(r))}</strong> · <strong>${r.pct}%</strong> <span class="muted small">${K.esc(K.t('lb.hoodPlayers', { n: r.players }))}</span></li>`).join('')
         : `<li class="muted">${K.esc(K.t('lb.hoodsEmpty', { n: hoods.min }))}</li>`;
       show($('homeStats'), !$('pick').hidden);
     } catch (e) { show($('homeStats'), false); hsAt = 0; }
   }
+  document.querySelectorAll('#hsTabs [data-hp]').forEach((b) => b.addEventListener('click', () => { hsPeriod = b.dataset.hp; hsAuto = false; homeStats(true); }));
   show($('homeStats'), false);
   homeStats();
   new MutationObserver(() => { if ($('pick').hidden) show($('homeStats'), false); else homeStats().then(() => show($('homeStats'), !$('pick').hidden && $('hsPlayers').children.length > 0)); })

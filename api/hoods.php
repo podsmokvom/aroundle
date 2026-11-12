@@ -1,14 +1,15 @@
 <?php
 // GET: krajevi koje ljudi najbolje poznaju — prosek tačnih odgovora po kraju (kraj|grad),
 // samo krajevi sa dovoljno igrača, da jedan srećan igrač ne bi bio „najbolji kraj na svetu“.
-// period=day (danas, bar 3 igrača) | week (7 dana, bar 5) | all (bar 10); opciono scope=city|country|continent + key
+// period=day (danas) | 24h (poslednja 24 sata) — bar 3 igrača | week (7 dana) — bar 5 | all — bar 5; opciono scope=city|country|continent + key
 require __DIR__ . '/db.php';
 $period = $_GET['period'] ?? 'all';
-$MIN = ['day' => 3, 'week' => 5, 'all' => 10];
+$MIN = ['day' => 3, '24h' => 3, 'week' => 5, 'all' => 5]; // ukupno 5 (ranije 10): da lista ne bude prazna dok je sajt nov
 if (!isset($MIN[$period])) out(['error' => 'period'], 400);
 $where = []; $args = [];
 if ($period === 'day') { $where[] = 'day=?'; $args[] = date('Y-m-d'); }
 if ($period === 'week') { $where[] = 'day>=?'; $args[] = date('Y-m-d', strtotime('-6 days')); }
+if ($period === '24h') $where[] = 'created >= NOW() - INTERVAL 24 HOUR';
 $scope = $_GET['scope'] ?? 'world';
 if ($scope === 'city') {
   $key = clean($_GET['key'] ?? '', 80);
