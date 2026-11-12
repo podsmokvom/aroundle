@@ -1,12 +1,21 @@
 <?php
-// GET: najbolje ocenjeni krajevi — prosek ocena lokacije (1–10) iz aroundle_ratings.
+// GET: najbolje ocenjeni krajevi — iz aroundle_ratings (ocene lokacije 1–10).
 // scope=near (krajevi do 1,5 km od lat/lon) | city | country | continent | world (+ key), period=day | 24h | all.
-// Prag: kraj ulazi na listu tek sa dovoljno ocena (day/24h: 3, all: 5), da jedna desetka ne bude „najbolji kraj“.
+// Pošten poredak (pravila Duce, 2026-11-12) — sve konstante ovde:
+//  - PRAG: kraj ulazi na listu tek sa dovoljno ocena (RATED_MIN); svetska lista svih vremena traži i ocene iz bar
+//    RATED_WORLD_DAYS različitih dana (večernji nalet jedne ekipe nije dovoljan).
+//  - POREDAK po bayesovskom proseku: score = (C·m + zbir ocena) / (C + n), m = prosek svih ocena u tom periodu (bez ocena: 7).
+//    Tako mesto sa dvadeset desetki ne stoji iznad mesta sa stotinama osmica. PRIKAZUJE se običan prosek i broj ocena.
+// Jedna ocena po igraču po kraju i odbrana od naleta su u api/rate.php.
 // Ocene nemaju koordinate; za „near“ položaj kraja je prosek ćelija ~1 km iz anonimne analitike (aroundle_answers).
 require __DIR__ . '/db.php';
+const RATED_MIN = ['day' => 8, '24h' => 8, 'all' => 20];
+const RATED_C = 20;            // „težina“ globalnog proseka u bayesovskom proseku
+const RATED_M_DEFAULT = 7.0;   // globalni prosek kad još nema ocena
+const RATED_WORLD_DAYS = 3;    // svetska lista svih vremena: bar toliko različitih dana
 $period = $_GET['period'] ?? 'day';
-$MIN = ['day' => 3, '24h' => 3, 'all' => 5];
-if (!isset($MIN[$period])) out(['error' => 'period'], 400);
+if (!array_key_exists($period, RATED_MIN)) out(['error' => 'period'], 400);
+$MINN = RATED_MIN[$period];
 $scope = $_GET['scope'] ?? 'world';
 $where = []; $args = [];
 if ($period === 'day') { $where[] = 'r.day=?'; $args[] = date('Y-m-d'); }
@@ -42,10 +51,19 @@ if ($scope === 'near') {
   array_push($args, ...$cc);
 } elseif ($scope !== 'world') out(['error' => 'opseg'], 400);
 
-$sql = 'SELECT r.hood, MIN(r.hood_name) AS hood_name, MIN(r.city) AS city, MIN(r.country) AS country, COUNT(*) AS n,
-    ROUND(AVG(r.rating), 1) AS avg, SUM(r.mine) AS mine_n, ROUND(AVG(CASE WHEN r.mine = 1 THEN r.rating END), 1) AS avg_mine
-  FROM aroundle_ratings r' . ($where ? ' WHERE ' . implode(' AND ', $where) : '') . '
-  GROUP BY r.hood HAVING n >= ' . (int)$MIN[$period] . '
-  ORDER BY AVG(r.rating) DESC, n DESC LIMIT 10';
-try { $q = db()->prepare($sql); $q->execute($args); out(['ok' => true, 'min' => $MIN[$period], 'rows' => $q->fetchAll()]); }
-catch (Throwable $e) { out(['ok' => true, 'min' => $MIN[$period], 'rows' => []]); } // tabela još ne postoji: prazna lista
+try {
+  // globalni prosek svih ocena u tom periodu (m) — za bayesovski poredak
+  $pw = $period === 'day' ? 'day = CURDATE()' : ($period === '24h' ? 'created >= NOW() - INTERVAL 24 HOUR' : '1=1');
+  $m = db()->query("SELECT AVG(rating) FROM aroundle_ratings WHERE $pw")->fetchColumn();
+  $m = $m === null || $m === false ? RATED_M_DEFAULT : (float)$m;
+  $score = sprintf('(%d * %.4f + SUM(r.rating)) / (%d + COUNT(*))', RATED_C, $m, RATED_C);
+  $having = 'n >= ' . (int)$MINN . ($scope === 'world' && $period === 'all' ? ' AND days >= ' . (int)RATED_WORLD_DAYS : '');
+  $sql = "SELECT r.hood, MIN(r.hood_name) AS hood_name, MIN(r.city) AS city, MIN(r.country) AS country, COUNT(*) AS n,
+      COUNT(DISTINCT r.day) AS days, ROUND(AVG(r.rating), 1) AS avg, ROUND($score, 2) AS score,
+      SUM(r.mine) AS mine_n, ROUND(AVG(CASE WHEN r.mine = 1 THEN r.rating END), 1) AS avg_mine
+    FROM aroundle_ratings r" . ($where ? ' WHERE ' . implode(' AND ', $where) : '') . "
+    GROUP BY r.hood HAVING $having
+    ORDER BY $score DESC, n DESC LIMIT 10";
+  $q = db()->prepare($sql); $q->execute($args);
+  out(['ok' => true, 'min' => $MINN, 'days' => ($scope === 'world' && $period === 'all') ? RATED_WORLD_DAYS : 0, 'rows' => $q->fetchAll()]);
+} catch (Throwable $e) { out(['ok' => true, 'min' => $MINN, 'rows' => []]); } // tabela još ne postoji: prazna lista
