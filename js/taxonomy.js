@@ -21,7 +21,9 @@
     carpenter: ['komercijala_zanatstvo', 'F43.32'], glazier: ['komercijala_zanatstvo', 'F43.34'],
     car_repair: ['komercijala_zanatstvo', 'G45.20'], tyres: ['komercijala_zanatstvo', 'G45.20'],
     // trgovina na malo (G 47)
-    supermarket: ['komercijala_zanatstvo', 'G47.11'], bakery: ['komercijala_zanatstvo', 'G47.24'], butcher: ['komercijala_zanatstvo', 'G47.22'],
+    supermarket: ['komercijala_zanatstvo', 'G47.11'], greengrocer: ['komercijala_zanatstvo', 'G47.21'], kiosk: ['komercijala_zanatstvo', 'G47.62'],
+    marketplace: ['komercijala_zanatstvo', 'G47.81'], paint: ['komercijala_zanatstvo', 'G47.52'], car_parts: ['komercijala_zanatstvo', 'G45.32'],
+    photo: ['komercijala_zanatstvo', 'M74.20'], bakery: ['komercijala_zanatstvo', 'G47.24'], butcher: ['komercijala_zanatstvo', 'G47.22'],
     health_food: ['komercijala_zanatstvo', 'G47.29'], fuel: ['komercijala_zanatstvo', 'G47.30'], hardware: ['komercijala_zanatstvo', 'G47.52'],
     florist: ['komercijala_zanatstvo', 'G47.76'], jewelry: ['komercijala_zanatstvo', 'G47.77'], optician: ['komercijala_zanatstvo', 'G47.78'],
     pharmacy: ['javne_ustanove', 'G47.73'], // na tabli uz zdravstvo, a šifra je trgovina (KD)
@@ -34,10 +36,11 @@
     vet: ['komercijala_zanatstvo', 'M75.00'],
     // državna uprava (O), obrazovanje (P), zdravstvo (Q)
     townhall: ['javne_ustanove', 'O84.11'], police: ['javne_ustanove', 'O84.24'],
+    post_office: ['javne_ustanove', 'H53.10'], // pošta: na tabli uz javne ustanove, šifra je saobraćaj (KD H 53)
     school: ['javne_ustanove', 'P85.20'], kindergarten: ['javne_ustanove', 'P85.10'],
     hospital: ['javne_ustanove', 'Q86.10'], clinic: ['javne_ustanove', 'Q86.21'], dentist: ['javne_ustanove', 'Q86.23'],
     // kultura, zabava, rekreacija (R; bioskop je J 59.14)
-    cinema: ['kultura_nasledje', 'J59.14'], theatre: ['kultura_nasledje', 'R90.04'], museum: ['kultura_nasledje', 'R91.02'],
+    cinema: ['kultura_nasledje', 'J59.14'], theatre: ['kultura_nasledje', 'R90.04'], museum: ['kultura_nasledje', 'R91.02'], library: ['kultura_nasledje', 'R91.01'],
     monument: ['kultura_nasledje', 'R91.03'], church: ['kultura_nasledje', 'S94.91'],
     gym: ['komercijala_zanatstvo', 'R93.13'], kids_play: ['komercijala_zanatstvo', 'R93.29'],
     park: ['priroda_teren', 'R93.29'], playground: ['priroda_teren', 'R93.29'],
@@ -69,7 +72,8 @@
     const c = CAT[cat] || [null, []];
     const kindKey = q.kind || (KIND[cat] ? cat : null);
     const byKind = kindKey && KIND[kindKey] ? KIND[kindKey] : null;
-    let theme = c[0] || (byKind && byKind[0]) || 'kultura_nasledje';
+    // bez vrste objekta (npr. stari link izazova): pitanja o radnjama → komercijala, ostalo → kultura
+    let theme = c[0] || (byKind && byKind[0]) || (/^svc/.test(cat) ? 'komercijala_zanatstvo' : 'kultura_nasledje');
     let theme2 = null;
     // kombinacija: orijentacija/saobraćaj + tema objekta (npr. „koliko je daleko apoteka“)
     if (c[0] && byKind && byKind[0] !== c[0]) theme2 = byKind[0];
