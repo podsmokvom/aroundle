@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <base href="/"><!-- ista stranica radi i na /en/, /de/… (slike, skripte, api) -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aroundle — How well do you know your neighbourhood? Daily local quiz</title>
   <link rel="icon" href="assets/brand/favicon.ico" sizes="any">
@@ -9,10 +10,21 @@
   <link rel="icon" href="assets/brand/favicon-16.png" type="image/png" sizes="16x16">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <!-- jezičke verzije (tools/make-lang-pages.sh pravi /xx/index.html); x-default = početna, jezik bira sajt -->
+  <link rel="alternate" hreflang="x-default" href="https://aroundle.com/">
+  <link rel="alternate" hreflang="en" href="https://aroundle.com/en/">
+  <link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/">
+  <link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/">
+  <link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/">
+  <link rel="alternate" hreflang="de" href="https://aroundle.com/de/">
+  <link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/">
+  <link rel="alternate" hreflang="es" href="https://aroundle.com/es/">
+  <link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/">
+  <!--LANG-PAGE-->
   <meta name="theme-color" content="#D7262E">
-  <meta name="description" content="Aroundle — koliko poznaješ svoj kraj? 10 pitanja o bilo kom kraju: ulice, škole, radnje, gradski prevoz. Izazovi komšiju! · How well do you know your hood? 10 questions, dare your neighbour!">
+  <meta name="description" content="A free daily quiz about any neighbourhood: 10 questions from open data about the streets, shops, schools, transit, history and nature around you. Dare your neighbour!">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Aroundle — Koliko poznaješ svoj kraj? · How well do you know your hood?">
+  <meta property="og:title" content="Aroundle — How well do you know your neighbourhood?">
   <meta property="og:locale" content="en_US">
   <meta property="og:locale:alternate" content="sr_RS">
   <meta property="og:locale:alternate" content="hr_HR">
@@ -21,7 +33,7 @@
   <meta property="og:locale:alternate" content="es_ES">
   <meta property="og:locale:alternate" content="ru_RU">
   <meta property="og:site_name" content="Aroundle">
-  <meta property="og:description" content="10 pitanja o tvom kraju. Izazovi komšiju! · 10 questions about your hood. Dare your neighbour!">
+  <meta property="og:description" content="A free daily quiz about any neighbourhood: 10 questions from open data about the streets, shops, schools, transit, history and nature around you. Dare your neighbour!">
   <meta property="og:image" content="https://aroundle.com/assets/brand/og-image-1200x630.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -32,7 +44,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css?v=202611120748">
+  <link rel="stylesheet" href="css/style.css?v=202611120808">
   <!-- strukturirani podaci za pretraživače -->
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebApplication","name":"Aroundle","url":"https://aroundle.com/",
@@ -255,26 +267,26 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="js/lang/sr.js?v=202611120748"></script>
-  <script src="js/lang/hr.js?v=202611120748"></script>
-  <script src="js/lang/bs.js?v=202611120748"></script>
-  <script src="js/lang/en.js?v=202611120748"></script>
-  <script src="js/lang/de.js?v=202611120748"></script>
-  <script src="js/lang/fr.js?v=202611120748"></script>
-  <script src="js/lang/es.js?v=202611120748"></script>
-  <script src="js/lang/ru.js?v=202611120748"></script>
-  <script src="js/lang/extras.js?v=202611120748"></script>
-  <script src="js/i18n.js?v=202611120748"></script>
-  <script src="js/util.js?v=202611120748"></script>
-  <script src="js/sources.js?v=202611120748"></script>
-  <script src="js/tiles.js?v=202611120748"></script>
-  <script src="js/overture.js?v=202611120748"></script>
-  <script src="js/taxonomy.js?v=202611120748"></script>
-  <script src="js/questions.js?v=202611120748"></script>
-  <script src="js/build.js?v=202611120748"></script>
-  <script src="js/duel.js?v=202611120748"></script>
-  <script src="js/leaderboard.js?v=202611120748"></script>
-  <script src="js/share-image.js?v=202611120748"></script>
-  <script src="js/app.js?v=202611120748"></script>
+  <script src="js/lang/sr.js?v=202611120808"></script>
+  <script src="js/lang/hr.js?v=202611120808"></script>
+  <script src="js/lang/bs.js?v=202611120808"></script>
+  <script src="js/lang/en.js?v=202611120808"></script>
+  <script src="js/lang/de.js?v=202611120808"></script>
+  <script src="js/lang/fr.js?v=202611120808"></script>
+  <script src="js/lang/es.js?v=202611120808"></script>
+  <script src="js/lang/ru.js?v=202611120808"></script>
+  <script src="js/lang/extras.js?v=202611120808"></script>
+  <script src="js/i18n.js?v=202611120808"></script>
+  <script src="js/util.js?v=202611120808"></script>
+  <script src="js/sources.js?v=202611120808"></script>
+  <script src="js/tiles.js?v=202611120808"></script>
+  <script src="js/overture.js?v=202611120808"></script>
+  <script src="js/taxonomy.js?v=202611120808"></script>
+  <script src="js/questions.js?v=202611120808"></script>
+  <script src="js/build.js?v=202611120808"></script>
+  <script src="js/duel.js?v=202611120808"></script>
+  <script src="js/leaderboard.js?v=202611120808"></script>
+  <script src="js/share-image.js?v=202611120808"></script>
+  <script src="js/app.js?v=202611120808"></script>
 </body>
 </html>

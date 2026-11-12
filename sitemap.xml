@@ -1,9 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://aroundle.com/</loc>
     <lastmod>2026-11-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/en/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/sr/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/hr/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/bs/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/de/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/fr/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/es/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
+  </url>
+  <url>
+    <loc>https://aroundle.com/ru/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aroundle.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aroundle.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/"/>
+    <xhtml:link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/"/>
+    <xhtml:link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://aroundle.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://aroundle.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/"/>
   </url>
 </urlset>

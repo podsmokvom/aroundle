@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <base href="/"><!-- ista stranica radi i na /en/, /de/… (slike, skripte, api) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aroundle — Wie gut kennst du deinen Kiez? Tägliches Viertel-Quiz</title>
+  <link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/brand/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="assets/brand/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <!-- jezičke verzije (tools/make-lang-pages.sh pravi /xx/index.html); x-default = početna, jezik bira sajt -->
+  <link rel="alternate" hreflang="x-default" href="https://aroundle.com/">
+  <link rel="alternate" hreflang="en" href="https://aroundle.com/en/">
+  <link rel="alternate" hreflang="sr" href="https://aroundle.com/sr/">
+  <link rel="alternate" hreflang="hr" href="https://aroundle.com/hr/">
+  <link rel="alternate" hreflang="bs" href="https://aroundle.com/bs/">
+  <link rel="alternate" hreflang="de" href="https://aroundle.com/de/">
+  <link rel="alternate" hreflang="fr" href="https://aroundle.com/fr/">
+  <link rel="alternate" hreflang="es" href="https://aroundle.com/es/">
+  <link rel="alternate" hreflang="ru" href="https://aroundle.com/ru/">
+  <link rel="canonical" href="https://aroundle.com/de/">
+  <meta property="og:url" content="https://aroundle.com/de/">
+  <meta name="theme-color" content="#D7262E">
+  <meta name="description" content="Kostenloses tägliches Quiz zu jedem Viertel: 10 Fragen aus offenen Daten zu Straßen, Geschäften, Schulen, Nahverkehr, Geschichte und Natur um dich herum. Fordere deine Nachbarn heraus!">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Aroundle — Wie gut kennst du deinen Kiez? Tägliches Viertel-Quiz">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale:alternate" content="sr_RS">
+  <meta property="og:locale:alternate" content="hr_HR">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:locale:alternate" content="fr_FR">
+  <meta property="og:locale:alternate" content="es_ES">
+  <meta property="og:locale:alternate" content="ru_RU">
+  <meta property="og:site_name" content="Aroundle">
+  <meta property="og:description" content="Kostenloses tägliches Quiz zu jedem Viertel: 10 Fragen aus offenen Daten zu Straßen, Geschäften, Schulen, Nahverkehr, Geschichte und Natur um dich herum. Fordere deine Nachbarn heraus!">
+  <meta property="og:image" content="https://aroundle.com/assets/brand/og-image-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://aroundle.com/assets/brand/og-image-1200x630.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="css/style.css?v=202611120808">
+  <!-- strukturirani podaci za pretraživače -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"Aroundle","url":"https://aroundle.com/",
+   "description":"A free daily quiz about any neighbourhood: 10 questions from open data about the streets, shops, schools, transit, history and nature within 1 km of your spot.",
+   "applicationCategory":"GameApplication","operatingSystem":"Any (web browser)","isAccessibleForFree":true,
+   "inLanguage":["en","sr","hr","bs","de","fr","es","ru"],"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},
+   "author":{"@type":"Person","name":"Duca","url":"https://x.com/podsmokvom"},"license":"https://opensource.org/licenses/MIT"}
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <a href="./" class="home" data-i18n-aria="nav.home"><img src="assets/brand/aroundle-logo-256.png" srcset="assets/brand/aroundle-logo-256.png 1x, assets/brand/aroundle-logo-512.png 2x" alt="Aroundle" class="logo" width="104" height="104" data-i18n-logo></a>
+      <div>
+        <h1 aria-label="Aroundle"><a href="./" class="home" data-i18n-aria="nav.home"><img class="wordmark" src="assets/brand/aroundle-wordmark-96.png" srcset="assets/brand/aroundle-wordmark-96.png 1x, assets/brand/aroundle-wordmark-192.png 2x" alt="Aroundle" height="64"></a></h1>
+        <p class="tag" data-i18n="brand.tag"></p>
+        <p id="playCount" class="playcount" hidden><span data-i18n="count.label"></span> <span id="playNum" class="cdnum cdwide"></span></p>
+      </div>
+      <label class="langsel"><span class="sr-only" data-i18n="lang.label"></span><select id="langSel" data-i18n-aria="lang.label"></select></label>
+    </div>
+    <p class="lead" data-i18n="brand.lead">Pick your hood (any spot in it, not your home address) and get 10 questions about it.</p>
+  </header>
+
+  <main>
+    <!-- 1. Izbor mesta -->
+    <section id="pick" class="card">
+      <h2 data-i18n="pick.title"></h2>
+      <form id="searchForm" class="row" autocomplete="off">
+        <input id="q" type="search" data-i18n-ph="pick.searchPh" data-i18n-aria="pick.searchAria">
+        <button type="submit" data-i18n="pick.search"></button>
+        <button type="button" id="locate" class="ghost" data-i18n="pick.locate" data-i18n-title="pick.locateTitle"></button>
+      </form>
+      <ul id="results" class="results" hidden></ul>
+      <!-- posle izbora tačke: kraj i dugme za početak iznad mape, da se na telefonu ne skroluje -->
+      <div id="picked" class="picked" hidden>
+        <div class="row picked-top">
+          <div><span class="muted" data-i18n="pick.yourHood"></span> <strong id="pickedName"></strong>
+            <button type="button" id="searchAgain" class="linkish small" data-i18n="pick.change"></button></div>
+          <button id="build" data-i18n="pick.start"></button>
+        </div>
+        <p id="cacheInfo" class="muted small" hidden></p>
+      </div>
+      <!-- mapa je zatvorena dok igrač ne pritisne „Moja lokacija“, ne počne pretragu ili ne otvori mapu -->
+      <button type="button" id="openMap" class="linkish small mapopen" data-i18n="pick.openMap"></button>
+      <div id="mapWrap" hidden>
+        <div id="map" data-i18n-aria="pick.mapAria"></div>
+        <p class="hint" data-i18n-html="pick.hint"></p>
+      </div>
+      <p id="pickedInfo" class="muted small" data-i18n="pick.info" hidden></p>
+    </section>
+
+    <!-- početna: rang-liste da motivišu (danas ceo svet + najbolje poznati krajevi) -->
+    <section id="homeStats" class="card homestats">
+      <h2 data-i18n="home.title"></h2>
+      <div class="tabs" id="hsTabs">
+        <button data-hp="24h" class="on" data-i18n="home.p24"></button>
+        <button data-hp="all" data-i18n="home.pall"></button>
+      </div>
+      <div class="hs-cols">
+        <div>
+          <h3 data-i18n="home.players"></h3>
+          <ol id="hsPlayers" class="hs-list"></ol>
+        </div>
+        <div>
+          <h3 data-i18n="home.hoods"></h3>
+          <ol id="hsHoods" class="hs-list"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- O igri: vidljivo i bez JavaScript-a (pretraživači, pregled linkova); JS prevodi na jezik igrača -->
+    <section id="about" class="card about">
+      <h2 data-i18n="about.title">How Aroundle works</h2>
+      <ol class="about-steps">
+        <li data-i18n="about.s1">Pick your hood: search for a street, park or school, or use your location (never your home address).</li>
+        <li data-i18n="about.s2">Get 10 questions about the 1 km around it, built from open data: streets, schools, shops, public transport, history and nature.</li>
+        <li data-i18n="about.s3">Answer fast for more points, then dare a friend with the same questions and climb the leaderboards.</li>
+      </ol>
+      <details><summary data-i18n="about.q1">Is Aroundle free?</summary><p data-i18n="about.a1">Yes. It is a free, non-commercial, open-source game (MIT licence), without accounts or ads.</p></details>
+      <details><summary data-i18n="about.q2">Where do the questions come from?</summary><p data-i18n="about.a2">From templates over open data — OpenStreetMap, Overture Maps, Wikipedia and Wikidata, GBIF, Transitous and Open-Meteo. No AI writes the questions, and only facts found in the sources are asked.</p></details>
+      <details><summary data-i18n="about.q3">Does it track my location?</summary><p data-i18n="about.a3">No. Your spot is moved 50 m in a random direction before anything is sent to the data sources. There are no accounts; answers are recorded anonymously, without names or exact location.</p></details>
+      <details><summary data-i18n="about.q4">How often can I play?</summary><p data-i18n="about.a4">One quiz per neighbourhood per day — a new one comes tomorrow. You can play as many different neighbourhoods as you like.</p></details>
+    </section>
+<noscript><p class="card">Aroundle needs JavaScript to build your quiz. Please enable it in your browser.</p></noscript>
+
+    <!-- 2. Pravljenje -->
+    <section id="progress" class="card" hidden>
+      <div class="factory" aria-hidden="true">
+        <div class="belt belt-in">
+          <span class="item" style="--d:0">🗺️</span>
+          <span class="item" style="--d:1">🗿</span>
+          <span class="item" style="--d:2">🛣️</span>
+          <span class="item" style="--d:3">🐦</span>
+          <span class="item" style="--d:4">🏫</span>
+          <span class="item" style="--d:5">☕</span>
+          <span class="item" style="--d:6">🦔</span>
+        </div>
+        <div class="machine">
+          <span class="gear g1">⚙️</span>
+          <span class="gear g2">⚙️</span>
+          <span class="lamp l1"></span><span class="lamp l2"></span><span class="lamp l3"></span>
+          <span class="plate">Hmmm?</span>
+        </div>
+        <div class="belt belt-out">
+          <span class="qcard" style="--d:0">?</span>
+          <span class="qcard" style="--d:1">?</span>
+          <span class="qcard" style="--d:2">?</span>
+          <span class="qcard" style="--d:3">?</span>
+          <span class="qcard" style="--d:4">?</span>
+        </div>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+      <ul id="log" class="log" hidden></ul>
+    </section>
+
+    <!-- 3. Kviz -->
+    <section id="quiz" class="card" hidden>
+      <div id="notes" class="notes" hidden></div>
+      <div class="qhead">
+        <span id="qnum" class="muted"></span>
+        <span id="score" class="badge"></span>
+      </div>
+      <p id="qtext" class="qtext"></p>
+      <div id="opts" class="opts"></div>
+      <div id="qmap" class="qmap" hidden></div>
+      <div id="pinBar" class="row" hidden>
+        <span id="pinHint" class="muted small"></span>
+        <button id="pinOk" disabled data-i18n="quiz.pinOk" style="display:none"></button><!-- odgovor = klik na mapu; dugme služi samo kao okidač -->
+      </div>
+      <div id="feedback" class="feedback" hidden></div>
+      <p id="countdown" class="countdown" aria-live="polite" hidden></p>
+      <button id="next" hidden data-i18n="quiz.next"></button>
+    </section>
+
+    <!-- 4. Rezultat -->
+    <section id="result" class="card" hidden>
+      <h2 id="resTitle"></h2>
+      <p id="resPoints" class="respoints"></p>
+      <p id="resText"></p>
+      <div id="duelResult" class="duel" hidden>
+        <p id="cmpLine" class="cmp"></p>
+        <p id="cmpVerdict"></p>
+        <button id="returnBtn" class="big" data-i18n="res.returnBtn"></button>
+      </div>
+      <div class="lb">
+        <h3 data-i18n="lb.title"></h3>
+        <div class="row" id="lbForm">
+          <input id="lbName" type="text" maxlength="24" data-i18n-ph="lb.namePh" data-i18n-aria="lb.namePh">
+          <button id="lbSubmit" data-i18n="lb.submit"></button>
+        </div>
+        <div class="tabs" role="tablist">
+          <button data-scope="near" class="on" data-i18n="lb.near"></button>
+          <button data-scope="city" data-i18n="lb.city"></button>
+          <button data-scope="country" data-i18n="lb.country"></button>
+          <button data-scope="continent" data-i18n="lb.continent"></button>
+          <button data-scope="world" data-i18n="lb.world"></button>
+          <button data-scope="hoods" data-i18n="lb.hoods"></button>
+          <button data-period="all" class="ghost small" data-i18n="lb.allTime"></button>
+        </div>
+        <div class="tabs sub" id="hoodScope" hidden>
+          <button data-hscope="world" class="on small" data-i18n="lb.world"></button>
+          <button data-hscope="continent" class="small" data-i18n="lb.continent"></button>
+          <button data-hscope="country" class="small" data-i18n="lb.country"></button>
+          <button data-hscope="city" class="small" data-i18n="lb.city"></button>
+        </div>
+        <ol id="lbList" class="lblist"></ol>
+        <p id="lbMsg" class="muted small"></p>
+      </div>
+      <div class="share">
+        <h3 data-i18n="share.title"></h3>
+        <p class="muted small" data-i18n="share.info"></p>
+        <div class="row">
+          <input id="myName" type="text" maxlength="24" data-i18n-ph="share.namePh" data-i18n-aria="share.namePh">
+          <button id="makeDuel" data-i18n="share.make"></button>
+        </div>
+        <div id="shareBox" class="sharebox" hidden>
+          <pre id="shareText" class="sharetext"></pre>
+          <div class="social" role="group" data-i18n-aria="share.networks">
+            <a id="shareWa" class="soc" style="--c:#25D366" data-ic="whatsapp" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><i></i></a>
+            <a id="shareViber" class="soc" style="--c:#7360F2" data-ic="viber" target="_blank" rel="noopener" aria-label="Viber" title="Viber"><i></i></a>
+            <button id="shareIg" class="soc ig" data-ic="instagram" aria-label="Instagram" data-i18n-title="share.igTitle"><i></i></button>
+            <a id="shareFb" class="soc" style="--c:#0866FF" data-ic="facebook" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><i></i></a>
+            <a id="shareTg" class="soc" style="--c:#26A5E4" data-ic="telegram" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><i></i></a>
+            <a id="shareX" class="soc" style="--c:#000" data-ic="x" target="_blank" rel="noopener" aria-label="X" title="X"><i></i></a>
+          </div>
+          <div class="row">
+            <button id="shareNative" data-i18n="share.native"></button>
+            <button id="shareCopyText" class="ghost" data-i18n="share.copy"></button>
+          </div>
+          <div class="row cards">
+            <button id="cardStory" class="ghost" data-i18n="share.story"></button>
+            <button id="cardPost" class="ghost" data-i18n="share.post"></button>
+            <button id="cardSquare" class="ghost" data-i18n="share.square"></button>
+          </div>
+          <img id="cardPreview" class="cardpreview" alt="" hidden>
+          <p id="shareMsg" class="muted small"></p>
+        </div>
+      </div>
+      <ol id="review" class="review"></ol>
+      <div class="row">
+        <button id="newPlace" class="ghost" data-i18n="res.newHood"></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="attr">
+    <p><span data-i18n="foot.data"></span>
+      © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL) ·
+      <a href="https://www.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA) · <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0) ·
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0) ·
+      <a href="https://overturemaps.org/" target="_blank" rel="noopener">Overture Maps Foundation</a> (CDLA Permissive 2.0) ·
+      <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> ·
+      <a href="https://transitous.org/sources/" target="_blank" rel="noopener">Transitous</a> (<span data-i18n="foot.timetables"></span>) ·
+      <a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF</a> (<span data-i18n="foot.gbif"></span>)
+    </p>
+    <p class="muted small"><span data-i18n="foot.templates"></span> <span data-i18n="foot.nobet"></span> <span data-i18n="foot.stats"></span></p>
+    <p class="muted small"><span data-i18n="foot.oss"></span> <a href="https://github.com/podsmokvom/aroundle" target="_blank" rel="noopener" data-i18n="foot.code"></a></p>
+    <p class="muted small"><span data-i18n="foot.author"></span> <span data-i18n="foot.contact"></span> <a href="https://x.com/podsmokvom" target="_blank" rel="noopener">@podsmokvom</a></p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="js/lang/sr.js?v=202611120808"></script>
+  <script src="js/lang/hr.js?v=202611120808"></script>
+  <script src="js/lang/bs.js?v=202611120808"></script>
+  <script src="js/lang/en.js?v=202611120808"></script>
+  <script src="js/lang/de.js?v=202611120808"></script>
+  <script src="js/lang/fr.js?v=202611120808"></script>
+  <script src="js/lang/es.js?v=202611120808"></script>
+  <script src="js/lang/ru.js?v=202611120808"></script>
+  <script src="js/lang/extras.js?v=202611120808"></script>
+  <script src="js/i18n.js?v=202611120808"></script>
+  <script src="js/util.js?v=202611120808"></script>
+  <script src="js/sources.js?v=202611120808"></script>
+  <script src="js/tiles.js?v=202611120808"></script>
+  <script src="js/overture.js?v=202611120808"></script>
+  <script src="js/taxonomy.js?v=202611120808"></script>
+  <script src="js/questions.js?v=202611120808"></script>
+  <script src="js/build.js?v=202611120808"></script>
+  <script src="js/duel.js?v=202611120808"></script>
+  <script src="js/leaderboard.js?v=202611120808"></script>
+  <script src="js/share-image.js?v=202611120808"></script>
+  <script src="js/app.js?v=202611120808"></script>
+</body>
+</html>

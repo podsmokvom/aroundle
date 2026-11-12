@@ -5,7 +5,10 @@
   K.LANGS = { sr: 'Srpski', hr: 'Hrvatski', bs: 'Bosanski', en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español', ru: 'Русский' };
 
   K.langManual = false; // true kad je igrač sam izabrao jezik (to se pamti i uvek ima prednost)
+  // jezik iz adrese (/de/, /sr/…) ima prednost: tako se dolazi sa pretraživača i iz podeljenih linkova
+  K.PATH_LANG = (location.pathname.match(/^\/(en|sr|hr|bs|de|fr|es|ru)(\/|$)/) || [])[1] || '';
   function detect() {
+    if (K.PATH_LANG) { K.langManual = true; return K.PATH_LANG; }
     try { const s = localStorage.getItem('kviz:lang'); if (s && K.LANGS[s]) { K.langManual = true; return s; } } catch (e) { /* bez memorije */ }
     const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']);
     const codes = list.map((l) => {
@@ -71,6 +74,12 @@
     root.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = K.t(el.dataset.i18nTitle); });
     root.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', K.t(el.dataset.i18nAria)); });
     document.title = K.t('page.title');
+    // adresa prati jezik: /sr/, /de/… (upit ?d= i #… ostaju), pa i podeljeni linkovi nose jezik; logo vodi na početnu tog jezika
+    if (root === document) {
+      const p = '/' + K.lang + '/';
+      try { if (location.pathname !== p && history.replaceState) history.replaceState(history.state, '', p + location.search + location.hash); } catch (e) { /* npr. file:// */ }
+      document.querySelectorAll('a.home').forEach((a) => a.setAttribute('href', p));
+    }
     // logo sa sloganom na jeziku igrača (assets/brand/i18n, odobrio korisnik 2026-11-11); favicon i ikonice ostaju iste
     root.querySelectorAll('img[data-i18n-logo]').forEach((el) => {
       const L = K.LOGO_LANGS.includes(K.lang) ? K.lang : 'en';
