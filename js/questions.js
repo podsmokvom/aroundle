@@ -5,7 +5,7 @@
 
   // Najviše pitanja po vrsti
   K.CAPS = {
-    street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, stop: 1,
+    street: 2, school: 2, kindergarten: 1, park: 2, monument: 2, graffiti: 1, stop: 1,
     etym: 2, wikiNear: 2, wikiText: 2, wikiYear: 2, birds: 1,
     svcCount: 2, svcMost: 1, svcNear: 1, svcDist: 1, svcHave: 1, svcName: 1, transit: 2, mapPin: 1, elev: 1,
     dir: 1, chain: 1, cuisine: 1, oldest: 1, plants: 1, streetPeople: 1
@@ -70,7 +70,7 @@
   const osmLink = (it) => ({ name: 'OpenStreetMap', url: K.osmUrl(it.osmId, it.lat, it.lon) });
 
   // ---------------- OSM: šta se nalazi u kraju ----------------
-  const OSM_CATS = ['street', 'school', 'kindergarten', 'park', 'monument', 'stop'];
+  const OSM_CATS = ['street', 'school', 'kindergarten', 'park', 'monument', 'graffiti', 'stop'];
 
   function osmQuestions(stage, local, far) {
     const qs = [];
@@ -409,7 +409,7 @@
   // Igrač klikne gde misli da je objekat; poeni po udaljenosti, „tačno“ ako je unutar praga
   K.mapQuestions = function (stage, local, services) {
     const qs = [];
-    const WHAT = { school: 1, kindergarten: 1, park: 1, monument: 1 };
+    const WHAT = { school: 1, kindergarten: 1, park: 1, monument: 1, graffiti: 1 };
     const cands = K.shuffle(local.items.filter((i) => WHAT[i.cat] && i.lat != null && stage.inside(i.lat, i.lon)))
       .map((i) => ({ kind: i.cat, name: i.name, what: K.t('what.' + i.cat), lat: i.lat, lon: i.lon, tol: i.cat === 'park' ? 220 : 150, url: K.osmUrl(i.osmId, i.lat, i.lon) }))
       .concat(K.shuffle((services || []).filter((s) => s.inside && s.name && ['bakery', 'pharmacy', 'florist', 'shoemaker', 'tailor', 'tyres', 'locksmith'].includes(s.kind)))
@@ -459,7 +459,7 @@
       // netačni: suprotan i dva bočna pravca (nikad susedni, da odgovor ne bude sporan)
       const opts = [i, (i + 4) % 8, (i + 2) % 8, (i + 6) % 8].map((k) => K.t('dir.' + DIRS[k]));
       const q = makeQ({
-        cat: 'dir', kind: it.cat, text: K.t('q.dir', { name: it.name }),
+        cat: 'dir', kind: it.cat, text: K.t(it.cat === 'graffiti' ? 'q.dirGraffiti' : 'q.dir', { name: it.name }),
         correct: opts[0], wrongs: opts.slice(1),
         explain: K.t('q.dir.explain', { name: it.name, dir: opts[0], d: meters(d) }),
         source: { name: 'OpenStreetMap', url: K.osmUrl(it.osmId, it.lat, it.lon) }

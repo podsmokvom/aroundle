@@ -41,7 +41,7 @@
     hospital: ['javne_ustanove', 'Q86.10'], clinic: ['javne_ustanove', 'Q86.21'], dentist: ['javne_ustanove', 'Q86.23'],
     // kultura, zabava, rekreacija (R; bioskop je J 59.14)
     cinema: ['kultura_nasledje', 'J59.14'], theatre: ['kultura_nasledje', 'R90.04'], museum: ['kultura_nasledje', 'R91.02'], library: ['kultura_nasledje', 'R91.01'],
-    monument: ['kultura_nasledje', 'R91.03'], church: ['kultura_nasledje', 'S94.91'],
+    monument: ['kultura_nasledje', 'R91.03'], church: ['kultura_nasledje', 'S94.91'], graffiti: ['kultura_nasledje', null], // grafit: nije delatnost
     gym: ['komercijala_zanatstvo', 'R93.13'], kids_play: ['komercijala_zanatstvo', 'R93.29'],
     park: ['priroda_teren', 'R93.29'], playground: ['priroda_teren', 'R93.29'],
     // saobraćaj (H)
@@ -53,7 +53,7 @@
   // tip pitanja → [glavna tema (ili null = po objektu), vrste znanja, KD bez objekta]
   const CAT = {
     street: ['ulice_toponimija', ['imena']],
-    school: [null, ['imena']], kindergarten: [null, ['imena']], park: [null, ['imena']], monument: [null, ['imena']],
+    school: [null, ['imena']], kindergarten: [null, ['imena']], park: [null, ['imena']], monument: [null, ['imena']], graffiti: [null, ['imena']],
     stop: ['saobracaj', ['imena']],
     transit: ['saobracaj', ['linije'], 'H49.31'],
     svcCount: [null, ['brojnost']], svcMost: [null, ['najcesca_vrsta']], svcHave: [null, ['prisustvo']], svcName: [null, ['imena']],

@@ -250,7 +250,9 @@
     if (p.subclass === 'school' && p.class === 'school') return 'school';
     if (p.subclass === 'kindergarten') return 'kindergarten';
     if (p.class === 'park' && p.subclass === 'park') return 'park';
-    if (p.class === 'monument' || p.subclass === 'memorial' || (p.subclass === 'artwork' && p.name)) return 'monument';
+    if (p.class === 'monument' || p.subclass === 'memorial') return 'monument';
+    // umetničko delo: vrsta (spomenik/skulptura ili grafit) se proverava naknadno u OSM-u (K.classifyArtworks), jer je pločice nemaju
+    if (p.subclass === 'artwork' && p.name) return 'artwork';
     if (p.subclass === 'bus_stop' || p.subclass === 'tram_stop') return 'stop';
     return null;
   }
@@ -345,5 +347,52 @@
       if (!best || score < best.score) best = { name: K.nameOf(p), local: K.localName(p), cls: p.class, d, score, lat: f.lat, lon: f.lon };
     }
     return best;
+  };
+})(globalThis.Kviz = globalThis.Kviz || {});
+
+/* ================= Umetnička dela: grafit ili spomenik? =================
+   Pločice za umetničko delo nemaju artwork_type, pa je npr. grafit „The Last of Us Part II“ (Takovska) bio „spomenik“.
+   Zato se vrsta proveri u samom OSM-u preko api/artwork.php: server svaki objekat pita OSM API samo JEDNOM i pamti
+   odgovor u bazi (Overpass je bio prespor). Rezerva (npr. lokalno bez PHP-a): direktan OSM API upit po ID-jevima.
+   Grafit, ulična umetnost i mural → 'graffiti'; ostalo (statua, skulptura, bista…) → 'monument'.
+   Ako provera ne uspe na vreme: umetnička dela se izostavljaju (pravi spomenici ostaju) — grafit se nikad ne zove spomenikom. */
+(function (K) {
+  'use strict';
+  const GRAFFITI = /^(graffiti|graffito|street_art|streetart|mural|urban_art)$/i;
+  const cache = new Map(); // osm tip/id → 'graffiti' | 'monument'
+  const kindOf = (tags) => (GRAFFITI.test(String(tags.artwork_type || '')) || tags.graffiti === 'yes' ? 'graffiti' : 'monument');
+  async function viaApi(need, signal) {
+    const r = await fetch((K.API || 'api/') + 'artwork.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refs: need }), signal });
+    const j = r.ok ? await r.json() : null;
+    if (!j || !j.ok) throw new Error('api');
+    for (const [k, v] of Object.entries(j.types || {})) cache.set(k, v);
+  }
+  async function viaOsm(need, signal) {
+    const by = { node: [], way: [], relation: [] };
+    for (const r of need) { const [t, id] = r.split('/'); by[t].push(id); }
+    await Promise.all(Object.entries(by).filter(([, v]) => v.length).map(async ([t, v]) => {
+      const r = await fetch(`https://api.openstreetmap.org/api/0.6/${t}s.json?${t}s=${v.join(',')}`, { signal });
+      if (!r.ok) return;
+      for (const e of (await r.json()).elements || []) cache.set(`${e.type}/${e.id}`, kindOf(e.tags || {}));
+    }));
+  }
+  K.classifyArtworks = async function (items, timeoutMs = 6000) {
+    const arts = items.filter((it) => it.cat === 'artwork');
+    if (!arts.length) return;
+    const ref = (it) => { const n = Number(it.osmId); const t = { 1: 'node', 2: 'way', 3: 'relation' }[n % 10]; return t && n > 10 ? `${t}/${Math.floor(n / 10)}` : ''; };
+    const need = [...new Set(arts.map(ref).filter((r) => r && !cache.has(r)))].slice(0, 200);
+    if (need.length) {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), timeoutMs);
+      try {
+        try { await viaApi(need, ctl.signal); } catch (e) { if (!ctl.signal.aborted) await viaOsm(need, ctl.signal); }
+      } catch (e) { /* bez odgovora na vreme: ta dela se izostavljaju */ } finally { clearTimeout(timer); }
+    }
+    for (const it of arts) {
+      let c = cache.get(ref(it));
+      if (c === 'monument' && /(^|[^a-zčćšđž])(street ?art|murali?|grafit[ia]?|graffiti)([^a-zčćšđž]|$)/i.test(it.name || '')) c = 'graffiti'; // ime kaže da je ulična umetnost
+      it.cat = c || null;                                   // null = izostavi (provera nije uspela ili objekat više ne postoji)
+      if (c) it.key = it.key.replace(/^artwork\//, c + '/');
+    }
   };
 })(globalThis.Kviz = globalThis.Kviz || {});

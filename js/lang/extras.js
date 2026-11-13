@@ -18,6 +18,13 @@
     'dir.W': C('zapad', 'zapad', 'zapad', 'west', 'Westen', 'ouest', 'oeste', 'запад'),
     'dir.NW': C('severozapad', 'sjeverozapad', 'sjeverozapad', 'northwest', 'Nordwesten', 'nord-ouest', 'noroeste', 'северо-запад'),
 
+    // grafiti (posebno od spomenika; vrsta dela se proverava u OSM-u)
+    'q.graffiti': C('Koji od ovih grafita se nalazi {scope}?', 'Koji se od ovih grafita nalazi {scope}?', 'Koji se od ovih grafita nalazi {scope}?', 'Which of these graffiti is {scope}?',
+      'Welches dieser Graffiti befindet sich {scope}?', 'Lequel de ces graffitis se trouve {scope} ?', '¿Cuál de estos grafitis está {scope}?', 'Какое из этих граффити находится {scope}?'),
+    'what.graffiti': C('grafit', 'grafit', 'grafit', 'graffiti', 'Graffiti', 'graffiti', 'grafiti', 'граффити'),
+    'q.dirGraffiti': C('U kom pravcu od tvoje tačke je grafit „{name}“?', 'U kojem je smjeru od tvoje točke grafit „{name}“?', 'U kojem je pravcu od tvoje tačke grafit „{name}“?',
+      'In which direction from your spot is the graffiti “{name}”?', 'In welcher Richtung von deinem Punkt ist das Graffiti „{name}“?', 'Dans quelle direction se trouve le graffiti « {name} » par rapport à ton point ?',
+      '¿En qué dirección está el grafiti «{name}» desde tu punto?', 'В какой стороне от твоей точки граффити «{name}»?'),
     // udaljenost od mesta koje je igrač obeležio na mapi (tolerancija nepromenjena: granice ±60 m, pomak 50 m)
     'q.svcDist': C('Koliko vazdušnom linijom ima od mesta koje si obeležio na mapi do najbližeg mesta: {one}?',
       'Koliko zračnom linijom ima od mjesta koje si označio na karti do najbližeg mjesta: {one}?',

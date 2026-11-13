@@ -83,6 +83,8 @@
     log('Transitous: linije gradskog prevoza na stanicama u kraju…');
     const [osm, ov, wiki, birdData, transit, plantData] = await Promise.all([
       K.osmFromTiles(lat, lon, stage.loadR, stage.inside, stage.farOk)
+        // umetnička dela: grafit ili spomenik (api/artwork.php, rezerva OSM API, najviše 6 s; ako ne uspe, dela se izostavljaju)
+        .then(async (r) => { await K.classifyArtworks(r.local.items.concat(r.far.items)); r.local.items = r.local.items.filter((i) => i.cat); r.far.items = r.far.items.filter((i) => i.cat); return r; })
         .then((r) => { log(`OpenStreetMap: ${r.local.items.length} objekata i ${r.services.filter((s) => s.inside).length} radnji ${stage.label}.`, 'ok'); return r; })
         .catch((e) => { log(`OpenStreetMap pločice: ${e.message}`, 'warn'); return { local: empty(), far: empty(), services: [] }; }),
       K.overturePlaces(lat, lon, stage.ovR)
