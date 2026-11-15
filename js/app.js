@@ -315,6 +315,7 @@
     show(notes, notes.innerHTML !== '');
     show($('quiz'));
     quizStart = performance.now();
+    if (K.track) K.track('start');
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -476,6 +477,7 @@
 
   function finish() {
     clearInterval(tick);
+    if (K.track) K.track('finish');
     if (qmap) { qmap.remove(); qmap = null; }
     show($('quiz'), false);
     const n = quiz.questions.length;

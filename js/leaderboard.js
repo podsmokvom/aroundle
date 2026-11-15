@@ -72,6 +72,42 @@
     } catch (e) { /* ocena nikad ne sme da pokvari igru */ }
   };
 
+  // ---- Praćenje promocije (anonimno, Duca 15.11.): odakle je igrač došao i da li je već bio ovde ----
+  // Izvor: utm_source/utm_medium/utm_campaign iz adrese (prvi u ovoj poseti), inače sajt sa kog je došao (referrer),
+  // inače izazov (?d= / #d=) ili „direct“. Povratnik: ovaj pregledač je bio ovde nekog ranijeg dana (samo datum u
+  // localStorage, ništa drugo). Na server ide samo +1 u zbirni red (api/track.php): bez IP-a, imena i lokacije.
+  K.trackSource = (function () {
+    const get = (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+    const set = (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* bez skladišta */ } };
+    const saved = get('aroundle.src');
+    if (saved) { try { return JSON.parse(saved); } catch (e) { /* ponovo */ } }
+    const p = new URLSearchParams(location.search);
+    let src = { src: p.get('utm_source') || '', med: p.get('utm_medium') || '', camp: p.get('utm_campaign') || '' };
+    if (!src.src) {
+      let ref = '';
+      try { ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) { ref = ''; }
+      if (ref && ref !== location.hostname.replace(/^www\./, '')) src = { src: ref, med: 'referral', camp: '' };
+      else if (p.get('d') || /[#&]d(uel)?=/.test(location.hash)) src = { src: 'challenge', med: 'share', camp: '' };
+      else src = { src: 'direct', med: '', camp: '' };
+    }
+    set('aroundle.src', JSON.stringify(src));
+    return src;
+  })();
+  K.trackReturning = (function () {
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const first = localStorage.getItem('aroundle.firstDay');
+      if (!first) { localStorage.setItem('aroundle.firstDay', today); return false; }
+      return first !== today;
+    } catch (e) { return false; }
+  })();
+  K.track = function (ev) {
+    try {
+      const body = JSON.stringify({ ev, lang: K.lang, ...K.trackSource, ret: K.trackReturning ? 1 : 0 });
+      fetch(`${K.API}track.php`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    } catch (e) { /* praćenje nikad ne sme da pokvari igru */ }
+  };
+
   // brojač odigranih kvizova (GET ukupno, POST +1 kad se kviz završi)
   K.countGet = async function () {
     const r = await fetch(`${K.API}count.php`);
