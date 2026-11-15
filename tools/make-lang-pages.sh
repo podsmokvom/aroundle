@@ -25,8 +25,8 @@ page sr sr-Latn sr_RS "Aroundle — Koliko poznaješ svoj kraj? Dnevni kviz o kr
   "Besplatan dnevni kviz o bilo kom kraju: 10 pitanja iz otvorenih podataka o ulicama, radnjama, školama, prevozu, istoriji i prirodi oko tebe. Izazovi komšiju!"
 page hr hr hr_HR "Aroundle — Koliko poznaješ svoj kvart? Dnevni kviz o kvartu" \
   "Besplatan dnevni kviz o bilo kojem kvartu: 10 pitanja iz otvorenih podataka o ulicama, trgovinama, školama, prijevozu, povijesti i prirodi oko tebe. Izazovi susjeda!"
-page bs bs bs_BA "Aroundle — Koliko poznaješ svoje naselje? Dnevni kviz o naselju" \
-  "Besplatan dnevni kviz o bilo kojem naselju: 10 pitanja iz otvorenih podataka o ulicama, radnjama, školama, prevozu, historiji i prirodi oko tebe. Izazovi komšiju!"
+page bs bs bs_BA "Aroundle — Koliko poznaješ svoju mahalu? Dnevni kviz o mahali" \
+  "Besplatan dnevni kviz o bilo kojoj mahali: 10 pitanja iz otvorenih podataka o ulicama, radnjama, školama, prevozu, historiji i prirodi oko tebe. Izazovi komšiju!"
 page de de de_DE "Aroundle — Wie gut kennst du deinen Kiez? Tägliches Viertel-Quiz" \
   "Kostenloses tägliches Quiz zu jedem Viertel: 10 Fragen aus offenen Daten zu Straßen, Geschäften, Schulen, Nahverkehr, Geschichte und Natur um dich herum. Fordere deine Nachbarn heraus!"
 page fr fr fr_FR "Aroundle — Connais-tu bien ton quartier ? Le quiz quotidien du quartier" \
