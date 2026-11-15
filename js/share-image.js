@@ -1,5 +1,5 @@
 /* Aroundle — slika rezultata za deljenje (story 1080×1920 i post 1080×1350, 4:5).
-   Izgled: Grok (odobreno 2026-11-11). Logo gore, kraj, datum, rezultat, vreme m:ss, kvadratići, „Izazivam te!“.
+   Izgled odobren 2026-11-11. Logo gore, kraj, datum, rezultat, vreme m:ss, kvadratići, „Izazivam te!“.
    Na story-ju su gornjih i donjih ~250 px prazni (Instagram trake). Nikad adresa ni koordinate.
    K.shareImage({ width, height, hood, date, score, n, timeSec, oks }) → Promise<canvas> */
 (function (K) {

@@ -1,9 +1,9 @@
-/* Aroundle — klasifikacija pitanja za analitiku (odluka korisnika i Groka, 2026-11-12).
+/* Aroundle — klasifikacija pitanja za analitiku (odluka 2026-11-12).
    Svako pitanje dobija tri dimenzije; mogu se kombinovati:
    1) TEMA (7 čitljivih tema za pregled) — glavna + sporedna (npr. „udaljenost do apoteke“ = orijentacija + javne ustanove)
    2) KD 2010 (= EU NACE Rev. 2) šifra delatnosti objekta, sektor + oblast (npr. „G47.73“); null kad pitanje nije o delatnosti
       (ulice, toponimi, teren, orijentacija bez objekta). Napomena: apoteka je KD G (trgovina), verski objekti S 94.91.
-   3) VRSTA ZNANJA (predlog Claude-a): šta pitanje meri — imena, brojnost, udaljenost, pravac, preciznost na mapi,
+   3) VRSTA ZNANJA: šta pitanje meri — imena, brojnost, udaljenost, pravac, preciznost na mapi,
       godine (istorija), godine rođenja (ljudi po kojima su ulice nazvane), opis, prisustvo, najčešća vrsta, brendovi, teren.
    Ništa ovde ne opisuje igrača — samo sadržaj pitanja. */
 (function (K) {

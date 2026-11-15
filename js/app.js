@@ -805,8 +805,8 @@
     const F = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     try { await document.fonts.load('80px Bangers'); } catch (e) { /* bez fonta, rezervni */ }
     const kraj = quiz.place.kraj || K.t('share.myHood');
-    if (h >= w) { // sva tri formata (9:16, 4:5, 1:1) u Grokovom izgledu
-      // Grokov izgled (js/share-image.js) — logo gore, rezultat dole, bez adrese
+    if (h >= w) { // sva tri formata (9:16, 4:5, 1:1) u istom izgledu
+      // izgled iz js/share-image.js — logo gore, rezultat dole, bez adrese
       const hood = [quiz.place.kraj, quiz.place.grad].filter((s, i, a) => s && a.indexOf(s) === i).join(', ') || kraj;
       return K.shareImage({ width: w, height: h, hood, date: new Date(), score: result.score, n: result.n, timeSec: result.time, oks: result.oks });
     } else {
