@@ -497,15 +497,18 @@
       if (q) qs.push(q);
     }
     // 2) najčešća kuhinja u restoranima
+    // picerije se računaju kao italijanska kuhinja (inače „pica 15, italijanska 10“ da odgovor „Pica“, a italijanska je jača)
+    const FAMILY = { pizza: 'italian' };
     const cz = {};
     for (const p of inside) {
       if (!/_restaurant$/.test(p.cat)) continue;
-      const k = p.cat.replace(/_restaurant$/, '');
+      let k = p.cat.replace(/_restaurant$/, '');
+      k = FAMILY[k] || k;
       if (K.CUISINES.includes(k)) cz[k] = (cz[k] || 0) + 1;
     }
     const cl = Object.entries(cz).sort((a, b) => b[1] - a[1]);
     if (cl.length >= 2 && cl[0][1] >= 2 && cl[0][1] > cl[1][1]) {
-      const others = cl.slice(1).map((c) => c[0]).concat(K.shuffle(K.CUISINES.filter((c) => !cz[c])));
+      const others = cl.slice(1).map((c) => c[0]).concat(K.shuffle(K.CUISINES.filter((c) => !cz[c] && !FAMILY[c])));
       const q = makeQ({
         cat: 'cuisine', text: K.t('q.cuisine', { scope: stage.label }),
         correct: cap(K.t('cuisine.' + cl[0][0])), wrongs: others.map((c) => cap(K.t('cuisine.' + c))),
