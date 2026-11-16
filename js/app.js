@@ -99,6 +99,7 @@
 
   // ---------------- Mapa za izbor kraja ----------------
   const map = L.map('map').setView([44.8125, 20.4612], 12);
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>'); // Leaflet 1.9 prefix has a flag; keep the link, drop the flag
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
